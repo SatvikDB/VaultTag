@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mint NFT — VaultTag</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .mint-page { padding-top:90px; padding-bottom:60px; }
+    .mint-layout { display:grid; grid-template-columns:1fr 1fr; gap:40px; align-items:start; }
+    .mint-form-card { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-lg); padding:28px; }
+    .mint-form-card h2 { font-size:1.3rem; margin-bottom:20px; }
+    .preview-card { position:sticky; top:100px; }
+    .preview-card h3 { font-size:1rem; color:var(--text-secondary); margin-bottom:16px; }
+    .preview-shoe {
+      background:var(--bg-secondary); border:1px solid var(--border-primary);
+      border-radius:var(--radius-lg); overflow:hidden; margin-bottom:16px;
+    }
+    .preview-shoe-img { width:100%; height:280px; object-fit:cover; display:none; }
+    .preview-shoe-3d { width:100%; height:280px; }
+    .preview-body { padding:16px; }
+    .preview-name { font-size:1.1rem; font-weight:600; min-height:1.5em; }
+    .preview-serial { font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted); margin-top:4px; }
+    .preview-price { font-size:1.3rem; font-weight:700; color:var(--gold); margin-top:8px; }
+    .preview-meta { display:flex; gap:8px; margin-top:10px; }
+
+    .progress-bar { height:4px; background:var(--border-primary); border-radius:2px; margin:16px 0; overflow:hidden; display:none; }
+    .progress-fill { height:100%; background:var(--accent); border-radius:2px; width:0; transition:width 0.5s; }
+    .progress-text { font-size:0.8rem; color:var(--text-secondary); text-align:center; display:none; }
+
+    .success-modal-content { text-align:center; }
+    .success-token { font-family:var(--font-mono); font-size:2rem; font-weight:700; color:var(--accent); margin:16px 0; }
+
+    /* Link NFC section */
+    .link-section { margin-top:20px; padding-top:20px; border-top:1px solid var(--border-primary); }
+
+    @media(max-width:768px) { .mint-layout { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="navbar scrolled"><div class="container">
+    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
+    <ul class="nav-links">
+      <li><a href="/dashboard.html">Dashboard</a></li>
+      <li><a href="/mint.html" class="active">Mint</a></li>
+      <li><a href="/collection.html">All NFTs</a></li>
+      <li><a href="/verify.html">Verify</a></li>
+    </ul>
+    <div class="nav-actions" id="navActions"></div>
+  </div></nav>
+
+  <section class="mint-page">
+    <div class="container">
+      <h1 style="font-size:1.8rem;margin-bottom:8px">Mint <span class="text-gradient">New NFT</span></h1>
+      <p style="color:var(--text-secondary);margin-bottom:32px">Create a blockchain-verified digital certificate for a physical product</p>
+
+      <div class="mint-layout">
+        <!-- Form -->
+        <div class="mint-form-card">
+          <h2>Product Details</h2>
+          <form id="mintForm" onsubmit="handleMint(event)">
+            <div class="form-group">
+              <label class="form-label">Product Name *</label>
+              <input type="text" class="form-input" id="mName" placeholder="Air Jordan 1 Retro High OG" required oninput="updatePreview()">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="form-group">
+                <label class="form-label">Serial Number *</label>
+                <input type="text" class="form-input" id="mSerial" placeholder="AJ1-OG-001" required oninput="updatePreview()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Category *</label>
+                <select class="form-input form-select" id="mCategory" required oninput="updatePreview()">
+                  <option value="Footwear">Footwear</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Artwork">Artwork</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Electronics">Electronics</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Price (USD) *</label>
+              <input type="number" class="form-input" id="mPrice" placeholder="299" min="0" step="0.01" required oninput="updatePreview()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <textarea class="form-input" id="mDesc" placeholder="Product description..." oninput="updatePreview()"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Image URL</label>
+              <input type="url" class="form-input" id="mImage" placeholder="https://..." oninput="updatePreview()">
+            </div>
+
+            <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText"></div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px" id="mintBtn">
+              🪙 Mint NFT on Polygon
+            </button>
+          </form>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="preview-card">
+          <h3>Live Preview</h3>
+          <div class="preview-shoe" id="previewCard">
+            <div class="preview-shoe-3d" id="preview3D"></div>
+            <img class="preview-shoe-img" id="previewImg" alt="Preview">
+            <div class="preview-body">
+              <div class="preview-name" id="pvName">Product Name</div>
+              <div class="preview-serial" id="pvSerial">Serial Number</div>
+              <div class="preview-price" id="pvPrice">$0.00</div>
+              <div class="preview-meta">
+                <span class="badge badge-active" id="pvCategory">FOOTWEAR</span>
+                <span class="badge badge-gold">NFT</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Success Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal">
+      <div class="success-modal-content">
+        <div style="font-size:3rem;margin-bottom:12px">✅</div>
+        <h2>NFT Minted!</h2>
+        <div class="success-token" id="mintedTokenId">#0</div>
+        <p style="color:var(--text-secondary);font-size:0.9rem" id="mintedTxInfo"></p>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:16px">
+          <button class="btn btn-secondary btn-sm" onclick="copyTokenId()">📋 Copy ID</button>
+          <a id="mintedExplorerLink" href="#" target="_blank" class="btn btn-secondary btn-sm">View on Polygonscan ↗</a>
+        </div>
+
+        <!-- Link NFC Section -->
+        <div class="link-section">
+          <h4 style="margin-bottom:8px">Link NFC Tag</h4>
+          <p style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px">Enter the NFC tag's hardware UID to bind it to this token</p>
+          <div style="display:flex;gap:8px">
+            <input type="text" class="form-input" id="linkNfcUid" placeholder="04:AB:CD:12:34:56:78" style="flex:1">
+            <button class="btn btn-primary btn-sm" onclick="handleLinkNfc()" id="linkNfcBtn">Link</button>
+          </div>
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:12px;justify-content:center">
+          <a href="/dashboard.html" class="btn btn-secondary">Back to Dashboard</a>
+          <button class="btn btn-primary" onclick="resetMintForm()">Mint Another</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/three-setup.js"></script>
+  <script>
+    let mintedTokenId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!Auth.requireAuth() || !Auth.requireAdmin()) return;
+      // Init preview 3D
+      const el = document.getElementById('preview3D');
+      if (el) createShoeViewer(el, { autoRotate: true, rotateSpeed: 0.004, backgroundColor: 0x0A0E27 });
+    });
+
+    function updatePreview() {
+      document.getElementById('pvName').textContent = document.getElementById('mName').value || 'Product Name';
+      document.getElementById('pvSerial').textContent = document.getElementById('mSerial').value || 'Serial Number';
+      document.getElementById('pvPrice').textContent = formatPrice(document.getElementById('mPrice').value || 0);
+      document.getElementById('pvCategory').textContent = (document.getElementById('mCategory').value || 'FOOTWEAR').toUpperCase();
+
+      const imgUrl = document.getElementById('mImage').value;
+      const img = document.getElementById('previewImg');
+      const threeDEl = document.getElementById('preview3D');
+      if (imgUrl) {
+        img.src = imgUrl; img.style.display = 'block';
+        threeDEl.style.display = 'none';
+      } else {
+        img.style.display = 'none';
+        threeDEl.style.display = 'block';
+      }
+    }
+
+    async function handleMint(e) {
+      e.preventDefault();
+      const btn = document.getElementById('mintBtn');
+      const progress = document.getElementById('progressBar');
+      const fill = document.getElementById('progressFill');
+      const text = document.getElementById('progressText');
+
+      btn.disabled = true;
+      progress.style.display = 'block';
+      text.style.display = 'block';
+
+      // Step 1: Uploading to IPFS
+      text.textContent = '📦 Uploading metadata to IPFS...';
+      fill.style.width = '30%';
+      await new Promise(r => setTimeout(r, 800));
+
+      // Step 2: Broadcasting
+      text.textContent = '⛓ Broadcasting to Polygon...';
+      fill.style.width = '60%';
+
+      try {
+        const res = await API.mintNFT({
+          productName: document.getElementById('mName').value,
+          serialNumber: document.getElementById('mSerial').value,
+          category: document.getElementById('mCategory').value,
+          price: Number(document.getElementById('mPrice').value),
+          description: document.getElementById('mDesc').value,
+          imageUrl: document.getElementById('mImage').value
+        });
+
+        // Step 3: Confirmed
+        text.textContent = '✅ Confirmed on blockchain!';
+        fill.style.width = '100%';
+        await new Promise(r => setTimeout(r, 500));
+
+        const nft = res.data.nft;
+        const bc = res.data.blockchain;
+        mintedTokenId = nft.tokenId;
+
+        document.getElementById('mintedTokenId').textContent = `#${mintedTokenId}`;
+        document.getElementById('mintedTxInfo').textContent = bc.txHash ? `Tx: ${truncateId(bc.txHash, 24)}` : 'Saved to database';
+        document.getElementById('mintedExplorerLink').href = bc.explorerUrl || '#';
+        document.getElementById('mintedExplorerLink').style.display = bc.explorerUrl ? '' : 'none';
+
+        document.getElementById('successModal').classList.add('active');
+        Toast.success('NFT minted successfully!');
+      } catch (err) {
+        Toast.error(err.message);
+        text.textContent = '❌ Minting failed';
+        fill.style.background = 'var(--danger)';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🪙 Mint NFT on Polygon';
+      }
+    }
+
+    function copyTokenId() {
+      navigator.clipboard.writeText(String(mintedTokenId));
+      Toast.success('Token ID copied!');
+    }
+
+    async function handleLinkNfc() {
+      const uid = document.getElementById('linkNfcUid').value.trim();
+      if (!uid || !mintedTokenId) { Toast.error('Enter NFC UID'); return; }
+      const btn = document.getElementById('linkNfcBtn');
+      btn.disabled = true; btn.textContent = 'Linking...';
+      try {
+        await API.linkTag(mintedTokenId, uid);
+        Toast.success('NFC tag linked on blockchain!');
+        btn.textContent = '✅ Linked';
+      } catch (e) {
+        Toast.error(e.message);
+        btn.disabled = false; btn.textContent = 'Link';
+      }
+    }
+
+    function resetMintForm() {
+      document.getElementById('mintForm').reset();
+      document.getElementById('successModal').classList.remove('active');
+      document.getElementById('progressBar').style.display = 'none';
+      document.getElementById('progressText').style.display = 'none';
+      document.getElementById('progressFill').style.width = '0';
+      document.getElementById('progressFill').style.background = 'var(--accent)';
+      updatePreview();
+    }
+  </script>
+</body>
+</html>

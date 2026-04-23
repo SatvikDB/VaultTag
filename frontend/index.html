@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VaultTag — Own the Real. Verify the Authentic.</title>
+  <meta name="description" content="VaultTag is a premium NFT marketplace for physical shoes. Verify authenticity with NFC + blockchain technology.">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    /* Landing-specific styles */
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: var(--radius-full);
+      background: var(--accent-dim); border: 1px solid rgba(0,212,170,0.2);
+      font-size: 0.8rem; color: var(--accent); font-weight: 500;
+      margin-bottom: 24px; animation: fadeInUp 0.8s var(--ease-out);
+    }
+    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .hero-text h1 { animation: fadeInUp 0.8s var(--ease-out) 0.1s both; }
+    .hero-text p { animation: fadeInUp 0.8s var(--ease-out) 0.2s both; }
+    .hero-cta { animation: fadeInUp 0.8s var(--ease-out) 0.3s both; }
+    .hero-3d { animation: fadeInUp 0.8s var(--ease-out) 0.4s both; }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-stats {
+      display: flex; gap: 40px; margin-top: 48px;
+      animation: fadeInUp 0.8s var(--ease-out) 0.5s both;
+    }
+    .hero-stat-value { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
+    .hero-stat-label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
+
+    /* How it works */
+    .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px; }
+    .step-card { text-align: center; padding: 32px 20px; }
+    .step-number {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--accent-dim); border: 1px solid rgba(0,212,170,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 700; font-size: 1.2rem;
+      color: var(--accent); margin: 0 auto 16px;
+    }
+    .step-card h3 { font-size: 1rem; margin-bottom: 8px; }
+    .step-card p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+    /* Featured section */
+    .section-header { text-align: center; margin-bottom: 48px; }
+    .section-header h2 { font-size: 2.2rem; margin-bottom: 12px; }
+    .section-header p { color: var(--text-secondary); font-size: 1rem; max-width: 500px; margin: 0 auto; }
+
+    /* CTA section */
+    .cta-section {
+      text-align: center; padding: 80px 0;
+      background: linear-gradient(180deg, transparent, var(--accent-dim), transparent);
+      position: relative;
+    }
+    .cta-section h2 { font-size: 2.5rem; margin-bottom: 16px; }
+    .cta-section p { color: var(--text-secondary); margin-bottom: 32px; font-size: 1.05rem; }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border-primary);
+      padding: 40px 0; text-align: center;
+      color: var(--text-muted); font-size: 0.85rem;
+    }
+    .footer a { color: var(--text-secondary); }
+
+    @media (max-width: 768px) {
+      .steps-grid { grid-template-columns: 1fr 1fr; }
+      .hero-stats { flex-direction: column; gap: 20px; align-items: center; }
+    }
+    @media (max-width: 480px) {
+      .steps-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Particles -->
+  <div class="particles-bg" id="particles"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="/" class="nav-logo">
+        <div class="logo-icon">⬡</div>
+        VaultTag
+      </a>
+      <ul class="nav-links">
+        <li><a href="/" class="active">Home</a></li>
+        <li><a href="/collection.html">Collection</a></li>
+        <li><a href="/verify.html">Verify</a></li>
+      </ul>
+      <div class="nav-actions" id="navActions">
+        <a href="/login.html" class="btn btn-sm btn-secondary">Login</a>
+        <a href="/login.html#register" class="btn btn-sm btn-primary">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-text">
+          <div class="hero-badge">
+            <span class="dot"></span>
+            Powered by Polygon Blockchain
+          </div>
+          <h1>Own the Real.<br><span class="text-gradient">Verify the Authentic.</span></h1>
+          <p>VaultTag bridges physical sneakers with blockchain-verified NFTs. Every pair is authenticated, every transfer is traced, every fake is exposed.</p>
+          <div class="hero-cta">
+            <a href="/collection.html" class="btn btn-primary btn-lg">Explore Collection</a>
+            <a href="/verify.html" class="btn btn-secondary btn-lg">Verify a Product</a>
+          </div>
+          <div class="hero-stats">
+            <div>
+              <div class="hero-stat-value text-gradient" id="statNfts">0</div>
+              <div class="hero-stat-label">NFTs Minted</div>
+            </div>
+            <div>
+              <div class="hero-stat-value" style="color:var(--gold)" id="statVerified">0</div>
+              <div class="hero-stat-label">Products Verified</div>
+            </div>
+            <div>
+              <div class="hero-stat-value" id="statChain">Polygon</div>
+              <div class="hero-stat-label">Blockchain Network</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-3d">
+          <div class="hero-glow"></div>
+          <div class="three-viewer" id="heroViewer" style="width:100%;aspect-ratio:1;max-width:520px;margin:0 auto;"></div>
+          <div class="viewer-hint">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 15l-2 5L9 9l11 4-5 2z"/></svg>
+            Drag to rotate • Scroll to zoom
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section" id="howItWorks">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <h2>How <span class="text-gradient">VaultTag</span> Works</h2>
+        <p>Four steps from physical product to blockchain-verified digital asset</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card card animate-on-scroll">
+          <div class="step-number">1</div>
+          <h3>Mint NFT</h3>
+          <p>Admin creates an on-chain NFT certificate for each product with metadata stored on IPFS.</p>
+        </div>
+        <div class="step-card card animate-on-scroll">
+          <div class="step-number">2</div>
+          <h3>Tag Product</h3>
+          <p>An NFC sticker with the token ID is attached to the shoe. Its hardware UID is bound on-chain.</p>
+        </div>
+        <div class="step-card card animate-on-scroll">
+          <div class="step-number">3</div>
+          <h3>Scan & Verify</h3>
+          <p>Anyone can tap their phone to the NFC tag or enter the token ID online. Blockchain confirms authenticity.</p>
+        </div>
+        <div class="step-card card animate-on-scroll">
+          <div class="step-number">4</div>
+          <h3>Own & Redeem</h3>
+          <p>Verified owners can redeem their NFT — a permanent, one-time action recorded on the blockchain.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products -->
+  <section class="section" id="featured" style="background:var(--bg-secondary)">
+    <div class="container">
+      <div class="section-header animate-on-scroll">
+        <h2>Featured <span class="text-gradient">Drops</span></h2>
+        <p>Premium authenticated sneakers with blockchain-verified provenance</p>
+      </div>
+      <div class="product-grid" id="featuredGrid">
+        <!-- Populated by JS -->
+        <div class="skeleton" style="height:400px;border-radius:var(--radius-lg)"></div>
+        <div class="skeleton" style="height:400px;border-radius:var(--radius-lg)"></div>
+        <div class="skeleton" style="height:400px;border-radius:var(--radius-lg)"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container animate-on-scroll">
+      <h2>Ready to <span class="text-gradient">Verify</span>?</h2>
+      <p>Check any product's authenticity instantly — no account needed.</p>
+      <a href="/verify.html" class="btn btn-primary btn-lg">Verify a Product Now</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 VaultTag — NFT Marketplace for Physical Goods</p>
+      <p style="margin-top:8px"><a href="https://amoy.polygonscan.com" target="_blank">Polygon Amoy Testnet</a> • Built with ♥ and blockchain</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/three-setup.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Init particles
+      initParticles(document.getElementById('particles'));
+
+      // Init 3D hero viewer
+      const heroContainer = document.getElementById('heroViewer');
+      if (heroContainer) {
+        createShoeViewer(heroContainer, {
+          autoRotate: true,
+          rotateSpeed: 0.003,
+          shoeColor: 0xE8E8ED,
+          shoeAccent: 0xE24B4A
+        });
+      }
+
+      // Load featured products
+      loadFeatured();
+
+      // Animate stats (demo values)
+      animateCounter('statNfts', 47);
+      animateCounter('statVerified', 183);
+    });
+
+    async function loadFeatured() {
+      const grid = document.getElementById('featuredGrid');
+      try {
+        const res = await fetch('/api/nft/all?limit=6', {
+          headers: Auth.getToken() ? { 'Authorization': `Bearer ${Auth.getToken()}` } : {}
+        });
+
+        let nfts = [];
+        if (res.ok) {
+          const data = await res.json();
+          nfts = data.data?.nfts || [];
+        }
+
+        if (nfts.length === 0) {
+          // Show demo cards
+          nfts = [
+            { tokenId: 1, productName: 'Air Jordan 1 Retro High OG', price: 299, category: 'Footwear', status: 'active', imageUrl: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600' },
+            { tokenId: 2, productName: 'Nike Dunk Low Panda', price: 180, category: 'Footwear', status: 'active', imageUrl: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=600' },
+            { tokenId: 3, productName: 'Yeezy Boost 350 V2', price: 450, category: 'Footwear', status: 'active', imageUrl: 'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=600' }
+          ];
+        }
+
+        grid.innerHTML = nfts.map(nft => `
+          <div class="product-card" onclick="window.location.href='/product.html?id=${nft.tokenId}'">
+            <div class="product-card-image">
+              <img src="${nft.imageUrl || 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600'}" alt="${nft.productName}" loading="lazy">
+            </div>
+            <div class="product-card-body">
+              <div class="product-card-name">${nft.productName}</div>
+              <div class="product-card-meta">
+                <span class="product-card-price">${formatPrice(nft.price)}</span>
+                <span class="badge badge-${nft.status}">${nft.status.toUpperCase()}</span>
+              </div>
+              <div style="margin-top:10px;font-size:0.75rem;color:var(--text-muted)">
+                Token #${nft.tokenId} • ${nft.category}
+              </div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        grid.innerHTML = '<p style="color:var(--text-secondary);text-align:center;grid-column:1/-1">Unable to load products. Start the backend server.</p>';
+      }
+    }
+
+    function animateCounter(id, target) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      let current = 0;
+      const step = target / 40;
+      const interval = setInterval(() => {
+        current += step;
+        if (current >= target) { current = target; clearInterval(interval); }
+        el.textContent = Math.round(current);
+      }, 40);
+    }
+  </script>
+</body>
+</html>

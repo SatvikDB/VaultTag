@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collection — VaultTag</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .collection-page { padding-top:90px; padding-bottom:60px; }
+    .filter-bar { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; align-items:center; }
+    .filter-bar .form-input { max-width:300px; }
+    .filter-bar select { max-width:160px; }
+    .pagination { display:flex; gap:8px; justify-content:center; margin-top:32px; }
+    .page-btn {
+      padding:8px 14px; border-radius:var(--radius-sm); border:1px solid var(--border-primary);
+      background:var(--bg-surface); color:var(--text-primary); cursor:pointer; font-size:0.85rem;
+    }
+    .page-btn.active { background:var(--accent); color:var(--bg-primary); border-color:var(--accent); }
+    .page-btn:disabled { opacity:0.4; cursor:not-allowed; }
+    .empty-state { text-align:center; padding:80px 20px; }
+    .empty-state h3 { font-size:1.3rem; margin-bottom:8px; }
+    .empty-state p { color:var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <nav class="navbar scrolled"><div class="container">
+    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/collection.html" class="active">Collection</a></li>
+      <li><a href="/verify.html">Verify</a></li>
+    </ul>
+    <div class="nav-actions" id="navActions"></div>
+  </div></nav>
+
+  <section class="collection-page">
+    <div class="container">
+      <h1 style="font-size:1.8rem;margin-bottom:8px">NFT <span class="text-gradient">Collection</span></h1>
+      <p style="color:var(--text-secondary);margin-bottom:24px">Browse all authenticated products</p>
+
+      <div class="filter-bar">
+        <input type="text" class="form-input" id="searchInput" placeholder="Search by name or ID..." oninput="debounceLoad()">
+        <select class="form-input form-select" id="statusFilter" onchange="loadCollection()">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="redeemed">Redeemed</option>
+        </select>
+        <select class="form-input form-select" id="categoryFilter" onchange="loadCollection()">
+          <option value="">All Categories</option>
+          <option value="Footwear">Footwear</option>
+          <option value="Clothing">Clothing</option>
+          <option value="Artwork">Artwork</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Electronics">Electronics</option>
+        </select>
+      </div>
+
+      <div class="product-grid" id="collectionGrid">
+        <div class="skeleton" style="height:380px;border-radius:var(--radius-lg)"></div>
+        <div class="skeleton" style="height:380px;border-radius:var(--radius-lg)"></div>
+        <div class="skeleton" style="height:380px;border-radius:var(--radius-lg)"></div>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let currentPage = 1;
+    let debounceTimer;
+
+    document.addEventListener('DOMContentLoaded', loadCollection);
+
+    function debounceLoad() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(loadCollection, 300);
+    }
+
+    async function loadCollection(page = 1) {
+      currentPage = page;
+      const grid = document.getElementById('collectionGrid');
+      const search = document.getElementById('searchInput').value.trim();
+      const status = document.getElementById('statusFilter').value;
+      const category = document.getElementById('categoryFilter').value;
+
+      const params = new URLSearchParams({ page, limit: 12 });
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+      if (category) params.set('category', category);
+
+      try {
+        let nfts = [], pagination = {};
+
+        if (Auth.isLoggedIn() && Auth.isAdmin()) {
+          const res = await API.getAllNfts(params.toString());
+          nfts = res.data.nfts;
+          pagination = res.data.pagination;
+        } else {
+          // Public — use verify or show demo data
+          nfts = [
+            { tokenId:1, productName:'Air Jordan 1 Retro High OG', price:299, category:'Footwear', status:'active', imageUrl:'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600' },
+            { tokenId:2, productName:'Nike Dunk Low Panda', price:180, category:'Footwear', status:'active', imageUrl:'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=600' },
+            { tokenId:3, productName:'Yeezy Boost 350 V2', price:450, category:'Footwear', status:'active', imageUrl:'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=600' }
+          ];
+        }
+
+        if (nfts.length === 0) {
+          grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>No products found</h3><p>Try adjusting your filters</p></div>';
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+
+        grid.innerHTML = nfts.map(n => `
+          <div class="product-card" onclick="window.location.href='/product.html?id=${n.tokenId}'">
+            <div class="product-card-image">
+              <img src="${n.imageUrl || 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600'}" alt="${n.productName}" loading="lazy">
+            </div>
+            <div class="product-card-body">
+              <div class="product-card-name">${n.productName}</div>
+              <div class="product-card-meta">
+                <span class="product-card-price">${formatPrice(n.price)}</span>
+                <span class="badge badge-${n.status}">${n.status.toUpperCase()}</span>
+              </div>
+              <div style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)">Token #${n.tokenId} • ${n.category}</div>
+            </div>
+          </div>
+        `).join('');
+
+        // Pagination
+        if (pagination.pages > 1) {
+          let html = '';
+          for (let i = 1; i <= pagination.pages; i++) {
+            html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="loadCollection(${i})">${i}</button>`;
+          }
+          document.getElementById('pagination').innerHTML = html;
+        } else {
+          document.getElementById('pagination').innerHTML = '';
+        }
+      } catch (e) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>Error loading</h3><p>'+e.message+'</p></div>';
+      }
+    }
+  </script>
+</body>
+</html>

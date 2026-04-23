@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — VaultTag</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .dash-page { padding-top:90px; }
+    .dash-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; flex-wrap:wrap; gap:16px; }
+    .dash-header h1 { font-size:1.8rem; }
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+    .quick-actions { display:flex; gap:12px; margin-bottom:32px; flex-wrap:wrap; }
+    .nft-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+    .nft-table th { text-align:left; padding:12px 16px; color:var(--text-secondary); font-weight:500; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--border-primary); }
+    .nft-table td { padding:12px 16px; border-bottom:1px solid var(--border-subtle); vertical-align:middle; }
+    .nft-table tr:hover td { background:var(--bg-surface-hover); }
+    .nft-table .img-cell { width:40px; height:40px; border-radius:var(--radius-sm); object-fit:cover; }
+    .table-wrap { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-lg); overflow:hidden; }
+    .table-header { padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-primary); }
+    .table-header h3 { font-size:1rem; }
+    @media(max-width:768px) { .stats-row { grid-template-columns:1fr 1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="navbar scrolled"><div class="container">
+    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
+    <ul class="nav-links">
+      <li><a href="/dashboard.html" class="active">Dashboard</a></li>
+      <li><a href="/mint.html">Mint</a></li>
+      <li><a href="/collection.html">All NFTs</a></li>
+      <li><a href="/verify.html">Verify</a></li>
+    </ul>
+    <div class="nav-actions" id="navActions"></div>
+  </div></nav>
+
+  <section class="dash-page">
+    <div class="container">
+      <div class="dash-header">
+        <div>
+          <h1>Admin <span class="text-gradient">Dashboard</span></h1>
+          <p style="color:var(--text-secondary);font-size:0.9rem">Manage your NFT marketplace</p>
+        </div>
+        <a href="/mint.html" class="btn btn-primary">+ Mint New NFT</a>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row" id="statsRow">
+        <div class="stats-card"><div class="stats-label">Total NFTs</div><div class="stats-value" id="sTotalNfts">—</div></div>
+        <div class="stats-card"><div class="stats-label">Active</div><div class="stats-value" id="sActive" style="color:var(--success)">—</div></div>
+        <div class="stats-card"><div class="stats-label">Redeemed</div><div class="stats-value" id="sRedeemed" style="color:var(--danger)">—</div></div>
+        <div class="stats-card"><div class="stats-label">Total Users</div><div class="stats-value" id="sUsers" style="color:var(--info)">—</div></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <a href="/mint.html" class="btn btn-secondary btn-sm">🪙 Mint NFT</a>
+        <a href="/admin-nfts.html" class="btn btn-secondary btn-sm">📦 View All NFTs</a>
+        <a href="/verify.html" class="btn btn-secondary btn-sm">🔍 Verify Product</a>
+      </div>
+
+      <!-- Recent NFTs Table -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Recent NFTs</h3>
+          <a href="/admin-nfts.html" style="font-size:0.85rem">View All →</a>
+        </div>
+        <table class="nft-table">
+          <thead><tr>
+            <th></th><th>Product</th><th>Token</th><th>Category</th><th>Owner</th><th>Status</th><th>NFC</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="recentTable">
+            <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary)"><div class="spinner" style="margin:0 auto 12px"></div>Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!Auth.requireAuth() || !Auth.requireAdmin()) return;
+      loadDashboard();
+    });
+
+    async function loadDashboard() {
+      try {
+        // Load stats
+        const statsRes = await API.getStats();
+        const s = statsRes.data;
+        document.getElementById('sTotalNfts').textContent = s.totalNFTs;
+        document.getElementById('sActive').textContent = s.activeNFTs;
+        document.getElementById('sRedeemed').textContent = s.redeemedNFTs;
+        document.getElementById('sUsers').textContent = s.totalUsers;
+
+        // Load recent NFTs
+        const nftsRes = await API.getAllNfts('limit=8');
+        const nfts = nftsRes.data.nfts;
+        const tbody = document.getElementById('recentTable');
+
+        if (nfts.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary)">No NFTs minted yet. <a href="/mint.html">Mint your first NFT</a></td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = nfts.map(n => `
+          <tr>
+            <td>${n.imageUrl ? `<img src="${n.imageUrl}" class="img-cell" alt="">` : '<div class="img-cell" style="background:var(--bg-secondary)"></div>'}</td>
+            <td><strong>${n.productName}</strong></td>
+            <td><span class="text-mono">#${n.tokenId || '—'}</span></td>
+            <td>${n.category}</td>
+            <td>${n.owner ? maskEmail(n.owner) : '—'}</td>
+            <td><span class="badge badge-${n.status}">${n.status.toUpperCase()}</span></td>
+            <td>${n.nfcUid ? '✅' : '—'}</td>
+            <td><a href="/product.html?id=${n.tokenId}" class="btn btn-sm btn-secondary" style="padding:4px 10px;font-size:0.75rem">View</a></td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        Toast.error(e.message);
+      }
+    }
+  </script>
+</body>
+</html>

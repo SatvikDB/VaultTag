@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Detail — VaultTag</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .product-page { padding-top:100px; padding-bottom:60px; }
+    .product-layout { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start; }
+    .product-viewer { position:sticky; top:100px; }
+    .product-image-wrap {
+      width:100%; aspect-ratio:1; border-radius:var(--radius-xl); overflow:hidden;
+      background:var(--bg-secondary); border:1px solid var(--border-primary);
+    }
+    .product-image-wrap img { width:100%; height:100%; object-fit:cover; }
+
+    .product-info h1 { font-size:2rem; margin-bottom:8px; }
+    .product-meta { display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
+    .product-price { font-size:1.8rem; font-weight:700; color:var(--gold); font-family:var(--font-display); margin-bottom:24px; }
+    .product-desc { color:var(--text-secondary); line-height:1.7; margin-bottom:32px; }
+
+    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:32px; }
+    .info-item {
+      background:var(--bg-surface); border:1px solid var(--border-primary);
+      border-radius:var(--radius-md); padding:14px 16px;
+    }
+    .info-item .label { font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
+    .info-item .value { font-weight:600; font-size:0.9rem; }
+
+    .timeline { margin-top:32px; }
+    .timeline h3 { font-size:1.1rem; margin-bottom:16px; }
+    .timeline-item {
+      display:flex; gap:16px; padding:12px 0;
+      border-left:2px solid var(--border-primary); margin-left:8px; padding-left:20px; position:relative;
+    }
+    .timeline-item::before {
+      content:''; position:absolute; left:-6px; top:16px;
+      width:10px; height:10px; border-radius:50%; background:var(--accent); border:2px solid var(--bg-primary);
+    }
+    .timeline-item:last-child { border-left-color:transparent; }
+    .timeline-from-to { font-size:0.85rem; }
+    .timeline-date { font-size:0.75rem; color:var(--text-muted); margin-top:2px; }
+    .timeline-tx { font-size:0.7rem; font-family:var(--font-mono); color:var(--text-muted); margin-top:2px; }
+
+    .action-buttons { display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; }
+
+    @media(max-width:768px) {
+      .product-layout { grid-template-columns:1fr; }
+      .product-viewer { position:static; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar scrolled"><div class="container">
+    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/collection.html">Collection</a></li>
+      <li><a href="/verify.html">Verify</a></li>
+    </ul>
+    <div class="nav-actions" id="navActions"></div>
+  </div></nav>
+
+  <section class="product-page">
+    <div class="container">
+      <div id="productContent">
+        <div style="text-align:center;padding:100px 0">
+          <div class="spinner" style="margin:0 auto"></div>
+          <p style="color:var(--text-secondary);margin-top:16px">Loading product...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Redeem Modal -->
+  <div class="modal-overlay" id="redeemModal">
+    <div class="modal">
+      <h3 style="margin-bottom:8px;color:var(--danger)">⚠ Confirm Redemption</h3>
+      <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9rem">
+        This action is <strong>permanent and irreversible</strong>. The token will be marked as redeemed on the Polygon blockchain forever. No admin can undo this.
+      </p>
+      <div style="display:flex;gap:12px">
+        <button class="btn btn-secondary" style="flex:1" onclick="closeModal('redeemModal')">Cancel</button>
+        <button class="btn btn-danger" style="flex:1" id="confirmRedeemBtn" onclick="confirmRedeem()">Redeem Forever</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transfer Modal -->
+  <div class="modal-overlay" id="transferModal">
+    <div class="modal">
+      <h3 style="margin-bottom:8px">Transfer Ownership</h3>
+      <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9rem">Enter the email of the new owner. They must have a VaultTag account.</p>
+      <div class="form-group">
+        <input type="email" class="form-input" id="transferEmail" placeholder="buyer@email.com">
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn btn-secondary" style="flex:1" onclick="closeModal('transferModal')">Cancel</button>
+        <button class="btn btn-primary" style="flex:1" id="confirmTransferBtn" onclick="confirmTransfer()">Transfer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/three-setup.js"></script>
+  <script>
+    let currentNft = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const tokenId = params.get('id');
+      if (!tokenId) { window.location.href = '/collection.html'; return; }
+      loadProduct(tokenId);
+    });
+
+    async function loadProduct(tokenId) {
+      const container = document.getElementById('productContent');
+      try {
+        // Try authenticated first, fall back to verify endpoint
+        let nft, chainData;
+        if (Auth.isLoggedIn()) {
+          try {
+            const res = await API.getNftDetail(tokenId);
+            nft = res.data.nft; chainData = res.data.chainData;
+          } catch(e) {
+            const res = await API.verify(tokenId);
+            nft = res.data; nft.tokenId = tokenId;
+          }
+        } else {
+          const res = await API.verify(tokenId);
+          if (res.data.status === 'fake') {
+            container.innerHTML = '<div style="text-align:center;padding:100px 0"><h2 style="color:var(--danger)">Product Not Found</h2><p style="color:var(--text-secondary);margin-top:8px">Token #'+tokenId+' does not exist.</p><a href="/" class="btn btn-primary" style="margin-top:20px">Go Home</a></div>';
+            return;
+          }
+          nft = res.data; nft.productName = nft.product; nft.tokenId = tokenId;
+        }
+        currentNft = nft;
+        document.title = `${nft.productName} — VaultTag`;
+
+        const user = Auth.getUser();
+        const isOwner = user && nft.owner && (user.email === nft.owner || user.email === nft.owner.replace(/\*+/g, ''));
+        const isAdmin = Auth.isAdmin();
+        const canRedeem = isOwner && !nft.redeemed && nft.status !== 'redeemed';
+        const canTransfer = (isOwner || isAdmin) && !nft.redeemed;
+
+        container.innerHTML = `
+          <div class="product-layout">
+            <div class="product-viewer">
+              <div class="product-image-wrap">
+                ${nft.imageUrl
+                  ? `<img src="${nft.imageUrl}" alt="${nft.productName}" id="productImg">`
+                  : '<div id="product3D" style="width:100%;height:100%"></div>'}
+              </div>
+              <div class="viewer-hint" style="position:static;margin-top:12px;justify-content:center">
+                ${nft.ipfsUri ? `<a href="https://${(nft.ipfsCid || nft.ipfsUri?.replace('ipfs://',''))}/" target="_blank" style="font-size:0.75rem;color:var(--text-muted)">View IPFS Metadata ↗</a>` : ''}
+              </div>
+            </div>
+            <div class="product-info">
+              <div class="product-meta">
+                <span class="badge badge-${nft.status || (nft.redeemed ? 'redeemed' : 'active')}">${(nft.status || (nft.redeemed ? 'redeemed' : 'active')).toUpperCase()}</span>
+                <span class="badge badge-gold">${nft.category || 'Footwear'}</span>
+                ${chainData ? '<span class="badge badge-active">⛓ On-Chain</span>' : ''}
+              </div>
+              <h1>${nft.productName}</h1>
+              <div class="product-price">${formatPrice(nft.price)}</div>
+              <p class="product-desc">${nft.description || 'Premium authenticated product with blockchain-verified provenance.'}</p>
+
+              <div class="info-grid">
+                <div class="info-item"><div class="label">Token ID</div><div class="value text-mono">#${nft.tokenId}</div></div>
+                <div class="info-item"><div class="label">Serial Number</div><div class="value text-mono">${nft.serialNumber || '—'}</div></div>
+                <div class="info-item"><div class="label">Owner</div><div class="value">${nft.owner ? (typeof nft.owner === 'string' && nft.owner.includes('@') ? maskEmail(nft.owner) : nft.owner) : '—'}</div></div>
+                <div class="info-item"><div class="label">NFC Tag</div><div class="value">${nft.nfcUid ? '✅ Linked' : '⏳ Not linked'}</div></div>
+                <div class="info-item"><div class="label">Minted By</div><div class="value">${nft.mintedBy || '—'}</div></div>
+                <div class="info-item"><div class="label">Contract</div><div class="value text-mono">${nft.contractAddress ? truncateId(nft.contractAddress, 10) : '—'}</div></div>
+              </div>
+
+              ${nft.txHash ? `<a href="https://amoy.polygonscan.com/tx/${nft.txHash}" target="_blank" class="btn btn-secondary btn-sm" style="margin-bottom:16px">View on Polygonscan ↗</a>` : ''}
+
+              <div class="action-buttons">
+                ${canRedeem ? '<button class="btn btn-danger" onclick="openModal(\'redeemModal\')">🔒 Redeem Product</button>' : ''}
+                ${canTransfer ? '<button class="btn btn-secondary" onclick="openModal(\'transferModal\')">↗ Transfer</button>' : ''}
+                <a href="/verify.html?id=${nft.tokenId}" class="btn btn-secondary btn-sm">🔍 Verify</a>
+              </div>
+
+              ${nft.transferHistory && nft.transferHistory.length > 0 ? `
+                <div class="timeline">
+                  <h3>Provenance Timeline</h3>
+                  ${nft.transferHistory.map(t => `
+                    <div class="timeline-item">
+                      <div>
+                        <div class="timeline-from-to">${t.from} → ${t.to}</div>
+                        <div class="timeline-date">${formatDate(t.at)}</div>
+                        ${t.txHash ? `<div class="timeline-tx"><a href="https://amoy.polygonscan.com/tx/${t.txHash}" target="_blank" style="color:var(--accent)">${truncateId(t.txHash, 20)} ↗</a></div>` : ''}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+            </div>
+          </div>`;
+
+        // Init 3D viewer if no image
+        if (!nft.imageUrl) {
+          const el = document.getElementById('product3D');
+          if (el) createShoeViewer(el, { autoRotate: true, rotateSpeed: 0.003 });
+        }
+      } catch (e) {
+        container.innerHTML = `<div style="text-align:center;padding:100px 0"><h2>Error Loading Product</h2><p style="color:var(--text-secondary);margin-top:8px">${e.message}</p></div>`;
+      }
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add('active'); }
+    function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    async function confirmRedeem() {
+      if (!currentNft) return;
+      const btn = document.getElementById('confirmRedeemBtn');
+      btn.disabled = true; btn.textContent = 'Redeeming...';
+      try {
+        await API.redeem(currentNft.tokenId);
+        Toast.success('NFT redeemed on blockchain!');
+        closeModal('redeemModal');
+        loadProduct(currentNft.tokenId);
+      } catch (e) { Toast.error(e.message); }
+      finally { btn.disabled = false; btn.textContent = 'Redeem Forever'; }
+    }
+
+    async function confirmTransfer() {
+      if (!currentNft) return;
+      const email = document.getElementById('transferEmail').value.trim();
+      if (!email) { Toast.error('Enter recipient email'); return; }
+      const btn = document.getElementById('confirmTransferBtn');
+      btn.disabled = true; btn.textContent = 'Transferring...';
+      try {
+        await API.transfer(currentNft.tokenId, email);
+        Toast.success('NFT transferred!');
+        closeModal('transferModal');
+        loadProduct(currentNft.tokenId);
+      } catch (e) { Toast.error(e.message); }
+      finally { btn.disabled = false; btn.textContent = 'Transfer'; }
+    }
+  </script>
+</body>
+</html>

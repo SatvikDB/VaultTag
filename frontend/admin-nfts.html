@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage NFTs — Admin VaultTag</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .admin-page { padding-top:90px; padding-bottom:60px; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px; }
+    .filter-bar { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; align-items:center; }
+    .filter-bar .form-input { max-width:250px; }
+    .filter-bar select { max-width:150px; }
+    .table-wrap { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-lg); overflow-x:auto; }
+    .nft-table { width:100%; border-collapse:collapse; font-size:0.85rem; min-width:800px; }
+    .nft-table th { text-align:left; padding:12px 16px; color:var(--text-secondary); font-weight:500; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--border-primary); white-space:nowrap; }
+    .nft-table td { padding:12px 16px; border-bottom:1px solid var(--border-subtle); vertical-align:middle; }
+    .nft-table tr:hover td { background:var(--bg-surface-hover); }
+    .img-cell { width:40px; height:40px; border-radius:var(--radius-sm); object-fit:cover; }
+    .actions-cell { display:flex; gap:8px; }
+    .pagination { display:flex; gap:8px; justify-content:center; margin-top:24px; }
+    .page-btn { padding:6px 12px; border-radius:var(--radius-sm); border:1px solid var(--border-primary); background:var(--bg-surface); color:var(--text-primary); cursor:pointer; font-size:0.85rem; }
+    .page-btn.active { background:var(--accent); color:var(--bg-primary); border-color:var(--accent); }
+    .page-btn:disabled { opacity:0.4; cursor:not-allowed; }
+  </style>
+</head>
+<body>
+  <nav class="navbar scrolled"><div class="container">
+    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
+    <ul class="nav-links">
+      <li><a href="/dashboard.html">Dashboard</a></li>
+      <li><a href="/mint.html">Mint</a></li>
+      <li><a href="/admin-nfts.html" class="active">Manage NFTs</a></li>
+      <li><a href="/verify.html">Verify</a></li>
+    </ul>
+    <div class="nav-actions" id="navActions"></div>
+  </div></nav>
+
+  <section class="admin-page">
+    <div class="container">
+      <div class="page-header">
+        <div>
+          <h1 style="font-size:1.8rem">Manage <span class="text-gradient">NFTs</span></h1>
+          <p style="color:var(--text-secondary);font-size:0.9rem">Full catalog of all minted products</p>
+        </div>
+        <div style="display:flex;gap:12px">
+          <button class="btn btn-secondary" onclick="exportCSV()">⬇ Export CSV</button>
+          <a href="/mint.html" class="btn btn-primary">+ Mint New</a>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input type="text" class="form-input" id="searchInput" placeholder="Search by name, ID, serial..." oninput="debounceLoad()">
+        <select class="form-input form-select" id="statusFilter" onchange="loadNfts()">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="redeemed">Redeemed</option>
+          <option value="unminted">Deleted/Unminted</option>
+        </select>
+        <select class="form-input form-select" id="categoryFilter" onchange="loadNfts()">
+          <option value="">All Categories</option>
+          <option value="Footwear">Footwear</option>
+          <option value="Clothing">Clothing</option>
+          <option value="Artwork">Artwork</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Electronics">Electronics</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table class="nft-table">
+          <thead><tr>
+            <th>Image</th><th>Token ID</th><th>Product</th><th>Serial</th><th>Category</th><th>Owner</th><th>Status</th><th>NFC</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="nftTableBody">
+            <tr><td colspan="9" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let currentPage = 1;
+    let debounceTimer;
+    let currentData = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!Auth.requireAuth() || !Auth.requireAdmin()) return;
+      loadNfts();
+    });
+
+    function debounceLoad() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => loadNfts(1), 300);
+    }
+
+    async function loadNfts(page = 1) {
+      currentPage = page;
+      const tbody = document.getElementById('nftTableBody');
+      const search = document.getElementById('searchInput').value.trim();
+      const status = document.getElementById('statusFilter').value;
+      const category = document.getElementById('categoryFilter').value;
+
+      const params = new URLSearchParams({ page, limit: 20 });
+      if (search) params.set('search', search);
+      if (status) params.set('status', status);
+      if (category) params.set('category', category);
+
+      try {
+        const res = await API.getAllNfts(params.toString());
+        const nfts = res.data.nfts;
+        const pagination = res.data.pagination;
+        currentData = nfts;
+
+        if (nfts.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-secondary)">No NFTs found matching criteria.</td></tr>';
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+
+        tbody.innerHTML = nfts.map(n => `
+          <tr>
+            <td>${n.imageUrl ? `<img src="${n.imageUrl}" class="img-cell" alt="">` : '<div class="img-cell" style="background:var(--bg-secondary)"></div>'}</td>
+            <td><span class="text-mono">#${n.tokenId || '—'}</span></td>
+            <td><strong>${n.productName}</strong></td>
+            <td><span class="text-mono">${n.serialNumber || '—'}</span></td>
+            <td>${n.category}</td>
+            <td title="${n.owner || ''}">${n.owner ? maskEmail(n.owner) : '—'}</td>
+            <td><span class="badge badge-${n.status}">${n.status.toUpperCase()}</span></td>
+            <td>${n.nfcUid ? '<span title="'+n.nfcUid+'">✅</span>' : '—'}</td>
+            <td class="actions-cell">
+              <a href="/product.html?id=${n.tokenId}" class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:0.7rem">View</a>
+              ${n.status !== 'unminted' ? `<button class="btn btn-sm btn-danger" style="padding:4px 8px;font-size:0.7rem" onclick="softDelete(${n.tokenId})">Del</button>` : ''}
+            </td>
+          </tr>
+        `).join('');
+
+        // Pagination
+        if (pagination.pages > 1) {
+          let html = '';
+          for (let i = 1; i <= pagination.pages; i++) {
+            html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="loadNfts(${i})">${i}</button>`;
+          }
+          document.getElementById('pagination').innerHTML = html;
+        } else {
+          document.getElementById('pagination').innerHTML = '';
+        }
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--danger)">Error: ${e.message}</td></tr>`;
+      }
+    }
+
+    async function softDelete(tokenId) {
+      if (!confirm(`Are you sure you want to soft-delete Token #${tokenId}? It will be marked as unminted in DB.`)) return;
+      try {
+        await API.deleteNft(tokenId);
+        Toast.success(`Token #${tokenId} deleted`);
+        loadNfts(currentPage);
+      } catch(e) { Toast.error(e.message); }
+    }
+
+    function exportCSV() {
+      if (currentData.length === 0) return Toast.warning('No data to export');
+      const headers = ['Token ID', 'Product', 'Serial', 'Category', 'Price', 'Owner', 'Status', 'NFC UID', 'Date'];
+      const rows = currentData.map(n => [
+        n.tokenId || '',
+        `"${n.productName}"`,
+        n.serialNumber || '',
+        n.category,
+        n.price,
+        n.owner || '',
+        n.status,
+        n.nfcUid || '',
+        new Date(n.createdAt).toLocaleDateString()
+      ]);
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vaulttag-nfts-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

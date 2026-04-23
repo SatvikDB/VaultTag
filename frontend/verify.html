@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Product — VaultTag</title>
+  <meta name="description" content="Verify any product's authenticity instantly using blockchain. No account needed.">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .verify-page { min-height: 100vh; display: flex; align-items: center; padding-top: 80px; }
+    .verify-wrapper { max-width: 620px; margin: 0 auto; text-align: center; }
+    .verify-wrapper h1 { font-size: 2.5rem; margin-bottom: 12px; }
+    .verify-wrapper > p { color: var(--text-secondary); margin-bottom: 40px; font-size: 1.05rem; }
+
+    .verify-input-group {
+      display: flex; gap: 12px; margin-bottom: 32px;
+      animation: fadeInUp 0.6s var(--ease-out) 0.2s both;
+    }
+    .verify-input-group input {
+      flex: 1; padding: 16px 20px; font-size: 1.1rem;
+      font-family: var(--font-mono); letter-spacing: 0.05em;
+    }
+    .verify-input-group button { white-space: nowrap; padding: 16px 32px; }
+
+    /* NFC pulse animation */
+    .nfc-rings { position: relative; width: 160px; height: 160px; margin: 0 auto 32px; }
+    .nfc-ring {
+      position: absolute; inset: 0; border: 2px solid var(--accent);
+      border-radius: 50%; opacity: 0;
+      animation: nfcPulse 3s ease-out infinite;
+    }
+    .nfc-ring:nth-child(2) { animation-delay: 0.6s; }
+    .nfc-ring:nth-child(3) { animation-delay: 1.2s; }
+    .nfc-center {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      width: 60px; height: 60px; border-radius: 50%;
+      background: var(--accent-dim); border: 2px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+    }
+    @keyframes nfcPulse {
+      0% { transform: scale(0.5); opacity: 0.8; }
+      100% { transform: scale(1.5); opacity: 0; }
+    }
+
+    /* Result cards */
+    .verify-result-card {
+      padding: 40px; border-radius: var(--radius-xl); text-align: center;
+      animation: scaleIn 0.5s var(--ease-out);
+      margin-top: 20px;
+    }
+    .result-authentic {
+      background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.2);
+    }
+    .result-fake {
+      background: rgba(226,75,74,0.08); border: 1px solid rgba(226,75,74,0.2);
+    }
+    .result-redeemed {
+      background: rgba(239,159,39,0.08); border: 1px solid rgba(239,159,39,0.2);
+    }
+    .result-icon {
+      width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 20px;
+      display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
+    }
+    .result-authentic .result-icon { background: rgba(0,212,170,0.15); }
+    .result-fake .result-icon { background: rgba(226,75,74,0.15); }
+    .result-redeemed .result-icon { background: rgba(239,159,39,0.15); }
+
+    .result-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+    .result-subtitle { color: var(--text-secondary); margin-bottom: 24px; }
+
+    .result-details {
+      text-align: left; background: var(--bg-primary); border-radius: var(--radius-md);
+      padding: 20px; margin-top: 20px;
+    }
+    .result-row {
+      display: flex; justify-content: space-between; padding: 8px 0;
+      border-bottom: 1px solid var(--border-subtle); font-size: 0.9rem;
+    }
+    .result-row:last-child { border-bottom: none; }
+    .result-row .label { color: var(--text-secondary); }
+    .result-row .value { font-weight: 500; text-align: right; }
+
+    .chain-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: var(--radius-full);
+      font-size: 0.7rem; font-weight: 600; margin-top: 16px;
+    }
+    .chain-verified { background: rgba(0,212,170,0.1); color: var(--accent); }
+    .chain-unverified { background: rgba(138,138,163,0.1); color: var(--text-secondary); }
+
+    .result-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+
+    .result-image {
+      width: 120px; height: 120px; border-radius: var(--radius-md);
+      object-fit: cover; margin: 0 auto 16px; border: 2px solid var(--border-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="particles-bg" id="particles"></div>
+
+  <nav class="navbar"><div class="container">
+    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/collection.html">Collection</a></li>
+      <li><a href="/verify.html" class="active">Verify</a></li>
+    </ul>
+    <div class="nav-actions" id="navActions"></div>
+  </div></nav>
+
+  <section class="verify-page">
+    <div class="container">
+      <div class="verify-wrapper">
+        <!-- NFC Rings -->
+        <div class="nfc-rings" id="nfcRings">
+          <div class="nfc-ring"></div>
+          <div class="nfc-ring"></div>
+          <div class="nfc-ring"></div>
+          <div class="nfc-center">🔍</div>
+        </div>
+
+        <h1>Verify <span class="text-gradient">Authenticity</span></h1>
+        <p>Enter a Token ID to check if a product is genuine, fake, or already redeemed. This reads directly from the Polygon blockchain.</p>
+
+        <div class="verify-input-group">
+          <input type="text" class="form-input" id="tokenInput" placeholder="Enter Token ID (e.g. 1042)" autocomplete="off">
+          <button class="btn btn-primary" id="verifyBtn" onclick="verifyProduct()">
+            Verify
+          </button>
+        </div>
+
+        <div id="resultContainer"></div>
+      </div>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      initParticles(document.getElementById('particles'));
+      // Auto-fill from URL params
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('id')) {
+        document.getElementById('tokenInput').value = params.get('id');
+        verifyProduct();
+      }
+      // Enter key
+      document.getElementById('tokenInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') verifyProduct();
+      });
+    });
+
+    async function verifyProduct() {
+      const input = document.getElementById('tokenInput');
+      const btn = document.getElementById('verifyBtn');
+      const container = document.getElementById('resultContainer');
+      const tokenId = input.value.trim();
+
+      if (!tokenId) { Toast.error('Please enter a Token ID'); return; }
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px"></div>';
+      container.innerHTML = '';
+
+      try {
+        const res = await API.verify(tokenId);
+        const d = res.data;
+
+        if (d.status === 'authentic') {
+          container.innerHTML = `
+            <div class="verify-result-card result-authentic">
+              ${d.imageUrl ? `<img src="${d.imageUrl}" class="result-image" alt="${d.product}">` : ''}
+              <div class="result-icon">✓</div>
+              <div class="result-title" style="color:var(--success)">AUTHENTIC</div>
+              <div class="result-subtitle">This product is verified genuine</div>
+              <span class="chain-badge ${d.chainVerified ? 'chain-verified' : 'chain-unverified'}">
+                ${d.chainVerified ? '⛓ Blockchain Verified' : '📦 Database Verified'}
+              </span>
+              <div class="result-details">
+                <div class="result-row"><span class="label">Product</span><span class="value">${d.product}</span></div>
+                <div class="result-row"><span class="label">Token ID</span><span class="value text-mono">#${d.tokenId}</span></div>
+                <div class="result-row"><span class="label">Serial</span><span class="value text-mono">${d.serialNumber}</span></div>
+                <div class="result-row"><span class="label">Category</span><span class="value">${d.category}</span></div>
+                <div class="result-row"><span class="label">Owner</span><span class="value">${d.owner || '—'}</span></div>
+                <div class="result-row"><span class="label">NFC Tag</span><span class="value">${d.nfcUid ? '✅ Linked' : '⏳ Not linked'}</span></div>
+                <div class="result-row"><span class="label">Price</span><span class="value" style="color:var(--gold)">${formatPrice(d.price)}</span></div>
+                ${d.explorerUrl ? `<div class="result-row"><span class="label">Blockchain</span><span class="value"><a href="${d.explorerUrl}" target="_blank" style="color:var(--accent)">View on Polygonscan ↗</a></span></div>` : ''}
+              </div>
+              <div class="result-actions">
+                <a href="/product.html?id=${d.tokenId}" class="btn btn-secondary btn-sm">View Details</a>
+                <button class="btn btn-primary btn-sm" onclick="resetVerify()">Verify Another</button>
+              </div>
+            </div>`;
+        } else if (d.status === 'fake') {
+          container.innerHTML = `
+            <div class="verify-result-card result-fake">
+              <div class="result-icon">✕</div>
+              <div class="result-title" style="color:var(--danger)">NOT FOUND</div>
+              <div class="result-subtitle">Token #${tokenId} does not exist in the VaultTag system or on the Polygon blockchain.</div>
+              <p style="color:var(--text-muted);font-size:0.85rem;margin-top:16px">If you believe this is an error, the product may not have been minted yet.</p>
+              <div class="result-actions">
+                <button class="btn btn-primary btn-sm" onclick="resetVerify()">Try Again</button>
+              </div>
+            </div>`;
+        } else if (d.status === 'already_redeemed') {
+          container.innerHTML = `
+            <div class="verify-result-card result-redeemed">
+              ${d.imageUrl ? `<img src="${d.imageUrl}" class="result-image" alt="${d.product}">` : ''}
+              <div class="result-icon">⚠</div>
+              <div class="result-title" style="color:var(--warning)">ALREADY REDEEMED</div>
+              <div class="result-subtitle">This product has already been claimed</div>
+              <div class="result-details">
+                <div class="result-row"><span class="label">Product</span><span class="value">${d.product}</span></div>
+                <div class="result-row"><span class="label">Token ID</span><span class="value text-mono">#${d.tokenId}</span></div>
+                <div class="result-row"><span class="label">Redeemed</span><span class="value">${d.redeemedAt ? formatDate(d.redeemedAt) : 'Unknown'}</span></div>
+                <div class="result-row"><span class="label">By</span><span class="value">${d.redeemedBy || '—'}</span></div>
+              </div>
+              <p style="color:var(--warning);font-size:0.85rem;margin-top:16px">⚠ Any physical item claiming this Token ID is potentially fraudulent.</p>
+              <div class="result-actions">
+                <button class="btn btn-primary btn-sm" onclick="resetVerify()">Verify Another</button>
+              </div>
+            </div>`;
+        }
+      } catch (e) {
+        Toast.error(e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Verify';
+      }
+    }
+
+    function resetVerify() {
+      document.getElementById('tokenInput').value = '';
+      document.getElementById('resultContainer').innerHTML = '';
+      document.getElementById('tokenInput').focus();
+    }
+  </script>
+</body>
+</html>
