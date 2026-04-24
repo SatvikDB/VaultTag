@@ -8,11 +8,30 @@
   <style>
     /* ── Page shell ── */
     body { overflow-x: hidden; }
+
+    /* Ambient background glow */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      background: radial-gradient(ellipse at center,
+        rgba(0,212,170,0.08) 0%,
+        rgba(91,141,239,0.06) 40%,
+        transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
     .auth-page {
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
       padding: 80px 24px 40px;
       position: relative;
+      z-index: 1;
     }
 
     /* ── Logo header ── */
@@ -32,7 +51,7 @@
     .auth-logo p { color: var(--text-secondary); font-size: .9rem; }
 
     /* ── Role selector screen ── */
-    #roleScreen { width: 100%; max-width: 480px; }
+    #roleScreen { width: 100%; max-width: 480px; display: block; }
 
     .role-cards {
       display: grid; grid-template-columns: 1fr 1fr;
@@ -311,12 +330,13 @@
 
     /* ── Screen switcher ── */
     function showScreen(id) {
+      // Hide all screens first
       document.getElementById('roleScreen').style.display  = 'none';
       document.getElementById('adminScreen').classList.remove('visible');
       document.getElementById('buyerScreen').classList.remove('visible');
 
       if (id === 'roleScreen') {
-        document.getElementById('roleScreen').style.display = 'block';
+        document.getElementById('roleScreen').style.display = '';
       } else {
         document.getElementById(id).classList.add('visible');
       }

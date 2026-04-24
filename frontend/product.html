@@ -84,7 +84,6 @@
     <ul class="nav-links">
       <li><a href="/">Home</a></li>
       <li><a href="/collection.html">Collection</a></li>
-      <li><a href="/verify.html">Verify</a></li>
     </ul>
     <div class="nav-actions" id="navActions"></div>
   </div></nav>
@@ -275,7 +274,6 @@
               ` : ''}
               ${canRedeem ? '<button class="btn btn-danger" onclick="openModal(\'redeemModal\')">🔒 Redeem Product</button>' : ''}
               ${canTransfer ? '<button class="btn btn-secondary" onclick="openModal(\'transferModal\')">↗ Transfer</button>' : ''}
-              <a href="/verify.html?id=${nft.tokenId}" class="btn btn-secondary btn-sm">🔍 Verify</a>
             </div>
 
             ${nft.transferHistory && nft.transferHistory.length > 0 ? `
