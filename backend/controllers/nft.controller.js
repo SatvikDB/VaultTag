@@ -18,12 +18,17 @@ exports.mint = async (req, res, next) => {
       return error(res, 'Serial number already exists', 409);
     }
 
-    // Step 1: Build and upload metadata to IPFS
+    // Step 1: Build and upload metadata to IPFS (optional — continues if unavailable)
     let ipfsResult = { cid: null, uri: null, gatewayUrl: null };
     if (ipfs.isIPFSReady()) {
-      const metadata = ipfs.buildMetadata({ productName, description, imageUrl, serialNumber, category, price });
-      ipfsResult = await ipfs.uploadMetadata(metadata);
-      console.log(`📦 IPFS uploaded: ${ipfsResult.cid}`);
+      try {
+        const metadata = ipfs.buildMetadata({ productName, description, imageUrl, serialNumber, category, price });
+        ipfsResult = await ipfs.uploadMetadata(metadata);
+        console.log(`📦 IPFS uploaded: ${ipfsResult.cid}`);
+      } catch (ipfsErr) {
+        console.warn('⚠️  IPFS upload skipped:', ipfsErr.message);
+        // Continue minting without IPFS — not a fatal error
+      }
     }
 
     // Step 2: Mint on blockchain
