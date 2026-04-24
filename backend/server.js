@@ -84,7 +84,7 @@ const startServer = async () => {
   // Initialize IPFS
   initIPFS();
 
-  app.listen(PORT, () => {
+  app.listen(PORT, '0.0.0.0', () => {
     console.log(`\n🚀 VaultTag server running on http://localhost:${PORT}`);
     console.log(`📡 API available at http://localhost:${PORT}/api`);
     console.log(`🌐 Frontend at http://localhost:${PORT}\n`);
