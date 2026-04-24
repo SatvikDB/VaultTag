@@ -6,6 +6,6 @@ module.exports = {
   BCRYPT_SALT_ROUNDS: 12,
   RATE_LIMIT: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100
+    max: 5000 // Increased from 100 to handle more requests
   }
 };

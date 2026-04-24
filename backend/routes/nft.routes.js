@@ -17,7 +17,7 @@ router.get('/browse', auth, nftController.browseNfts);
 
 // Protected routes
 router.get('/my-nfts', auth, nftController.getMyNfts);
-router.get('/all', auth, adminOnly, nftController.getAllNfts);
+router.get('/all', auth, nftController.getAllNfts);
 router.get('/:tokenId', auth, nftController.getNftDetail);
 
 // Admin only
