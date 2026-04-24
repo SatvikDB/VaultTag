@@ -77,6 +77,177 @@
     @media (max-width: 480px) {
       .steps-grid { grid-template-columns: 1fr; }
     }
+
+    /* ── Shoe Product Card — blended into dark bg ── */
+    .shoe-card {
+      background: rgba(17, 22, 51, 0.45);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 28px;
+      padding: 28px 28px 24px;
+      max-width: 420px;
+      width: 100%;
+      margin: 0 auto;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* subtle top-edge glow line */
+    .shoe-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(0,212,170,0.5), transparent);
+    }
+
+    /* Circular gradient blob behind shoe */
+    .shoe-card__visual {
+      position: relative;
+      height: 260px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .shoe-card__blob {
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, rgba(255,77,77,0.55) 0%, rgba(168,85,247,0.45) 50%, rgba(59,130,246,0.55) 100%);
+      filter: blur(28px);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: blob-pulse 6s ease-in-out infinite;
+    }
+    @keyframes blob-pulse {
+      0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.8; }
+      50%      { transform: translate(-50%,-50%) scale(1.08); opacity: 1; }
+    }
+    .shoe-card__img {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 340px;
+      height: 220px;
+      object-fit: contain;
+      filter: drop-shadow(0 16px 32px rgba(0,0,0,0.6));
+      transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+    }
+    .shoe-card:hover .shoe-card__img {
+      transform: translateY(-8px) scale(1.04);
+    }
+
+    /* Name + tagline */
+    .shoe-card__name {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .shoe-card__tagline {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      line-height: 1.5;
+      text-transform: uppercase;
+    }
+
+    /* Size buttons */
+    .shoe-card__sizes { display: flex; gap: 10px; flex-wrap: wrap; }
+    .size-btn {
+      flex: 1;
+      min-width: 56px;
+      padding: 12px 8px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: var(--text-secondary);
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .size-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: var(--text-primary);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .size-btn--active {
+      background: var(--accent);
+      color: var(--bg-primary);
+      border-color: var(--accent);
+    }
+
+    /* View toggle */
+    .shoe-card__views { display: flex; gap: 8px; }
+    .view-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .view-btn:hover {
+      border-color: rgba(255,255,255,0.2);
+      color: var(--text-secondary);
+    }
+    .view-btn--active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    /* CTA button */
+    .shoe-card__cta {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #ff4d4d, #ff6b35);
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      transition: all 0.25s;
+      box-shadow: 0 8px 28px rgba(255,77,77,0.35);
+    }
+    .shoe-card__cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(255,77,77,0.5);
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .shoe-card { max-width: 100%; }
+      .shoe-card__name { font-size: 1.6rem; }
+    }
+
+    /* Featured card selected state */
+    .featured-card { cursor: pointer; transition: all 0.3s var(--ease-out); }
+    .featured-card--active {
+      border-color: var(--accent) !important;
+      box-shadow: 0 0 0 2px var(--accent), 0 20px 60px rgba(0,212,170,0.2) !important;
+      transform: translateY(-6px) !important;
+    }
+    .featured-card--active .product-card-image img {
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body>
@@ -95,10 +266,7 @@
         <li><a href="/collection.html">Collection</a></li>
         <li><a href="/verify.html">Verify</a></li>
       </ul>
-      <div class="nav-actions" id="navActions">
-        <a href="/login.html" class="btn btn-sm btn-secondary">Login</a>
-        <a href="/login.html#register" class="btn btn-sm btn-primary">Get Started</a>
-      </div>
+      <div class="nav-actions" id="navActions"></div>
     </div>
   </nav>
 
@@ -132,13 +300,44 @@
             </div>
           </div>
         </div>
-        <div class="hero-3d">
-          <div class="hero-glow"></div>
-          <div class="three-viewer" id="heroViewer" style="width:100%;aspect-ratio:1;max-width:520px;margin:0 auto;"></div>
-          <div class="viewer-hint">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 15l-2 5L9 9l11 4-5 2z"/></svg>
-            Drag to rotate • Scroll to zoom
+        <!-- ── Shoe Product Card ── -->
+        <div class="shoe-card" id="shoeCard">
+          <!-- Circular gradient backdrop + shoe image -->
+          <div class="shoe-card__visual">
+            <div class="shoe-card__blob"></div>
+            <img
+              src="https://www.shutterstock.com/image-photo/tangerang-indonesia-september-25-2025-600nw-2682476557.jpg"
+              alt="Adidas ZX 2K Boost"
+              class="shoe-card__img"
+              id="shoeCardImg"
+            >
           </div>
+
+          <!-- Name + tagline -->
+          <div class="shoe-card__info">
+            <h2 class="shoe-card__name">Nike Air jordan ZX</h2>
+            <p class="shoe-card__tagline">FUTURE-READY TRAINERS WITH WRAPPED BOOST FOR EXCEPTIONAL COMFORT.</p>
+          </div>
+
+          <!-- Size selector -->
+          <div class="shoe-card__sizes">
+            <button class="size-btn" data-size="39">39</button>
+            <button class="size-btn" data-size="40">40</button>
+            <button class="size-btn size-btn--active" data-size="42">42</button>
+            <button class="size-btn" data-size="44">44</button>
+          </div>
+
+          <!-- View toggle (card / side) -->
+          <div class="shoe-card__views">
+            <button class="view-btn view-btn--active"
+              data-img="https://www.shutterstock.com/image-photo/tangerang-indonesia-september-25-2025-600nw-2682476557.jpg">
+              <span>Card View</span>
+            </button>
+           
+          </div>
+
+          <!-- CTA -->
+          <a href="/collection.html" class="shoe-card__cta">Purchase</a>
         </div>
       </div>
     </div>
@@ -210,24 +409,17 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="/js/app.js"></script>
-  <script src="/js/three-setup.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Auth guard — must be logged in to see main page
+      if (!Auth.isLoggedIn()) {
+        window.location.href = '/login.html';
+        return;
+      }
+
       // Init particles
       initParticles(document.getElementById('particles'));
-
-      // Init 3D hero viewer
-      const heroContainer = document.getElementById('heroViewer');
-      if (heroContainer) {
-        createShoeViewer(heroContainer, {
-          autoRotate: true,
-          rotateSpeed: 0.003,
-          shoeColor: 0xE8E8ED,
-          shoeAccent: 0xE24B4A
-        });
-      }
 
       // Load featured products
       loadFeatured();
@@ -235,6 +427,24 @@
       // Animate stats (demo values)
       animateCounter('statNfts', 47);
       animateCounter('statVerified', 183);
+
+      // Size selector
+      document.querySelectorAll('.size-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('size-btn--active'));
+          btn.classList.add('size-btn--active');
+        });
+      });
+
+      // View toggle
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('view-btn--active'));
+          btn.classList.add('view-btn--active');
+          const img = document.getElementById('shoeCardImg');
+          img.src = btn.dataset.img;
+        });
+      });
     });
 
     async function loadFeatured() {
@@ -253,16 +463,21 @@
         if (nfts.length === 0) {
           // Show demo cards
           nfts = [
-            { tokenId: 1, productName: 'Air Jordan 1 Retro High OG', price: 299, category: 'Footwear', status: 'active', imageUrl: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600' },
-            { tokenId: 2, productName: 'Nike Dunk Low Panda', price: 180, category: 'Footwear', status: 'active', imageUrl: 'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=600' },
-            { tokenId: 3, productName: 'Yeezy Boost 350 V2', price: 450, category: 'Footwear', status: 'active', imageUrl: 'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=600' }
+            { tokenId: 1, productName: 'Air Jordan 1 Retro High OG', price: 1, category: 'Footwear', status: 'active', imageUrl: 'https://t4.ftcdn.net/jpg/04/10/65/53/360_F_410655365_MjietOoPZAMAdqA74M6EXqRL3F8g5dHH.jpg' },
+            { tokenId: 2, productName: 'Nike Dunk Low Panda', price: 2, category: 'Footwear', status: 'active', imageUrl: 'https://cloudfront-us-east-1.images.arcpublishing.com/gray/KHE3L2JKUVF6LALO4EN74TJKAU.JPG' },
+            { tokenId: 3, productName: 'Yeezy Boost 350 V2', price: 3, category: 'Footwear', status: 'active', imageUrl: 'https://png.pngtree.com/thumb_back/fw800/background/20260101/pngtree-black-and-white-nike-shoes-on-dark-surface-image_20983505.webp' }
           ];
         }
 
         grid.innerHTML = nfts.map(nft => `
-          <div class="product-card" onclick="window.location.href='/product.html?id=${nft.tokenId}'">
+          <div class="product-card featured-card"
+            data-img="${nft.imageUrl || ''}"
+            data-name="${nft.productName}"
+            data-price="${nft.price}"
+            data-id="${nft.tokenId}"
+            onclick="selectFeaturedCard(this, event)">
             <div class="product-card-image">
-              <img src="${nft.imageUrl || 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600'}" alt="${nft.productName}" loading="lazy">
+              <img src="${nft.imageUrl || 'https://t4.ftcdn.net/jpg/04/10/65/53/360_F_410655365_MjietOoPZAMAdqA74M6EXqRL3F8g5dHH.jpg'}" alt="${nft.productName}" loading="lazy">
             </div>
             <div class="product-card-body">
               <div class="product-card-name">${nft.productName}</div>
@@ -291,6 +506,42 @@
         if (current >= target) { current = target; clearInterval(interval); }
         el.textContent = Math.round(current);
       }, 40);
+    }
+
+    function selectFeaturedCard(card, e) {
+      // Highlight selected card
+      document.querySelectorAll('.featured-card').forEach(c => c.classList.remove('featured-card--active'));
+      card.classList.add('featured-card--active');
+
+      const img     = document.getElementById('shoeCardImg');
+      const nameEl  = document.querySelector('.shoe-card__name');
+      const tagEl   = document.querySelector('.shoe-card__tagline');
+      const ctaEl   = document.querySelector('.shoe-card__cta');
+
+      const newSrc  = card.dataset.img;
+      const newName = card.dataset.name;
+      const newId   = card.dataset.id;
+      const newPrice = card.dataset.price;
+      const newCat  = 'Footwear';
+      const newStatus = 'active';
+
+      // Fade out → swap → fade in
+      img.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+      img.style.opacity = '0';
+      img.style.transform = 'scale(0.92)';
+
+      setTimeout(() => {
+        if (newSrc) img.src = newSrc;
+        nameEl.textContent = newName;
+        tagEl.textContent  = 'BLOCKCHAIN-VERIFIED AUTHENTIC PRODUCT — TOKEN #' + newId;
+        ctaEl.href         = `/product.html?id=${newId}&name=${encodeURIComponent(newName)}&price=${newPrice}&cat=${encodeURIComponent(newCat)}&status=${newStatus}&img=${encodeURIComponent(newSrc)}`;
+
+        img.style.opacity   = '1';
+        img.style.transform = 'scale(1)';
+      }, 250);
+
+      // Scroll hero into view smoothly
+      document.getElementById('hero').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   </script>
 </body>

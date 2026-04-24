@@ -11,9 +11,36 @@
     .product-viewer { position:sticky; top:100px; }
     .product-image-wrap {
       width:100%; aspect-ratio:1; border-radius:var(--radius-xl); overflow:hidden;
-      background:var(--bg-secondary); border:1px solid var(--border-primary);
+      background: var(--bg-secondary); border:1px solid var(--border-primary);
+      position: relative; display: flex; align-items: center; justify-content: center;
     }
-    .product-image-wrap img { width:100%; height:100%; object-fit:cover; }
+    .product-image-wrap img {
+      width:100%; height:100%; object-fit:cover;
+      transition: transform 0.5s var(--ease-out);
+      position: relative; z-index: 1;
+    }
+    .product-image-wrap:hover img { transform: scale(1.04); }
+    .product-image-wrap::before {
+      content: '';
+      position: absolute;
+      width: 70%; height: 70%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, rgba(255,77,77,0.3) 0%, rgba(168,85,247,0.25) 50%, rgba(59,130,246,0.3) 100%);
+      filter: blur(40px);
+      pointer-events: none; z-index: 0;
+      animation: blob-pulse 6s ease-in-out infinite;
+    }
+    @keyframes blob-pulse {
+      0%,100% { transform: scale(1); opacity: 0.7; }
+      50%      { transform: scale(1.1); opacity: 1; }
+    }
+    .product-no-img {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      width: 100%; height: 100%; gap: 12px; color: var(--text-muted);
+      position: relative; z-index: 1;
+    }
+    .product-no-img svg { opacity: 0.3; }
+    .product-no-img span { font-size: 0.85rem; }
 
     .product-info h1 { font-size:2rem; margin-bottom:8px; }
     .product-meta { display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
@@ -102,9 +129,7 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="/js/app.js"></script>
-  <script src="/js/three-setup.js"></script>
   <script>
     let currentNft = null;
 
@@ -112,107 +137,181 @@
       const params = new URLSearchParams(window.location.search);
       const tokenId = params.get('id');
       if (!tokenId) { window.location.href = '/collection.html'; return; }
-      loadProduct(tokenId);
+      loadProduct(tokenId, params);
     });
 
-    async function loadProduct(tokenId) {
+    async function loadProduct(tokenId, urlParams) {
       const container = document.getElementById('productContent');
+
+      // ── Build a fallback NFT from URL params (passed by collection/index pages) ──
+      const fallback = {
+        tokenId,
+        productName : urlParams.get('name')     || null,
+        price       : parseFloat(urlParams.get('price')) || null,
+        category    : urlParams.get('cat')       || 'Footwear',
+        status      : urlParams.get('status')    || 'active',
+        imageUrl    : urlParams.get('img')       || null,
+        description : null,
+        serialNumber: null,
+        owner       : null,
+        nfcUid      : null,
+        mintedBy    : null,
+        contractAddress: null,
+        txHash      : null,
+        transferHistory: []
+      };
+
+      // Show fallback immediately so the page never looks broken
+      if (fallback.productName) renderProduct(fallback, null, container);
+
       try {
-        // Try authenticated first, fall back to verify endpoint
         let nft, chainData;
         if (Auth.isLoggedIn()) {
           try {
             const res = await API.getNftDetail(tokenId);
             nft = res.data.nft; chainData = res.data.chainData;
           } catch(e) {
-            const res = await API.verify(tokenId);
-            nft = res.data; nft.tokenId = tokenId;
+            // API failed — keep fallback
+            nft = null;
           }
-        } else {
-          const res = await API.verify(tokenId);
-          if (res.data.status === 'fake') {
-            container.innerHTML = '<div style="text-align:center;padding:100px 0"><h2 style="color:var(--danger)">Product Not Found</h2><p style="color:var(--text-secondary);margin-top:8px">Token #'+tokenId+' does not exist.</p><a href="/" class="btn btn-primary" style="margin-top:20px">Go Home</a></div>';
-            return;
-          }
-          nft = res.data; nft.productName = nft.product; nft.tokenId = tokenId;
         }
-        currentNft = nft;
-        document.title = `${nft.productName} — VaultTag`;
 
-        const user = Auth.getUser();
-        const isOwner = user && nft.owner && (user.email === nft.owner || user.email === nft.owner.replace(/\*+/g, ''));
-        const isAdmin = Auth.isAdmin();
-        const canRedeem = isOwner && !nft.redeemed && nft.status !== 'redeemed';
-        const canTransfer = (isOwner || isAdmin) && !nft.redeemed;
+        if (!nft) {
+          // Not logged in or API failed — try verify endpoint
+          try {
+            const res = await API.verify(tokenId);
+            if (res.data && res.data.status !== 'fake') {
+              nft = res.data;
+              nft.productName = nft.product || nft.productName;
+              nft.tokenId = tokenId;
+            }
+          } catch(e) { /* ignore */ }
+        }
 
-        container.innerHTML = `
-          <div class="product-layout">
-            <div class="product-viewer">
-              <div class="product-image-wrap">
-                ${nft.imageUrl
-                  ? `<img src="${nft.imageUrl}" alt="${nft.productName}" id="productImg">`
-                  : '<div id="product3D" style="width:100%;height:100%"></div>'}
-              </div>
-              <div class="viewer-hint" style="position:static;margin-top:12px;justify-content:center">
-                ${nft.ipfsUri ? `<a href="https://${(nft.ipfsCid || nft.ipfsUri?.replace('ipfs://',''))}/" target="_blank" style="font-size:0.75rem;color:var(--text-muted)">View IPFS Metadata ↗</a>` : ''}
-              </div>
-            </div>
-            <div class="product-info">
-              <div class="product-meta">
-                <span class="badge badge-${nft.status || (nft.redeemed ? 'redeemed' : 'active')}">${(nft.status || (nft.redeemed ? 'redeemed' : 'active')).toUpperCase()}</span>
-                <span class="badge badge-gold">${nft.category || 'Footwear'}</span>
-                ${chainData ? '<span class="badge badge-active">⛓ On-Chain</span>' : ''}
-              </div>
-              <h1>${nft.productName}</h1>
-              <div class="product-price">${formatPrice(nft.price)}</div>
-              <p class="product-desc">${nft.description || 'Premium authenticated product with blockchain-verified provenance.'}</p>
-
-              <div class="info-grid">
-                <div class="info-item"><div class="label">Token ID</div><div class="value text-mono">#${nft.tokenId}</div></div>
-                <div class="info-item"><div class="label">Serial Number</div><div class="value text-mono">${nft.serialNumber || '—'}</div></div>
-                <div class="info-item"><div class="label">Owner</div><div class="value">${nft.owner ? (typeof nft.owner === 'string' && nft.owner.includes('@') ? maskEmail(nft.owner) : nft.owner) : '—'}</div></div>
-                <div class="info-item"><div class="label">NFC Tag</div><div class="value">${nft.nfcUid ? '✅ Linked' : '⏳ Not linked'}</div></div>
-                <div class="info-item"><div class="label">Minted By</div><div class="value">${nft.mintedBy || '—'}</div></div>
-                <div class="info-item"><div class="label">Contract</div><div class="value text-mono">${nft.contractAddress ? truncateId(nft.contractAddress, 10) : '—'}</div></div>
-              </div>
-
-              ${nft.txHash ? `<a href="https://amoy.polygonscan.com/tx/${nft.txHash}" target="_blank" class="btn btn-secondary btn-sm" style="margin-bottom:16px">View on Polygonscan ↗</a>` : ''}
-
-              <div class="action-buttons">
-                ${canRedeem ? '<button class="btn btn-danger" onclick="openModal(\'redeemModal\')">🔒 Redeem Product</button>' : ''}
-                ${canTransfer ? '<button class="btn btn-secondary" onclick="openModal(\'transferModal\')">↗ Transfer</button>' : ''}
-                <a href="/verify.html?id=${nft.tokenId}" class="btn btn-secondary btn-sm">🔍 Verify</a>
-              </div>
-
-              ${nft.transferHistory && nft.transferHistory.length > 0 ? `
-                <div class="timeline">
-                  <h3>Provenance Timeline</h3>
-                  ${nft.transferHistory.map(t => `
-                    <div class="timeline-item">
-                      <div>
-                        <div class="timeline-from-to">${t.from} → ${t.to}</div>
-                        <div class="timeline-date">${formatDate(t.at)}</div>
-                        ${t.txHash ? `<div class="timeline-tx"><a href="https://amoy.polygonscan.com/tx/${t.txHash}" target="_blank" style="color:var(--accent)">${truncateId(t.txHash, 20)} ↗</a></div>` : ''}
-                      </div>
-                    </div>
-                  `).join('')}
-                </div>
-              ` : ''}
-            </div>
-          </div>`;
-
-        // Init 3D viewer if no image
-        if (!nft.imageUrl) {
-          const el = document.getElementById('product3D');
-          if (el) createShoeViewer(el, { autoRotate: true, rotateSpeed: 0.003 });
+        // Merge API data over fallback (keep fallback fields if API missing them)
+        if (nft) {
+          const merged = Object.assign({}, fallback, {
+            productName : nft.productName || fallback.productName,
+            price       : (nft.price != null && !isNaN(nft.price)) ? nft.price : fallback.price,
+            category    : nft.category    || fallback.category,
+            status      : nft.status      || fallback.status,
+            imageUrl    : nft.imageUrl    || fallback.imageUrl,
+            description : nft.description || fallback.description,
+            serialNumber: nft.serialNumber|| fallback.serialNumber,
+            owner       : nft.owner       || fallback.owner,
+            nfcUid      : nft.nfcUid      || fallback.nfcUid,
+            mintedBy    : nft.mintedBy    || fallback.mintedBy,
+            contractAddress: nft.contractAddress || fallback.contractAddress,
+            txHash      : nft.txHash      || fallback.txHash,
+            transferHistory: nft.transferHistory || fallback.transferHistory
+          });
+          renderProduct(merged, chainData, container);
         }
       } catch (e) {
-        container.innerHTML = `<div style="text-align:center;padding:100px 0"><h2>Error Loading Product</h2><p style="color:var(--text-secondary);margin-top:8px">${e.message}</p></div>`;
+        // If we already rendered fallback, don't overwrite with error
+        if (!fallback.productName) {
+          container.innerHTML = `<div style="text-align:center;padding:100px 0"><h2>Error Loading Product</h2><p style="color:var(--text-secondary);margin-top:8px">${e.message}</p></div>`;
+        }
       }
+    }
+
+    function renderProduct(nft, chainData, container) {
+      currentNft = nft;
+      document.title = `${nft.productName || 'Product'} — VaultTag`;
+
+      const user = Auth.getUser();
+      const isOwner = user && nft.owner && (user.email === nft.owner || user.email === nft.owner.replace(/\*+/g, ''));
+      const isAdmin = Auth.isAdmin();
+      const canRedeem = isOwner && !nft.redeemed && nft.status !== 'redeemed';
+      const canTransfer = (isOwner || isAdmin) && !nft.redeemed;
+
+      const statusVal = nft.status || (nft.redeemed ? 'redeemed' : 'active');
+      const priceDisplay = (nft.price != null && !isNaN(nft.price)) ? formatPrice(nft.price) : '—';
+
+      container.innerHTML = `
+        <div class="product-layout">
+          <div class="product-viewer">
+            <div class="product-image-wrap">
+              ${nft.imageUrl
+                ? `<img src="${nft.imageUrl}" alt="${nft.productName || 'Product'}">`
+                : `<div class="product-no-img">
+                    <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                      <path d="M21 15l-5-5L5 21"/>
+                    </svg>
+                    <span>No image available</span>
+                  </div>`}
+            </div>
+            ${nft.ipfsUri ? `<div style="margin-top:12px;text-align:center"><a href="https://${nft.ipfsCid || nft.ipfsUri.replace('ipfs://','')}/" target="_blank" style="font-size:0.75rem;color:var(--text-muted)">View IPFS Metadata ↗</a></div>` : ''}
+          </div>
+
+          <div class="product-info">
+            <div class="product-meta">
+              <span class="badge badge-${statusVal}">${statusVal.toUpperCase()}</span>
+              <span class="badge badge-gold">${nft.category || 'Footwear'}</span>
+              ${chainData ? '<span class="badge badge-active">⛓ On-Chain</span>' : ''}
+            </div>
+            <h1>${nft.productName || '—'}</h1>
+            <div class="product-price">${priceDisplay}</div>
+            <p class="product-desc">${nft.description || 'Premium authenticated product with blockchain-verified provenance.'}</p>
+
+            <div class="info-grid">
+              <div class="info-item"><div class="label">Token ID</div><div class="value text-mono">#${nft.tokenId}</div></div>
+              <div class="info-item"><div class="label">Serial Number</div><div class="value text-mono">${nft.serialNumber || '—'}</div></div>
+              <div class="info-item"><div class="label">Owner</div><div class="value">${nft.owner ? (typeof nft.owner === 'string' && nft.owner.includes('@') ? maskEmail(nft.owner) : nft.owner) : '—'}</div></div>
+              <div class="info-item"><div class="label">NFC Tag</div><div class="value">${nft.nfcUid ? '✅ Linked' : '⏳ Not linked'}</div></div>
+              <div class="info-item"><div class="label">Minted By</div><div class="value">${nft.mintedBy || '—'}</div></div>
+              <div class="info-item"><div class="label">Contract</div><div class="value text-mono">${nft.contractAddress ? truncateId(nft.contractAddress, 10) : '—'}</div></div>
+            </div>
+
+            ${nft.txHash ? `<a href="https://amoy.polygonscan.com/tx/${nft.txHash}" target="_blank" class="btn btn-secondary btn-sm" style="margin-bottom:16px">View on Polygonscan ↗</a>` : ''}
+
+            <div class="action-buttons">
+              ${!isAdmin && nft.status !== 'redeemed' ? `
+                <button class="btn btn-primary btn-lg" id="addToCartBtn" onclick="addCurrentToCart()" style="flex:1;background:linear-gradient(135deg,#ff4d4d,#ff6b35);box-shadow:0 8px 24px rgba(255,77,77,0.35);">
+                  🛒 Add to Cart
+                </button>
+                <a href="/cart.html" class="btn btn-secondary btn-lg" style="flex:1;">View Cart</a>
+              ` : ''}
+              ${canRedeem ? '<button class="btn btn-danger" onclick="openModal(\'redeemModal\')">🔒 Redeem Product</button>' : ''}
+              ${canTransfer ? '<button class="btn btn-secondary" onclick="openModal(\'transferModal\')">↗ Transfer</button>' : ''}
+              <a href="/verify.html?id=${nft.tokenId}" class="btn btn-secondary btn-sm">🔍 Verify</a>
+            </div>
+
+            ${nft.transferHistory && nft.transferHistory.length > 0 ? `
+              <div class="timeline">
+                <h3>Provenance Timeline</h3>
+                ${nft.transferHistory.map(t => `
+                  <div class="timeline-item">
+                    <div>
+                      <div class="timeline-from-to">${t.from} → ${t.to}</div>
+                      <div class="timeline-date">${formatDate(t.at)}</div>
+                      ${t.txHash ? `<div class="timeline-tx"><a href="https://amoy.polygonscan.com/tx/${t.txHash}" target="_blank" style="color:var(--accent)">${truncateId(t.txHash, 20)} ↗</a></div>` : ''}
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+        </div>`;
     }
 
     function openModal(id) { document.getElementById(id).classList.add('active'); }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+    function addCurrentToCart() {
+      if (!currentNft) return;
+      const added = Cart.add(currentNft);
+      if (added) {
+        const btn = document.getElementById('addToCartBtn');
+        if (btn) {
+          btn.textContent = '✓ Added to Cart';
+          btn.disabled = true;
+          btn.style.background = 'var(--accent)';
+          btn.style.color = 'var(--bg-primary)';
+        }
+      }
+    }
 
     async function confirmRedeem() {
       if (!currentNft) return;
