@@ -12,6 +12,9 @@ router.post('/verify', [
   body('tokenId').notEmpty().withMessage('Token ID is required')
 ], validate, nftController.verify);
 
+// Public browse — any logged-in user can see active products
+router.get('/browse', auth, nftController.browseNfts);
+
 // Protected routes
 router.get('/my-nfts', auth, nftController.getMyNfts);
 router.get('/all', auth, adminOnly, nftController.getAllNfts);

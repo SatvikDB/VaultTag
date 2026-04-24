@@ -450,18 +450,10 @@
     async function loadFeatured() {
       const grid = document.getElementById('featuredGrid');
       try {
-        const res = await fetch('/api/nft/all?limit=6', {
-          headers: Auth.getToken() ? { 'Authorization': `Bearer ${Auth.getToken()}` } : {}
-        });
-
-        let nfts = [];
-        if (res.ok) {
-          const data = await res.json();
-          nfts = data.data?.nfts || [];
-        }
+        const res = await API.browseNfts('limit=6');
+        let nfts = res.data?.nfts || [];
 
         if (nfts.length === 0) {
-          // Show demo cards
           nfts = [
             { tokenId: 1, productName: 'Air Jordan 1 Retro High OG', price: 1, category: 'Footwear', status: 'active', imageUrl: 'https://t4.ftcdn.net/jpg/04/10/65/53/360_F_410655365_MjietOoPZAMAdqA74M6EXqRL3F8g5dHH.jpg' },
             { tokenId: 2, productName: 'Nike Dunk Low Panda', price: 2, category: 'Footwear', status: 'active', imageUrl: 'https://cloudfront-us-east-1.images.arcpublishing.com/gray/KHE3L2JKUVF6LALO4EN74TJKAU.JPG' },

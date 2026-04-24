@@ -236,6 +236,46 @@ exports.getMyNfts = async (req, res, next) => {
 };
 
 /**
+ * GET /api/nft/browse — Any logged-in user
+ * Returns active products for the buyer collection page
+ */
+exports.browseNfts = async (req, res, next) => {
+  try {
+    const { page = 1, limit = 12, category, search } = req.query;
+    const query = { status: 'active' };   // buyers only see active items
+
+    if (category) query.category = category;
+    if (search) {
+      query.$or = [
+        { productName: { $regex: search, $options: 'i' } },
+        { serialNumber: { $regex: search, $options: 'i' } },
+        { tokenId: isNaN(search) ? undefined : Number(search) }
+      ].filter(Boolean);
+    }
+
+    const nfts = await NFT.find(query)
+      .select('-owner -ownerWallet -mintedBy -txHash -blockNumber -ipfsCid') // hide sensitive fields
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const total = await NFT.countDocuments(query);
+
+    return success(res, {
+      nfts,
+      pagination: {
+        page: Number(page),
+        limit: Number(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * GET /api/nft/all — Admin only
  */
 exports.getAllNfts = async (req, res, next) => {

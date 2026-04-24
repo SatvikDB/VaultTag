@@ -22,6 +22,7 @@ router.get('/my', auth, c.getMyOrders);
 // Admin
 router.get('/all', auth, adminOnly, c.getAllOrders);
 router.post('/:orderId/accept', auth, adminOnly, c.acceptOrder);
+router.post('/:orderId/transfer', auth, adminOnly, c.transferOrder);
 router.post('/:orderId/reject', auth, adminOnly, c.rejectOrder);
 router.get('/settings', auth, adminOnly, c.getSettings);
 router.post('/settings', auth, adminOnly, c.saveSettings);

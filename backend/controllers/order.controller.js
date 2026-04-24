@@ -44,7 +44,7 @@ exports.getAllOrders = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-/* ── Admin: Accept order + transfer NFTs + send email ── */
+/* ── Admin: Accept order (verify payment) — NO transfer yet ── */
 exports.acceptOrder = async (req, res, next) => {
   try {
     const { orderId } = req.params;
@@ -54,60 +54,78 @@ exports.acceptOrder = async (req, res, next) => {
     if (!order) return error(res, 'Order not found', 404);
     if (order.status !== 'pending') return error(res, 'Order already processed', 400);
 
-    // ── Transfer each NFT in the order to the buyer ──
+    // Just mark payment as verified — do NOT transfer NFT yet
+    order.status    = 'accepted';
+    order.acceptedAt = new Date();
+    order.adminNote  = adminNote || '';
+    await order.save();
+
+    // Send confirmation email (no transfer info yet)
+    const emailResult = await sendOrderConfirmation(order, adminNote || '', []);
+    if (emailResult.success) { order.emailSent = true; await order.save(); }
+
+    return success(res, {
+      order,
+      emailSent: emailResult.success,
+      emailPreview: emailResult.previewUrl || null
+    }, 'Payment verified — now transfer the NFT to complete the order');
+  } catch (err) { next(err); }
+};
+
+/* ── Admin: Transfer NFTs — only allowed after payment accepted ── */
+exports.transferOrder = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+
+    const order = await Order.findOne({ orderId });
+    if (!order) return error(res, 'Order not found', 404);
+    if (order.status !== 'accepted') {
+      return error(res, 'Payment must be verified before transferring NFTs', 400);
+    }
+
     const transferResults = [];
     for (const item of order.items) {
       try {
         const nft = await NFT.findOne({ tokenId: Number(item.tokenId) });
         if (!nft) {
-          transferResults.push({ tokenId: item.tokenId, success: false, reason: 'NFT not found' });
+          transferResults.push({ tokenId: item.tokenId, productName: item.productName, success: false, reason: 'NFT not found' });
           continue;
         }
         if (nft.redeemed) {
-          transferResults.push({ tokenId: item.tokenId, success: false, reason: 'Already redeemed' });
+          transferResults.push({ tokenId: item.tokenId, productName: item.productName, success: false, reason: 'Already redeemed' });
+          continue;
+        }
+        if (nft.owner === order.buyer) {
+          transferResults.push({ tokenId: item.tokenId, productName: item.productName, success: false, reason: 'Already owned by buyer' });
           continue;
         }
 
         const previousOwner = nft.owner;
         nft.owner = order.buyer;
-        nft.ownerWallet = null; // buyer wallet unknown unless they connect
-        nft.transferHistory.push({
-          from: previousOwner,
-          to: order.buyer,
-          txHash: null,
-          at: new Date()
-        });
+        nft.ownerWallet = null;
+        nft.transferHistory.push({ from: previousOwner, to: order.buyer, txHash: null, at: new Date() });
         await nft.save();
+
         transferResults.push({ tokenId: item.tokenId, productName: item.productName, success: true, from: previousOwner, to: order.buyer });
         console.log(`🔄 NFT #${item.tokenId} transferred: ${previousOwner} → ${order.buyer}`);
-      } catch (transferErr) {
-        transferResults.push({ tokenId: item.tokenId, success: false, reason: transferErr.message });
-        console.error(`❌ Transfer failed for NFT #${item.tokenId}:`, transferErr.message);
+      } catch (e) {
+        transferResults.push({ tokenId: item.tokenId, productName: item.productName, success: false, reason: e.message });
       }
     }
 
-    // ── Update order status ──
-    order.status = 'accepted';
-    order.acceptedAt = new Date();
-    order.adminNote = adminNote || '';
-    order.transferResults = transferResults;
-    await order.save();
-
-    // ── Send confirmation email ──
-    const emailResult = await sendOrderConfirmation(order, adminNote || '', transferResults);
-    if (emailResult.success) {
-      order.emailSent = true;
+    const transferred = transferResults.filter(r => r.success).length;
+    if (transferred > 0) {
+      order.status          = 'completed';
+      order.transferredAt   = new Date();
+      order.transferResults = transferResults;
       await order.save();
     }
 
-    const transferred = transferResults.filter(r => r.success).length;
     return success(res, {
       order,
       transferResults,
-      transferred,
-      emailSent: emailResult.success,
-      emailPreview: emailResult.previewUrl || null
-    }, `Order accepted — ${transferred}/${order.items.length} NFT(s) transferred to buyer`);
+      transferred
+    }, `${transferred}/${order.items.length} NFT(s) transferred to ${order.buyer}`);
   } catch (err) { next(err); }
 };
 

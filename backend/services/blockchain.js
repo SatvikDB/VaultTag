@@ -25,15 +25,19 @@ let contract;
  * Initialize blockchain connection
  */
 function initBlockchain() {
-  if (!process.env.POLYGON_RPC_URL || !process.env.ADMIN_PRIVATE_KEY || !process.env.CONTRACT_ADDRESS) {
-    console.warn('⚠️  Blockchain env vars not set. Blockchain features will be disabled.');
+  const privKey      = process.env.ADMIN_PRIVATE_KEY;
+  const contractAddr = process.env.CONTRACT_ADDRESS;
+
+  if (!privKey || privKey === 'your-admin-wallet-private-key-here' ||
+      !contractAddr || contractAddr === 'your-deployed-contract-address-here') {
+    console.warn('⚠️  Blockchain env vars not configured. Blockchain features will be disabled.');
     return false;
   }
 
   try {
-    provider = new ethers.JsonRpcProvider(process.env.POLYGON_RPC_URL);
-    adminWallet = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY, provider);
-    contract = new ethers.Contract(process.env.CONTRACT_ADDRESS, CONTRACT_ABI, adminWallet);
+    provider    = new ethers.JsonRpcProvider(process.env.POLYGON_RPC_URL);
+    adminWallet = new ethers.Wallet(privKey, provider);
+    contract    = new ethers.Contract(contractAddr, CONTRACT_ABI, adminWallet);
     console.log(`✅ Blockchain connected — Admin wallet: ${adminWallet.address}`);
     return true;
   } catch (error) {
