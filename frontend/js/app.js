@@ -154,12 +154,16 @@ function initNavbar() {
     nav.classList.toggle('scrolled', window.scrollY > 50);
   });
 
-  // Update nav based on auth state
   const actions = document.querySelector('.nav-actions');
   if (actions) {
+    const cartBtn = `<a href="/cart.html" class="btn btn-sm btn-secondary nav-cart-btn" style="position:relative;padding:8px 14px;" title="Cart">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+      <span id="cartBadge" style="display:none;position:absolute;top:-6px;right:-6px;background:var(--accent);color:var(--bg-primary);width:18px;height:18px;border-radius:50%;font-size:0.65rem;font-weight:700;align-items:center;justify-content:center;">0</span>
+    </a>`;
+
     if (Auth.isLoggedIn()) {
-      const user = Auth.getUser();
       actions.innerHTML = `
+        ${cartBtn}
         ${Auth.isAdmin() ? '<a href="/admin-nfts.html" class="btn btn-sm btn-secondary">Manage NFTs</a>' : ''}
         ${!Auth.isAdmin() ? '<a href="/my-nfts.html" class="btn btn-sm btn-secondary">My NFTs</a>' : ''}
         <a href="/profile.html" class="btn btn-sm btn-secondary">Profile</a>
@@ -167,10 +171,12 @@ function initNavbar() {
       `;
     } else {
       actions.innerHTML = `
+        ${cartBtn}
         <a href="/login.html" class="btn btn-sm btn-secondary">Login</a>
         <a href="/login.html#register" class="btn btn-sm btn-primary">Get Started</a>
       `;
     }
+    Cart.updateBadge();
   }
 }
 
@@ -210,8 +216,45 @@ function maskEmail(email) {
   return email.replace(/(.{2}).*(@.*)/, '$1***$2');
 }
 
-// ── Init on DOM ready ──
-document.addEventListener('DOMContentLoaded', () => {
-  initNavbar();
-  initScrollAnimations();
-});
+// ── Cart System ──
+const Cart = {
+  getItems() {
+    try { return JSON.parse(localStorage.getItem('vt_cart') || '[]'); } catch { return []; }
+  },
+  saveItems(items) {
+    localStorage.setItem('vt_cart', JSON.stringify(items));
+    Cart.updateBadge();
+  },
+  add(nft) {
+    const items = Cart.getItems();
+    if (items.find(i => String(i.tokenId) === String(nft.tokenId))) {
+      Toast.warning('Already in cart');
+      return false;
+    }
+    items.push({
+      tokenId   : nft.tokenId,
+      productName: nft.productName,
+      price     : nft.price,
+      imageUrl  : nft.imageUrl || '',
+      category  : nft.category || 'Footwear',
+      status    : nft.status   || 'active'
+    });
+    Cart.saveItems(items);
+    Toast.success('Added to cart');
+    return true;
+  },
+  remove(tokenId) {
+    Cart.saveItems(Cart.getItems().filter(i => String(i.tokenId) !== String(tokenId)));
+  },
+  clear() { Cart.saveItems([]); },
+  count() { return Cart.getItems().length; },
+  total() { return Cart.getItems().reduce((s, i) => s + (parseFloat(i.price) || 0), 0); },
+  updateBadge() {
+    const badge = document.getElementById('cartBadge');
+    const count = Cart.count();
+    if (badge) {
+      badge.textContent = count;
+      badge.style.display = count > 0 ? 'flex' : 'none';
+    }
+  }
+};
