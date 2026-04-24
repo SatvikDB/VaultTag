@@ -18,6 +18,7 @@ router.post('/', auth, [
 ], validate, c.createOrder);
 
 router.get('/my', auth, c.getMyOrders);
+router.post('/razorpay/create', auth, c.createRazorpayOrder);
 
 // Admin
 router.get('/all', auth, adminOnly, c.getAllOrders);

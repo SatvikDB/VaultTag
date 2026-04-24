@@ -181,12 +181,22 @@
           <!-- UPI panel -->
           <div class="pay-panel" id="panel-upi">
             <div style="font-size:.8rem;color:var(--text-secondary);background:var(--bg-secondary);border-radius:var(--radius-md);padding:12px 14px;line-height:1.7">
-              <strong style="color:var(--text-primary)">How to pay with UPI:</strong><br>
+              <strong style="color:var(--text-primary)">Option A: Fast Secure Payment (Recommended)</strong><br>
+              Click the button below to pay via UPI (GPay, PhonePe, etc.) using Razorpay.
+            </div>
+            
+            <button class="btn-metamask" id="rzpBtn" onclick="payWithRazorpay()" style="background:linear-gradient(135deg,#3395ff,#006aff);margin-bottom:12px">
+              🚀 Pay with Razorpay (UPI)
+            </button>
+            <div id="upiStatus" style="font-size:.8rem;color:var(--text-muted);text-align:center;margin-bottom:16px"></div>
+
+            <div class="divider"></div>
+
+            <div style="font-size:.8rem;color:var(--text-secondary);background:var(--bg-secondary);border-radius:var(--radius-md);padding:12px 14px;line-height:1.7">
+              <strong style="color:var(--text-primary)">Option B: Manual Scan & Pay</strong><br>
               1. Scan the QR code below <em>or</em> copy the UPI ID<br>
-              2. Open Google Pay / PhonePe / Paytm<br>
-              3. Send exactly <strong id="upiAmountInstructions" style="color:var(--gold)">—</strong><br>
-              4. Copy the <strong>Transaction ID</strong> from your UPI app<br>
-              5. Paste it in the field below and click <strong>Confirm Order</strong>
+              2. Send exactly <strong id="upiAmountInstructions" style="color:var(--gold)">—</strong><br>
+              3. Paste the <strong>Transaction ID</strong> below and click <strong>Confirm Order</strong>
             </div>
             <div class="info-box">
               <div class="lbl">UPI ID <button class="copy-btn" onclick="copyText(document.getElementById('upiIdVal').textContent)">Copy</button></div>
@@ -198,7 +208,7 @@
               <div style="font-size:.72rem;color:#666;margin-top:8px;font-weight:600">Scan with any UPI app to pay</div>
             </div>
             <div class="form-group" style="margin:0">
-              <label class="form-label">UPI Transaction ID * <span style="color:var(--text-muted);font-weight:400">(from your UPI app after payment)</span></label>
+              <label class="form-label">UPI Transaction ID * <span style="color:var(--text-muted);font-weight:400">(only for manual payment)</span></label>
               <input type="text" class="form-input" id="upiTxId" placeholder="e.g. 123456789012">
             </div>
           </div>
@@ -236,12 +246,14 @@
     </div>
   </section>
 
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script src="/js/app.js"></script>
   <script>
     let checkoutData = null;
     let selectedPay = 'metamask';
     let paymentInfo = {};
     let metamaskTxHash = '';
+    let razorpayPaymentId = '';
 
     document.addEventListener('DOMContentLoaded', async () => {
       if (!Auth.isLoggedIn()) { window.location.href = '/login.html'; return; }
@@ -266,7 +278,6 @@
         paymentInfo = res.data.paymentInfo || {};
         document.getElementById('mmAddress').textContent = paymentInfo.metamaskAddress || 'Not configured';
         document.getElementById('upiIdVal').textContent  = paymentInfo.upiId || 'Not configured';
-        document.getElementById('upiAmount') && (document.getElementById('upiAmount').textContent = formatPrice(checkoutData.grand));
         document.getElementById('upiAmountInstructions').textContent = formatPrice(checkoutData.grand);
         document.getElementById('mmAmount').textContent  = (checkoutData.grand * 0.85).toFixed(4) + ' MATIC';
 
@@ -279,7 +290,7 @@
         if (paymentInfo.apiProvider) {
           document.getElementById('apiProviderLabel').textContent = paymentInfo.apiProvider;
           document.getElementById('apiInstructions').textContent =
-            `Pay via ${paymentInfo.apiProvider}. Use key: ${paymentInfo.apiKeyPublic || 'Contact admin'}. Enter the transaction reference below after payment.`;
+            `Pay via ${paymentInfo.apiProvider}. Enter the transaction reference below after payment.`;
         } else {
           document.getElementById('apiInstructions').textContent = 'API payment not configured by admin. Please use MetaMask or UPI.';
         }
@@ -315,7 +326,9 @@
         document.getElementById('panel-'+t).classList.toggle('visible', t===type);
       });
       metamaskTxHash = '';
+      razorpayPaymentId = '';
       document.getElementById('mmStatus').textContent = '';
+      document.getElementById('upiStatus').textContent = '';
     }
 
     async function connectMetaMask() {
@@ -378,13 +391,59 @@
       }
     }
 
+    async function payWithRazorpay() {
+      const btn = document.getElementById('rzpBtn');
+      const status = document.getElementById('upiStatus');
+      
+      try {
+        btn.disabled = true;
+        status.textContent = 'Initializing secure payment...';
+        
+        const res = await API.request('POST', '/orders/razorpay/create', { 
+          amount: checkoutData.grand 
+        });
+        
+        const options = {
+          "key": res.data.key,
+          "amount": res.data.amount,
+          "currency": res.data.currency,
+          "name": "VaultTag",
+          "description": "Premium NFT Asset Purchase",
+          "order_id": res.data.orderId,
+          "handler": function (response){
+            razorpayPaymentId = response.razorpay_payment_id;
+            status.innerHTML = `<span style="color:var(--success);font-weight:600">✅ Payment Successful!</span><br><span style="font-size:0.75rem;color:var(--text-muted)">ID: ${razorpayPaymentId}</span>`;
+            Toast.success('Payment authorized via Razorpay');
+            btn.textContent = '✅ Payment Verified';
+            btn.style.background = 'var(--success)';
+          },
+          "prefill": {
+            "name": document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value,
+            "email": document.getElementById('email').value
+          },
+          "theme": { "color": "#00D4AA" }
+        };
+        
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response){
+          status.textContent = '❌ Payment failed: ' + response.error.description;
+          btn.disabled = false;
+        });
+        rzp.open();
+        status.textContent = 'Follow instructions in the popup...';
+      } catch (err) {
+        status.textContent = '❌ Error: ' + err.message;
+        btn.disabled = false;
+      }
+    }
+
     function copyText(text) {
       navigator.clipboard.writeText(text).then(() => Toast.success('Copied!'));
     }
 
     function getPaymentRef() {
       if (selectedPay === 'metamask') return metamaskTxHash;
-      if (selectedPay === 'upi')      return document.getElementById('upiTxId').value.trim();
+      if (selectedPay === 'upi')      return razorpayPaymentId || document.getElementById('upiTxId').value.trim();
       if (selectedPay === 'api')      return document.getElementById('apiTxId').value.trim();
       return '';
     }
@@ -394,7 +453,10 @@
       if (!document.getElementById('email').value.trim())     { Toast.error('Enter email'); return false; }
       if (!document.getElementById('address').value.trim())   { Toast.error('Enter shipping address'); return false; }
       if (selectedPay === 'metamask' && !metamaskTxHash)      { Toast.error('Please complete MetaMask payment first'); return false; }
-      if (selectedPay === 'upi' && !document.getElementById('upiTxId').value.trim()) { Toast.error('Enter UPI transaction ID'); return false; }
+      if (selectedPay === 'upi' && !razorpayPaymentId && !document.getElementById('upiTxId').value.trim()) { 
+        Toast.error('Please complete Razorpay payment or enter Transaction ID'); 
+        return false; 
+      }
       if (selectedPay === 'api' && !document.getElementById('apiTxId').value.trim()) { Toast.error('Enter payment reference'); return false; }
       return true;
     }

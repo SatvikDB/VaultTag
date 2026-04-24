@@ -5,6 +5,13 @@ const User = require('../models/User');
 const { sendOrderConfirmation } = require('../services/email');
 const { success, error } = require('../utils/apiResponse');
 const { v4: uuidv4 } = require('uuid');
+const Razorpay = require('razorpay');
+
+// Initialize Razorpay
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+});
 
 /* ── Buyer: Create Order ── */
 exports.createOrder = async (req, res, next) => {
@@ -169,4 +176,29 @@ exports.getPublicPaymentInfo = async (req, res, next) => {
     const settings = await AdminSettings.findOne({}, 'upiId upiQrImage metamaskAddress apiProvider apiKeyPublic');
     return success(res, { paymentInfo: settings || {} });
   } catch (err) { next(err); }
+};
+
+/* ── Razorpay: Create Order ID ── */
+exports.createRazorpayOrder = async (req, res, next) => {
+  try {
+    const { amount, currency = 'INR' } = req.body;
+    
+    const options = {
+      amount: Math.round(amount * 100), // amount in smallest currency unit (paise)
+      currency,
+      receipt: `rcpt_${uuidv4().slice(0, 8)}`,
+    };
+
+    const order = await razorpay.orders.create(options);
+    
+    return success(res, { 
+      orderId: order.id, 
+      key: process.env.RAZORPAY_KEY_ID,
+      amount: order.amount,
+      currency: order.currency
+    });
+  } catch (err) {
+    console.error('Razorpay Order Error:', err);
+    next(err);
+  }
 };
