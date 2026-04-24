@@ -15,11 +15,23 @@ async function seed() {
     console.log('🗑️  Cleared existing data');
 
     // ── Users ──
+    const superadmin = await User.create({
+      name: 'VaultTag SuperAdmin',
+      email: 'superadmin@vaulttag.com',
+      passwordHash: 'Super@123',
+      role: 'superadmin'
+    });
     const admin = await User.create({
       name: 'VaultTag Admin',
       email: 'admin@vaulttag.com',
       passwordHash: 'Admin@123',
       role: 'admin'
+    });
+    const seller = await User.create({
+      name: 'VaultTag Seller',
+      email: 'seller@vaulttag.com',
+      passwordHash: 'Seller@123',
+      role: 'seller'
     });
     const buyer = await User.create({
       name: 'Test Buyer',
@@ -27,7 +39,9 @@ async function seed() {
       passwordHash: 'Buyer@123',
       role: 'buyer'
     });
+    console.log('👤 SuperAdmin:', superadmin.email, '/ Super@123');
     console.log('👤 Admin:', admin.email, '/ Admin@123');
+    console.log('👤 Seller:', seller.email, '/ Seller@123');
     console.log('👤 Buyer:', buyer.email, '/ Buyer@123');
 
     const now  = new Date();
@@ -246,8 +260,10 @@ async function seed() {
 
     console.log('\n✅ Seed complete!\n');
     console.log('Demo credentials:');
-    console.log('  Admin: admin@vaulttag.com / Admin@123');
-    console.log('  Buyer: buyer@vaulttag.com / Buyer@123\n');
+    console.log('  SuperAdmin: superadmin@vaulttag.com / Super@123');
+    console.log('  Admin:      admin@vaulttag.com / Admin@123');
+    console.log('  Seller:     seller@vaulttag.com / Seller@123');
+    console.log('  Buyer:      buyer@vaulttag.com / Buyer@123\n');
 
     process.exit(0);
   } catch (err) {

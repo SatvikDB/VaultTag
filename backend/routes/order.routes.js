@@ -2,7 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const auth = require('../middleware/auth');
-const adminOnly = require('../middleware/adminOnly');
+const requireRole = require('../middleware/requireRole');
 const c = require('../controllers/order.controller');
 
 const router = express.Router();
@@ -20,12 +20,12 @@ router.post('/', auth, [
 router.get('/my', auth, c.getMyOrders);
 router.post('/razorpay/create', auth, c.createRazorpayOrder);
 
-// Admin
-router.get('/all', auth, adminOnly, c.getAllOrders);
-router.post('/:orderId/accept', auth, adminOnly, c.acceptOrder);
-router.post('/:orderId/transfer', auth, adminOnly, c.transferOrder);
-router.post('/:orderId/reject', auth, adminOnly, c.rejectOrder);
-router.get('/settings', auth, adminOnly, c.getSettings);
-router.post('/settings', auth, adminOnly, c.saveSettings);
+// Seller + Admin + SuperAdmin
+router.get('/all', auth, requireRole('seller'), c.getAllOrders);
+router.post('/:orderId/accept', auth, requireRole('seller'), c.acceptOrder);
+router.post('/:orderId/transfer', auth, requireRole('seller'), c.transferOrder);
+router.post('/:orderId/reject', auth, requireRole('seller'), c.rejectOrder);
+router.get('/settings', auth, requireRole('seller'), c.getSettings);
+router.post('/settings', auth, requireRole('seller'), c.saveSettings);
 
 module.exports = router;

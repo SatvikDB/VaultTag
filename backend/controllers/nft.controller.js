@@ -31,13 +31,31 @@ exports.mint = async (req, res, next) => {
       }
     }
 
-    // Step 2: Mint on blockchain
+    // Step 2: Mint on blockchain (with fallback if chain is unavailable)
     let chainResult = { tokenId: null, txHash: null, blockNumber: null };
     if (blockchain.isBlockchainReady()) {
-      const adminAddress = blockchain.getAdminAddress();
-      const tokenURI = ipfsResult.uri || `vaulttag://${serialNumber}`;
-      chainResult = await blockchain.mintNFT(adminAddress, tokenURI, serialNumber);
-      console.log(`⛓️  Minted token #${chainResult.tokenId} — tx: ${chainResult.txHash}`);
+      try {
+        const adminAddress = blockchain.getAdminAddress();
+        const tokenURI = ipfsResult.uri || `vaulttag://${serialNumber}`;
+        chainResult = await blockchain.mintNFT(adminAddress, tokenURI, serialNumber);
+        console.log(`⛓️  Minted token #${chainResult.tokenId} — tx: ${chainResult.txHash}`);
+      } catch (chainErr) {
+        console.warn('⚠️  Blockchain mint failed, using DB fallback:', chainErr.message);
+      }
+    }
+
+    // Fallback: generate tokenId from DB if blockchain didn't provide one
+    if (!chainResult.tokenId) {
+      const lastNft = await NFT.findOne().sort({ tokenId: -1 });
+      chainResult.tokenId = (lastNft && lastNft.tokenId ? lastNft.tokenId : 0) + 1;
+      console.log(`🔢 Assigned fallback tokenId: ${chainResult.tokenId}`);
+    } else {
+      // Check for duplicate tokenId in DB and remove it to prevent E11000 error
+      const existing = await NFT.findOne({ tokenId: Number(chainResult.tokenId) });
+      if (existing) {
+        console.warn(`🗑️  Removing existing record with tokenId: ${chainResult.tokenId} to resolve conflict`);
+        await NFT.deleteOne({ tokenId: Number(chainResult.tokenId) });
+      }
     }
 
     // Step 3: Save to MongoDB

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard — VaultTag</title>
+  <title>Seller Dashboard — VaultTag</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
     .dash-page { padding-top:90px; }
@@ -43,8 +43,8 @@
     <div class="container">
       <div class="dash-header">
         <div>
-          <h1>Admin <span class="text-gradient">Dashboard</span></h1>
-          <p style="color:var(--text-secondary);font-size:0.9rem">Manage your NFT marketplace</p>
+          <h1>Seller <span class="text-gradient">Dashboard</span></h1>
+          <p style="color:var(--text-secondary);font-size:0.9rem">Manage your NFT products & orders</p>
         </div>
         <a href="/mint.html" class="btn btn-primary">+ Mint New NFT</a>
       </div>
@@ -84,7 +84,7 @@
   <script src="/js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      if (!Auth.requireAuth() || !Auth.requireAdmin()) return;
+      if (!Auth.requireAuth() || !Auth.requireSeller()) return;
       loadDashboard();
     });
 
@@ -93,7 +93,7 @@
         // Load stats
         const statsRes = await API.getStats();
         const s = statsRes.data;
-        document.getElementById('sTotalNfts').textContent = s.totalNFTs;
+        document.getElementById('sTotalNfts').textContent = s.totalNfts;
         document.getElementById('sActive').textContent = s.activeNFTs;
         document.getElementById('sRedeemed').textContent = s.redeemedNFTs;
         document.getElementById('sUsers').textContent = s.totalUsers;

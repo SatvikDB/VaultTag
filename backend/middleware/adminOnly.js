@@ -1,11 +1,4 @@
-const adminOnly = (req, res, next) => {
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({
-      success: false,
-      message: 'Access denied. Admin privileges required.'
-    });
-  }
-  next();
-};
-
-module.exports = adminOnly;
+// Legacy compatibility — now uses the role hierarchy system
+// Allows: admin, superadmin
+const requireRole = require('./requireRole');
+module.exports = requireRole('admin');

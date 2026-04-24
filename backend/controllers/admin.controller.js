@@ -9,51 +9,35 @@ const { success, error } = require('../utils/apiResponse');
  */
 exports.getStats = async (req, res, next) => {
   try {
-    const [totalNFTs, activeNFTs, redeemedNFTs, unmintedNFTs, totalUsers, totalBuyers] = await Promise.all([
+    const [totalNfts, activeNFTs, redeemedNFTs, unmintedNFTs, totalUsers, totalBuyers, totalSellers, totalAdmins, totalSuperadmins, totalOrders] = await Promise.all([
       NFT.countDocuments(),
       NFT.countDocuments({ status: 'active' }),
       NFT.countDocuments({ status: 'redeemed' }),
       NFT.countDocuments({ status: 'unminted' }),
       User.countDocuments(),
-      User.countDocuments({ role: 'buyer' })
+      User.countDocuments({ role: 'buyer' }),
+      User.countDocuments({ role: 'seller' }),
+      User.countDocuments({ role: 'admin' }),
+      User.countDocuments({ role: 'superadmin' }),
+      Order.countDocuments()
     ]);
 
-    // Mints per day (last 7 days)
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
     const mintsPerDay = await NFT.aggregate([
       { $match: { createdAt: { $gte: sevenDaysAgo } } },
-      {
-        $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-          count: { $sum: 1 }
-        }
-      },
+      { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, count: { $sum: 1 } } },
       { $sort: { _id: 1 } }
     ]);
-
-    // NFTs by category
     const nftsByCategory = await NFT.aggregate([
-      {
-        $group: {
-          _id: '$category',
-          count: { $sum: 1 }
-        }
-      },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
 
     return success(res, {
-      totalNFTs,
-      activeNFTs,
-      redeemedNFTs,
-      unmintedNFTs,
-      totalUsers,
-      totalBuyers,
-      totalAdmins: totalUsers - totalBuyers,
-      mintsPerDay,
-      nftsByCategory
+      totalNfts, activeNFTs, redeemedNFTs, unmintedNFTs,
+      totalUsers, totalBuyers, totalSellers, totalAdmins, totalSuperadmins, totalOrders,
+      mintsPerDay, nftsByCategory
     });
   } catch (err) {
     next(err);

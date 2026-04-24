@@ -194,7 +194,7 @@
     let mintedTokenId = null;
 
     document.addEventListener('DOMContentLoaded', () => {
-      if (!Auth.requireAuth() || !Auth.requireAdmin()) return;
+      if (!Auth.requireAuth() || !Auth.requireSeller()) return;
     });
 
     function updatePreview() {

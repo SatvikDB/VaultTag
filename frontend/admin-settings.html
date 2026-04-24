@@ -156,7 +156,7 @@
     let qrBase64 = '';   // holds current QR as data URL
 
     document.addEventListener('DOMContentLoaded', async () => {
-      if (!Auth.requireAuth() || !Auth.requireAdmin()) return;
+      if (!Auth.requireAuth() || !Auth.requireSeller()) return;
       try {
         const res = await API.getOrderSettings();
         const s = res.data.settings || {};

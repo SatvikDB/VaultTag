@@ -54,6 +54,14 @@ const Auth = {
       return false;
     }
     return true;
+  },
+  requireSeller() {
+    const u = this.getUser();
+    if (!u || !['seller','admin','superadmin'].includes(u.role)) {
+      window.location.href = '/login.html?role=seller';
+      return false;
+    }
+    return true;
   }
 };
 
@@ -179,12 +187,34 @@ function initNavbar() {
   const actions = document.querySelector('.nav-actions');
   if (actions) {
     if (Auth.isLoggedIn()) {
+      const user = Auth.getUser();
+      const role = user ? user.role : 'buyer';
+      let links = '';
+
+      if (role === 'superadmin') {
+        links = `
+          <a href="/superadmin-dashboard.html" class="btn btn-sm btn-secondary">🏛️ Platform</a>
+          <a href="/admin-dashboard.html" class="btn btn-sm btn-secondary">📊 Admin</a>
+        `;
+      } else if (role === 'admin') {
+        links = `
+          <a href="/admin-dashboard.html" class="btn btn-sm btn-secondary">📊 Dashboard</a>
+        `;
+      } else if (role === 'seller') {
+        links = `
+          <a href="/admin-nfts.html" class="btn btn-sm btn-secondary">Manage NFTs</a>
+          <a href="/admin-orders.html" class="btn btn-sm btn-secondary">Orders</a>
+          <a href="/admin-settings.html" class="btn btn-sm btn-secondary">Settings</a>
+        `;
+      } else {
+        links = `
+          <a href="/my-nfts.html" class="btn btn-sm btn-secondary">My NFTs</a>
+          <a href="/my-orders.html" class="btn btn-sm btn-secondary">My Orders</a>
+        `;
+      }
+
       actions.innerHTML = `
-        ${Auth.isAdmin() ? '<a href="/admin-nfts.html" class="btn btn-sm btn-secondary">Manage NFTs</a>' : ''}
-        ${Auth.isAdmin() ? '<a href="/admin-orders.html" class="btn btn-sm btn-secondary">Orders</a>' : ''}
-        ${Auth.isAdmin() ? '<a href="/admin-settings.html" class="btn btn-sm btn-secondary">Settings</a>' : ''}
-        ${!Auth.isAdmin() ? '<a href="/my-nfts.html" class="btn btn-sm btn-secondary">My NFTs</a>' : ''}
-        ${!Auth.isAdmin() ? '<a href="/my-orders.html" class="btn btn-sm btn-secondary">My Orders</a>' : ''}
+        ${links}
         <a href="/profile.html" class="btn btn-sm btn-secondary">Profile</a>
         <button onclick="Auth.logout()" class="btn btn-sm btn-secondary">Logout</button>
       `;

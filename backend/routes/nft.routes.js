@@ -2,7 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const validate = require('../middleware/validate');
 const auth = require('../middleware/auth');
-const adminOnly = require('../middleware/adminOnly');
+const requireRole = require('../middleware/requireRole');
 const nftController = require('../controllers/nft.controller');
 
 const router = express.Router();
@@ -20,15 +20,15 @@ router.get('/my-nfts', auth, nftController.getMyNfts);
 router.get('/all', auth, nftController.getAllNfts);
 router.get('/:tokenId', auth, nftController.getNftDetail);
 
-// Admin only
-router.post('/mint', auth, adminOnly, [
+// Seller + Admin + SuperAdmin
+router.post('/mint', auth, requireRole('seller'), [
   body('productName').trim().notEmpty().withMessage('Product name is required'),
   body('serialNumber').trim().notEmpty().withMessage('Serial number is required'),
   body('category').notEmpty().withMessage('Category is required'),
   body('price').isNumeric().withMessage('Price must be a number')
 ], validate, nftController.mint);
 
-router.patch('/link-tag', auth, adminOnly, [
+router.patch('/link-tag', auth, requireRole('seller'), [
   body('tokenId').notEmpty().withMessage('Token ID is required'),
   body('nfcUid').trim().notEmpty().withMessage('NFC UID is required')
 ], validate, nftController.linkTag);
