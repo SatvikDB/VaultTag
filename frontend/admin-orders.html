@@ -11,23 +11,54 @@
     .filter-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
     .tab-btn { padding:8px 18px; border-radius:var(--radius-full); border:1px solid var(--border-primary); background:transparent; color:var(--text-secondary); font-size:.82rem; font-weight:600; cursor:pointer; transition:all .2s; }
     .tab-btn.active { background:var(--accent); color:var(--bg-primary); border-color:var(--accent); }
-    .orders-list { display:flex; flex-direction:column; gap:16px; }
-    .order-card { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-lg); padding:20px; transition:border-color .2s; }
+    .orders-list { display:flex; flex-direction:column; gap:20px; }
+    .order-card { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-lg); overflow:hidden; transition:border-color .2s; }
     .order-card:hover { border-color:var(--border-glow); }
+
+    /* Status stripe at top of card */
+    .order-stripe { height:4px; }
+    .stripe-pending   { background:var(--warning); }
+    .stripe-accepted  { background:var(--info); }
+    .stripe-completed { background:var(--success); }
+    .stripe-rejected  { background:var(--danger); }
+
+    .order-body { padding:20px; }
     .order-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
     .order-id { font-family:var(--font-mono); font-size:.9rem; color:var(--accent); font-weight:700; }
-    .order-buyer { font-size:.82rem; color:var(--text-secondary); margin-top:2px; }
+    .order-buyer { font-size:.85rem; color:var(--text-secondary); margin-top:2px; }
     .order-date { font-size:.75rem; color:var(--text-muted); }
     .order-items-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
     .order-item-chip { display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border-radius:var(--radius-sm); padding:6px 10px; font-size:.8rem; }
-    .order-item-chip img { width:32px; height:32px; border-radius:4px; object-fit:cover; }
-    .order-meta { display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+    .order-item-chip img { width:36px; height:36px; border-radius:4px; object-fit:cover; }
+    .order-meta { display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
     .order-total { font-family:var(--font-display); font-weight:700; font-size:1.1rem; color:var(--gold); }
     .order-method { font-size:.78rem; background:var(--bg-secondary); padding:4px 10px; border-radius:var(--radius-full); color:var(--text-secondary); }
-    .order-ref { font-family:var(--font-mono); font-size:.72rem; color:var(--text-muted); word-break:break-all; }
+    .order-ref { font-family:var(--font-mono); font-size:.72rem; color:var(--text-muted); word-break:break-all; max-width:300px; overflow:hidden; text-overflow:ellipsis; }
+
+    /* Workflow steps */
+    .workflow { display:flex; gap:0; margin-bottom:16px; border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--border-primary); }
+    .wf-step { flex:1; padding:10px 14px; text-align:center; font-size:.75rem; font-weight:600; color:var(--text-muted); border-right:1px solid var(--border-primary); position:relative; }
+    .wf-step:last-child { border-right:none; }
+    .wf-step.done  { background:rgba(0,212,170,.1); color:var(--success); }
+    .wf-step.active{ background:rgba(91,141,239,.1); color:#5B8DEF; }
+    .wf-step .wf-num { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:var(--border-primary); font-size:.65rem; margin-right:5px; }
+    .wf-step.done  .wf-num { background:var(--success); color:var(--bg-primary); }
+    .wf-step.active .wf-num { background:#5B8DEF; color:#fff; }
+
+    /* Story box */
+    .story-box { background:rgba(201,169,98,.08); border:1px solid rgba(201,169,98,.2); border-radius:var(--radius-md); padding:12px 16px; margin-bottom:14px; font-size:.82rem; color:var(--text-secondary); line-height:1.6; }
+    .story-box strong { color:var(--gold); }
+
+    /* Action area */
     .order-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .note-input { flex:1; min-width:200px; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-primary); border-radius:var(--radius-md); color:var(--text-primary); font-size:.82rem; outline:none; }
+    .note-input { flex:1; min-width:180px; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-primary); border-radius:var(--radius-md); color:var(--text-primary); font-size:.82rem; outline:none; }
     .note-input:focus { border-color:var(--accent); }
+
+    /* Transfer result */
+    .transfer-result { margin-top:12px; padding:12px 16px; background:rgba(0,212,170,.06); border:1px solid rgba(0,212,170,.2); border-radius:var(--radius-md); }
+    .transfer-result .tr-title { font-size:.75rem; color:var(--accent); font-weight:600; margin-bottom:8px; }
+    .transfer-row { font-size:.78rem; display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+
     .empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
   </style>
 </head>
@@ -48,14 +79,15 @@
       <div class="page-header">
         <div>
           <h1 style="font-size:1.8rem">Buyer <span class="text-gradient">Orders</span></h1>
-          <p style="color:var(--text-secondary);font-size:.9rem">Review and confirm buyer payments</p>
+          <p style="color:var(--text-secondary);font-size:.9rem">Verify payment first, then transfer NFT ownership to buyer</p>
         </div>
         <button class="btn btn-secondary btn-sm" onclick="loadOrders(currentFilter)">↻ Refresh</button>
       </div>
 
       <div class="filter-tabs">
         <button class="tab-btn active" onclick="loadOrders('pending',this)">⏳ Pending</button>
-        <button class="tab-btn" onclick="loadOrders('accepted',this)">✅ Accepted</button>
+        <button class="tab-btn" onclick="loadOrders('accepted',this)">💳 Payment Verified</button>
+        <button class="tab-btn" onclick="loadOrders('completed',this)">✅ Completed</button>
         <button class="tab-btn" onclick="loadOrders('rejected',this)">❌ Rejected</button>
         <button class="tab-btn" onclick="loadOrders('',this)">All</button>
       </div>
@@ -86,7 +118,10 @@
       try {
         const res = await API.getAllOrders(status);
         const orders = res.data.orders;
-        if (!orders.length) { list.innerHTML = '<div class="empty">No orders found.</div>'; return; }
+        if (!orders.length) {
+          list.innerHTML = '<div class="empty">No orders found.</div>';
+          return;
+        }
         list.innerHTML = orders.map(o => renderOrder(o)).join('');
       } catch(e) {
         list.innerHTML = `<div class="empty" style="color:var(--danger)">${e.message}</div>`;
@@ -94,90 +129,161 @@
     }
 
     function renderOrder(o) {
-      const statusColor = { pending:'var(--warning)', accepted:'var(--success)', rejected:'var(--danger)', completed:'var(--accent)' }[o.status] || 'var(--text-muted)';
+      const statusColor = {
+        pending:'var(--warning)', accepted:'#5B8DEF',
+        completed:'var(--success)', rejected:'var(--danger)'
+      }[o.status] || 'var(--text-muted)';
+
+      const stripeClass = { pending:'stripe-pending', accepted:'stripe-accepted', completed:'stripe-completed', rejected:'stripe-rejected' }[o.status] || '';
+
+      const buyerName = o.buyerName || o.buyer.split('@')[0];
+
+      // Workflow steps
+      const step1Done   = ['accepted','completed','rejected'].includes(o.status);
+      const step2Done   = o.status === 'completed';
+      const step1Active = o.status === 'pending';
+      const step2Active = o.status === 'accepted';
+
+      const workflow = `
+        <div class="workflow">
+          <div class="wf-step ${step1Done ? 'done' : step1Active ? 'active' : ''}">
+            <span class="wf-num">${step1Done ? '✓' : '1'}</span>Verify Payment
+          </div>
+          <div class="wf-step ${step2Done ? 'done' : step2Active ? 'active' : ''}">
+            <span class="wf-num">${step2Done ? '✓' : '2'}</span>Transfer NFT
+          </div>
+          <div class="wf-step ${step2Done ? 'done' : ''}">
+            <span class="wf-num">${step2Done ? '✓' : '3'}</span>Complete
+          </div>
+        </div>`;
+
+      // Story narrative
+      const story = `
+        <div class="story-box">
+          ${o.status === 'pending'
+            ? `<strong>${buyerName}</strong> wants to buy <strong>${o.items.map(i=>i.productName).join(', ')}</strong>. They paid <strong>${formatPrice(o.total)}</strong> via <strong>${o.paymentMethod.toUpperCase()}</strong>${o.paymentRef ? ` (Ref: <code style="font-size:.75rem">${o.paymentRef.slice(0,30)}${o.paymentRef.length>30?'…':''}</code>)` : ''}. Verify the payment in your ${o.paymentMethod === 'upi' ? 'UPI app' : 'wallet'}, then click <strong>Verify Payment</strong>.`
+            : o.status === 'accepted'
+            ? `Payment from <strong>${buyerName}</strong> has been verified ✅. Now transfer the NFT ownership to complete the purchase. Once transferred, <strong>${buyerName}</strong> will own the product on the blockchain.`
+            : o.status === 'completed'
+            ? `<strong>${buyerName}</strong> now owns ${o.items.map(i=>`<strong>${i.productName}</strong>`).join(', ')}. The NFT ownership has been transferred on the blockchain. 🎉`
+            : `Order was rejected. <strong>${buyerName}</strong>'s payment was not accepted.`}
+        </div>`;
+
       const itemChips = o.items.map(i => `
         <div class="order-item-chip">
-          ${i.imageUrl ? `<img src="${i.imageUrl}" alt="">` : '👟'}
+          ${i.imageUrl ? `<img src="${i.imageUrl}" alt="" onerror="this.style.display='none'">` : '👟'}
           <span>${i.productName}</span>
           <strong style="color:var(--gold)">${formatPrice(i.price)}</strong>
         </div>`).join('');
 
-      const isPending = o.status === 'pending';
+      // Action buttons based on status
+      let actions = '';
+      if (o.status === 'pending') {
+        actions = `
+          <div class="order-actions">
+            <input type="text" class="note-input" id="note-${o.orderId}" placeholder="Note to buyer (optional)...">
+            <button class="btn btn-primary btn-sm" onclick="acceptOrder('${o.orderId}')">
+              💳 Verify Payment
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="rejectOrder('${o.orderId}')">❌ Reject</button>
+          </div>`;
+      } else if (o.status === 'accepted') {
+        actions = `
+          <div class="order-actions">
+            <button class="btn btn-primary btn-sm" style="background:linear-gradient(135deg,#00D4AA,#009E7E)" onclick="transferOrder('${o.orderId}')">
+              🔄 Transfer NFT to ${buyerName}
+            </button>
+          </div>`;
+      }
+
+      // Transfer results
+      let transferBlock = '';
+      if (o.transferResults && o.transferResults.length) {
+        transferBlock = `
+          <div class="transfer-result">
+            <div class="tr-title">🔄 NFT Transfer Log</div>
+            ${o.transferResults.map(r => `
+              <div class="transfer-row">
+                <span>${r.success ? '✅' : '❌'}</span>
+                <span style="color:var(--text-secondary)">${r.productName || 'Token #'+r.tokenId}</span>
+                <span style="color:var(--text-muted)">${r.success ? `→ ownership transferred to ${o.buyer}` : r.reason}</span>
+              </div>`).join('')}
+          </div>`;
+      }
+
       return `
         <div class="order-card" id="oc-${o.orderId}">
-          <div class="order-header">
-            <div>
-              <div class="order-id">${o.orderId}</div>
-              <div class="order-buyer">👤 ${o.buyer} ${o.buyerName ? '('+o.buyerName+')' : ''}</div>
-              <div class="order-date">${formatDate(o.createdAt)}</div>
+          <div class="order-stripe ${stripeClass}"></div>
+          <div class="order-body">
+            <div class="order-header">
+              <div>
+                <div class="order-id">${o.orderId}</div>
+                <div class="order-buyer">👤 ${o.buyer} ${o.buyerName ? '('+o.buyerName+')' : ''}</div>
+                <div class="order-date">${formatDate(o.createdAt)}</div>
+              </div>
+              <span class="badge" style="background:${statusColor}22;color:${statusColor}">
+                ${{ pending:'⏳ PENDING', accepted:'💳 PAYMENT VERIFIED', completed:'✅ COMPLETED', rejected:'❌ REJECTED' }[o.status] || o.status.toUpperCase()}
+              </span>
             </div>
-            <span class="badge" style="background:${statusColor}22;color:${statusColor}">${o.status.toUpperCase()}</span>
+
+            ${workflow}
+            ${story}
+
+            <div class="order-items-row">${itemChips}</div>
+
+            <div class="order-meta">
+              <span class="order-total">${formatPrice(o.total)}</span>
+              <span class="order-method">💳 ${o.paymentMethod.toUpperCase()}</span>
+              ${o.paymentRef ? `<span class="order-ref" title="${o.paymentRef}">Ref: ${o.paymentRef.slice(0,40)}${o.paymentRef.length>40?'…':''}</span>` : ''}
+              ${o.shippingAddress ? `<span style="font-size:.78rem;color:var(--text-muted)">📦 ${o.shippingAddress}</span>` : ''}
+            </div>
+
+            ${o.adminNote ? `<div style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px;padding:8px 12px;background:var(--bg-secondary);border-radius:var(--radius-sm)">📝 ${o.adminNote}</div>` : ''}
+
+            ${actions}
+            ${transferBlock}
+            ${o.emailSent ? '<div style="font-size:.75rem;color:var(--success);margin-top:10px">📧 Confirmation email sent to buyer</div>' : ''}
           </div>
-
-          <div class="order-items-row">${itemChips}</div>
-
-          <div class="order-meta">
-            <span class="order-total">${formatPrice(o.total)}</span>
-            <span class="order-method">💳 ${o.paymentMethod.toUpperCase()}</span>
-            ${o.paymentRef ? `<span class="order-ref">Ref: ${o.paymentRef}</span>` : ''}
-            ${o.shippingAddress ? `<span style="font-size:.78rem;color:var(--text-muted)">📦 ${o.shippingAddress}</span>` : ''}
-          </div>
-
-          ${o.adminNote ? `<div style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px;padding:8px 12px;background:var(--bg-secondary);border-radius:var(--radius-sm)">📝 ${o.adminNote}</div>` : ''}
-
-          ${isPending ? `
-            <div class="order-actions">
-              <input type="text" class="note-input" id="note-${o.orderId}" placeholder="Optional note to buyer...">
-              <button class="btn btn-primary btn-sm" onclick="acceptOrder('${o.orderId}')">✅ Accept & Transfer NFTs</button>
-              <button class="btn btn-danger btn-sm" onclick="rejectOrder('${o.orderId}')">❌ Reject</button>
-            </div>` : ''}
-
-          ${o.status === 'accepted' && o.transferResults && o.transferResults.length ? `
-            <div style="margin-top:10px;padding:10px 14px;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.2);border-radius:var(--radius-md)">
-              <div style="font-size:.75rem;color:var(--accent);font-weight:600;margin-bottom:6px">🔄 NFT Transfer Results</div>
-              ${o.transferResults.map(r => `
-                <div style="font-size:.78rem;display:flex;align-items:center;gap:6px;margin-bottom:3px">
-                  <span>${r.success ? '✅' : '❌'}</span>
-                  <span style="color:var(--text-secondary)">${r.productName || 'Token #'+r.tokenId}</span>
-                  <span style="color:var(--text-muted)">${r.success ? '→ transferred to buyer' : r.reason}</span>
-                </div>`).join('')}
-            </div>` : ''}
-
-          ${o.emailSent ? '<div style="font-size:.75rem;color:var(--success);margin-top:8px">📧 Confirmation email sent to buyer</div>' : ''}
         </div>`;
     }
 
+    /* ── Step 1: Verify payment ── */
     async function acceptOrder(orderId) {
       const note = document.getElementById('note-'+orderId)?.value.trim() || '';
       const btn = event.target;
-      btn.disabled = true; btn.textContent = 'Processing...';
+      btn.disabled = true; btn.textContent = 'Verifying...';
       try {
-        const res = await API.acceptOrder(orderId, note);
-        const { transferResults, transferred, emailPreview } = res.data;
-
-        // Show transfer summary toast
-        const total = transferResults ? transferResults.length : 0;
-        Toast.success(`✅ Order accepted — ${transferred}/${total} NFT(s) transferred to buyer`);
-
-        // Log failed transfers if any
-        if (transferResults) {
-          transferResults.filter(r => !r.success).forEach(r => {
-            Toast.error(`NFT #${r.tokenId} transfer failed: ${r.reason}`);
-          });
-        }
-
-        if (emailPreview) console.log('📧 Email preview:', emailPreview);
+        await API.acceptOrder(orderId, note);
+        Toast.success('Payment verified! Now transfer the NFT to the buyer.');
         loadOrders(currentFilter);
       } catch(e) {
         Toast.error(e.message);
-        btn.disabled = false;
-        btn.textContent = '✅ Accept & Transfer NFTs';
+        btn.disabled = false; btn.textContent = '💳 Verify Payment';
       }
     }
 
+    /* ── Step 2: Transfer NFT ── */
+    async function transferOrder(orderId) {
+      const btn = event.target;
+      btn.disabled = true; btn.textContent = 'Transferring...';
+      try {
+        const res = await API.transferOrder(orderId);
+        const { transferred, transferResults } = res.data;
+        Toast.success(`✅ ${transferred} NFT(s) transferred to buyer!`);
+        transferResults.filter(r => !r.success).forEach(r => {
+          Toast.error(`${r.productName}: ${r.reason}`);
+        });
+        loadOrders(currentFilter);
+      } catch(e) {
+        Toast.error(e.message);
+        btn.disabled = false; btn.textContent = '🔄 Transfer NFT to Buyer';
+      }
+    }
+
+    /* ── Reject ── */
     async function rejectOrder(orderId) {
       const note = document.getElementById('note-'+orderId)?.value.trim() || '';
-      if (!confirm('Reject this order?')) return;
+      if (!confirm('Reject this order? The buyer will not receive the NFT.')) return;
       try {
         await API.rejectOrder(orderId, note);
         Toast.success('Order rejected.');

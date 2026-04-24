@@ -20,7 +20,9 @@ const orderSchema = new mongoose.Schema({
   status:         { type: String, enum: ['pending','accepted','rejected','completed'], default: 'pending' },
   adminNote:      { type: String, default: '' },
   acceptedAt:     { type: Date, default: null },
-  emailSent:      { type: Boolean, default: false }
+  transferredAt:  { type: Date, default: null },
+  emailSent:      { type: Boolean, default: false },
+  transferResults:{ type: Array,  default: [] }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

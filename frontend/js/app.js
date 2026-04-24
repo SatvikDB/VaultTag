@@ -108,6 +108,7 @@ const API = {
   getMyOrders: () => API.request('GET', '/orders/my'),
   getAllOrders: (status) => API.request('GET', `/orders/all${status ? '?status='+status : ''}`),
   acceptOrder: (orderId, adminNote) => API.request('POST', `/orders/${orderId}/accept`, { adminNote }),
+  transferOrder: (orderId) => API.request('POST', `/orders/${orderId}/transfer`, {}),
   rejectOrder: (orderId, adminNote) => API.request('POST', `/orders/${orderId}/reject`, { adminNote }),
   getOrderSettings: () => API.request('GET', '/orders/settings'),
   saveOrderSettings: (data) => API.request('POST', '/orders/settings', data),
