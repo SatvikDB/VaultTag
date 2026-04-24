@@ -27,7 +27,7 @@ async function getTransporter() {
 /**
  * Send order confirmation email to buyer
  */
-async function sendOrderConfirmation(order, adminNote = '') {
+async function sendOrderConfirmation(order, adminNote = '', transferResults = []) {
   try {
     const transporter = await getTransporter();
     const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'noreply@vaulttag.com';
@@ -80,6 +80,17 @@ async function sendOrderConfirmation(order, adminNote = '') {
       </div>
 
       ${adminNote ? `<div style="background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.3);border-radius:8px;padding:16px;margin-bottom:24px"><div style="font-size:0.8rem;color:#00D4AA;margin-bottom:4px">Note from Admin</div><div style="color:#E8E8ED">${adminNote}</div></div>` : ''}
+
+      ${transferResults.length > 0 ? `
+      <div style="background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.2);border-radius:8px;padding:16px;margin-bottom:24px">
+        <div style="font-size:0.8rem;color:#00D4AA;margin-bottom:10px;font-weight:600">🔄 NFT Ownership Transfer</div>
+        ${transferResults.map(r => `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:0.82rem">
+            <span style="color:${r.success ? '#00D4AA' : '#E24B4A'}">${r.success ? '✅' : '❌'}</span>
+            <span style="color:#E8E8ED">${r.productName || 'Token #'+r.tokenId}</span>
+            ${r.success ? `<span style="color:#5A5A72">→ transferred to your account</span>` : `<span style="color:#E24B4A">${r.reason}</span>`}
+          </div>`).join('')}
+      </div>` : ''}
 
       <p style="color:#8A8AA3;font-size:0.85rem">Your NFT will be transferred to your account. You can verify your product at any time using the token ID.</p>
 

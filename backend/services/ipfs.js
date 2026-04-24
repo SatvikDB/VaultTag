@@ -6,14 +6,17 @@ let pinata;
  * Initialize Pinata IPFS connection
  */
 function initIPFS() {
-  if (!process.env.PINATA_JWT) {
-    console.warn('⚠️  Pinata JWT not set. IPFS features will be disabled.');
+  const jwt = process.env.PINATA_JWT;
+
+  // Check for missing or placeholder JWT
+  if (!jwt || jwt === 'your-pinata-jwt-token-here' || jwt.split('.').length !== 3) {
+    console.warn('⚠️  Pinata JWT not configured. IPFS features will be disabled.');
     return false;
   }
 
   try {
     pinata = new PinataSDK({
-      pinataJwt: process.env.PINATA_JWT,
+      pinataJwt: jwt,
       pinataGateway: process.env.PINATA_GATEWAY || 'gateway.pinata.cloud'
     });
     console.log('✅ IPFS (Pinata) connected');

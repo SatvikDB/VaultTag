@@ -128,27 +128,51 @@
           ${isPending ? `
             <div class="order-actions">
               <input type="text" class="note-input" id="note-${o.orderId}" placeholder="Optional note to buyer...">
-              <button class="btn btn-primary btn-sm" onclick="acceptOrder('${o.orderId}')">✅ Accept & Email Buyer</button>
+              <button class="btn btn-primary btn-sm" onclick="acceptOrder('${o.orderId}')">✅ Accept & Transfer NFTs</button>
               <button class="btn btn-danger btn-sm" onclick="rejectOrder('${o.orderId}')">❌ Reject</button>
             </div>` : ''}
 
-          ${o.emailSent ? '<div style="font-size:.75rem;color:var(--success);margin-top:8px">📧 Confirmation email sent</div>' : ''}
+          ${o.status === 'accepted' && o.transferResults && o.transferResults.length ? `
+            <div style="margin-top:10px;padding:10px 14px;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.2);border-radius:var(--radius-md)">
+              <div style="font-size:.75rem;color:var(--accent);font-weight:600;margin-bottom:6px">🔄 NFT Transfer Results</div>
+              ${o.transferResults.map(r => `
+                <div style="font-size:.78rem;display:flex;align-items:center;gap:6px;margin-bottom:3px">
+                  <span>${r.success ? '✅' : '❌'}</span>
+                  <span style="color:var(--text-secondary)">${r.productName || 'Token #'+r.tokenId}</span>
+                  <span style="color:var(--text-muted)">${r.success ? '→ transferred to buyer' : r.reason}</span>
+                </div>`).join('')}
+            </div>` : ''}
+
+          ${o.emailSent ? '<div style="font-size:.75rem;color:var(--success);margin-top:8px">📧 Confirmation email sent to buyer</div>' : ''}
         </div>`;
     }
 
     async function acceptOrder(orderId) {
       const note = document.getElementById('note-'+orderId)?.value.trim() || '';
       const btn = event.target;
-      btn.disabled = true; btn.textContent = 'Sending...';
+      btn.disabled = true; btn.textContent = 'Processing...';
       try {
         const res = await API.acceptOrder(orderId, note);
-        Toast.success('Order accepted! Email sent to buyer.');
-        if (res.data.emailPreview) {
-          console.log('📧 Email preview:', res.data.emailPreview);
-          Toast.success('Preview: ' + res.data.emailPreview);
+        const { transferResults, transferred, emailPreview } = res.data;
+
+        // Show transfer summary toast
+        const total = transferResults ? transferResults.length : 0;
+        Toast.success(`✅ Order accepted — ${transferred}/${total} NFT(s) transferred to buyer`);
+
+        // Log failed transfers if any
+        if (transferResults) {
+          transferResults.filter(r => !r.success).forEach(r => {
+            Toast.error(`NFT #${r.tokenId} transfer failed: ${r.reason}`);
+          });
         }
+
+        if (emailPreview) console.log('📧 Email preview:', emailPreview);
         loadOrders(currentFilter);
-      } catch(e) { Toast.error(e.message); btn.disabled=false; btn.textContent='✅ Accept & Email Buyer'; }
+      } catch(e) {
+        Toast.error(e.message);
+        btn.disabled = false;
+        btn.textContent = '✅ Accept & Transfer NFTs';
+      }
     }
 
     async function rejectOrder(orderId) {
