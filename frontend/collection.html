@@ -40,7 +40,7 @@
 
       <div class="filter-bar">
         <input type="text" class="form-input" id="searchInput" placeholder="Search by name or ID..." oninput="debounceLoad()">
-        <select class="form-input form-select" id="statusFilter" onchange="loadCollection()">
+        <select class="form-input form-select" id="statusFilter" onchange="loadCollection()" style="display:none">
           <option value="">All Status</option>
           <option value="active">Active</option>
           <option value="redeemed">Redeemed</option>
@@ -71,6 +71,8 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       if (!Auth.isLoggedIn()) { window.location.href = '/login.html'; return; }
+      // Show status filter only for admin
+      if (Auth.isAdmin()) document.getElementById('statusFilter').style.display = '';
       loadCollection();
     });
 
@@ -91,20 +93,28 @@
       if (status) params.set('status', status);
       if (category) params.set('category', category);
 
+      grid.innerHTML = `
+        <div class="skeleton" style="height:380px;border-radius:var(--radius-lg)"></div>
+        <div class="skeleton" style="height:380px;border-radius:var(--radius-lg)"></div>
+        <div class="skeleton" style="height:380px;border-radius:var(--radius-lg)"></div>`;
+
       try {
         let nfts = [], pagination = {};
 
-        if (Auth.isLoggedIn() && Auth.isAdmin()) {
+        if (Auth.isAdmin()) {
+          // Admin sees everything including redeemed/unminted
           const res = await API.getAllNfts(params.toString());
           nfts = res.data.nfts;
           pagination = res.data.pagination;
         } else {
-          // Public — use verify or show demo data
-          nfts = [
-            { tokenId:1, productName:'Air Jordan 1 Retro High OG', price:1, category:'Footwear', status:'active', imageUrl:'https://t4.ftcdn.net/jpg/04/10/65/53/360_F_410655365_MjietOoPZAMAdqA74M6EXqRL3F8g5dHH.jpg' },
-            { tokenId:2, productName:'Nike Dunk Low Panda', price:2, category:'Footwear', status:'active', imageUrl:'https://cloudfront-us-east-1.images.arcpublishing.com/gray/KHE3L2JKUVF6LALO4EN74TJKAU.JPG' },
-            { tokenId:3, productName:'Yeezy Boost 350 V2', price:3, category:'Footwear', status:'active', imageUrl:'https://png.pngtree.com/thumb_back/fw800/background/20260101/pngtree-black-and-white-nike-shoes-on-dark-surface-image_20983505.webp' }
-          ];
+          // Buyer — use browse endpoint (active products only, no sensitive fields)
+          // Status filter only makes sense for admin; buyers always see active
+          const buyerParams = new URLSearchParams({ page, limit: 12 });
+          if (search) buyerParams.set('search', search);
+          if (category) buyerParams.set('category', category);
+          const res = await API.browseNfts(buyerParams.toString());
+          nfts = res.data.nfts;
+          pagination = res.data.pagination;
         }
 
         if (nfts.length === 0) {
@@ -116,7 +126,8 @@
         grid.innerHTML = nfts.map(n => `
           <div class="product-card" onclick="window.location.href='/product.html?id=${n.tokenId}&name=${encodeURIComponent(n.productName)}&price=${n.price}&cat=${encodeURIComponent(n.category)}&status=${n.status}&img=${encodeURIComponent(n.imageUrl||'')}'" >
             <div class="product-card-image">
-              <img src="${n.imageUrl || 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600'}" alt="${n.productName}" loading="lazy">
+              <img src="${n.imageUrl || 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600'}" alt="${n.productName}" loading="lazy"
+                onerror="this.src='https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600'">
             </div>
             <div class="product-card-body">
               <div class="product-card-name">${n.productName}</div>

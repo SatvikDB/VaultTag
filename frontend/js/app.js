@@ -92,6 +92,7 @@ const API = {
   linkTag: (tokenId, nfcUid) => API.request('PATCH', '/nft/link-tag', { tokenId, nfcUid }),
   verify: (tokenId) => API.request('POST', '/nft/verify', { tokenId }, false),
   getMyNfts: () => API.request('GET', '/nft/my-nfts'),
+  browseNfts: (params = '') => API.request('GET', `/nft/browse${params ? '?' + params : ''}`),
   getAllNfts: (params = '') => API.request('GET', `/nft/all${params ? '?' + params : ''}`),
   getNftDetail: (tokenId) => API.request('GET', `/nft/${tokenId}`),
   redeem: (tokenId) => API.request('POST', '/nft/redeem', { tokenId }),
