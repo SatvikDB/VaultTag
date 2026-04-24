@@ -102,6 +102,7 @@ const API = {
   getStats: () => API.request('GET', '/admin/stats'),
   getUsers: () => API.request('GET', '/admin/users'),
   deleteNft: (tokenId) => API.request('DELETE', `/admin/nft/${tokenId}`),
+  dbExplorer: (collection, page, limit) => API.request('GET', `/admin/db-explorer?collection=${collection}&page=${page||1}&limit=${limit||10}`),
 
   // Orders
   createOrder: (data) => API.request('POST', '/orders', data),
@@ -180,6 +181,7 @@ function initNavbar() {
         ${Auth.isAdmin() ? '<a href="/admin-nfts.html" class="btn btn-sm btn-secondary">Manage NFTs</a>' : ''}
         ${Auth.isAdmin() ? '<a href="/admin-orders.html" class="btn btn-sm btn-secondary">Orders</a>' : ''}
         ${Auth.isAdmin() ? '<a href="/admin-settings.html" class="btn btn-sm btn-secondary">Settings</a>' : ''}
+        ${Auth.isAdmin() ? '<a href="/db-explorer.html" class="btn btn-sm btn-secondary">🗄 DB</a>' : ''}
         ${!Auth.isAdmin() ? '<a href="/my-nfts.html" class="btn btn-sm btn-secondary">My NFTs</a>' : ''}
         ${!Auth.isAdmin() ? '<a href="/my-orders.html" class="btn btn-sm btn-secondary">My Orders</a>' : ''}
         <a href="/profile.html" class="btn btn-sm btn-secondary">Profile</a>

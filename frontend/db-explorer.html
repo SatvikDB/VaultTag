@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Explorer — VaultTag</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .page { padding-top:90px; padding-bottom:60px; }
+
+    /* ── DB connection banner ── */
+    .db-banner {
+      display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+      background:var(--bg-surface); border:1px solid var(--border-primary);
+      border-radius:var(--radius-lg); padding:16px 20px; margin-bottom:28px;
+    }
+    .db-status-dot {
+      width:10px; height:10px; border-radius:50%; background:var(--success);
+      box-shadow:0 0 8px var(--success); flex-shrink:0;
+      animation:pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .db-info { flex:1; }
+    .db-info .db-title { font-family:var(--font-mono); font-size:.9rem; color:var(--accent); font-weight:700; }
+    .db-info .db-sub { font-size:.78rem; color:var(--text-muted); margin-top:2px; }
+    .db-models { display:flex; gap:6px; flex-wrap:wrap; }
+    .model-chip {
+      padding:3px 10px; border-radius:var(--radius-full);
+      background:var(--accent-dim); color:var(--accent);
+      font-size:.72rem; font-weight:600; font-family:var(--font-mono);
+    }
+
+    /* ── Collection stats ── */
+    .collection-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
+    .coll-card {
+      background:var(--bg-surface); border:2px solid var(--border-primary);
+      border-radius:var(--radius-lg); padding:20px; cursor:pointer;
+      transition:all .2s; text-align:center;
+    }
+    .coll-card:hover { border-color:var(--accent); transform:translateY(-3px); }
+    .coll-card.active { border-color:var(--accent); background:var(--accent-dim); }
+    .coll-icon { font-size:2rem; margin-bottom:8px; }
+    .coll-name { font-family:var(--font-mono); font-size:.85rem; color:var(--text-secondary); margin-bottom:4px; }
+    .coll-count { font-family:var(--font-display); font-size:2rem; font-weight:700; color:var(--accent); }
+    .coll-label { font-size:.72rem; color:var(--text-muted); }
+
+    /* ── Explorer layout ── */
+    .explorer-layout { display:grid; grid-template-columns:1fr; gap:20px; }
+
+    /* ── Toolbar ── */
+    .explorer-toolbar {
+      display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+      background:var(--bg-surface); border:1px solid var(--border-primary);
+      border-radius:var(--radius-lg); padding:14px 18px;
+    }
+    .toolbar-title { font-family:var(--font-mono); font-size:.9rem; color:var(--accent); font-weight:700; flex:1; }
+    .toolbar-count { font-size:.78rem; color:var(--text-muted); }
+    .page-size-select { padding:6px 10px; background:var(--bg-primary); border:1px solid var(--border-primary); border-radius:var(--radius-sm); color:var(--text-primary); font-size:.8rem; }
+
+    /* ── Document table ── */
+    .doc-table-wrap { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-lg); overflow:hidden; }
+    .doc-table { width:100%; border-collapse:collapse; font-size:.78rem; }
+    .doc-table th {
+      text-align:left; padding:10px 14px;
+      background:var(--bg-secondary); color:var(--text-muted);
+      font-size:.7rem; text-transform:uppercase; letter-spacing:.06em;
+      border-bottom:1px solid var(--border-primary); white-space:nowrap;
+      font-weight:600;
+    }
+    .doc-table td {
+      padding:10px 14px; border-bottom:1px solid var(--border-subtle);
+      vertical-align:top; max-width:220px;
+    }
+    .doc-table tr:last-child td { border-bottom:none; }
+    .doc-table tr:hover td { background:var(--bg-surface-hover); }
+    .doc-table tr.expanded td { background:var(--bg-secondary); }
+
+    .cell-id { font-family:var(--font-mono); font-size:.7rem; color:var(--text-muted); }
+    .cell-val { color:var(--text-primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:180px; }
+    .cell-null { color:var(--text-muted); font-style:italic; }
+    .cell-num { color:#5B8DEF; font-family:var(--font-mono); }
+    .cell-bool-t { color:var(--success); font-weight:600; }
+    .cell-bool-f { color:var(--danger); font-weight:600; }
+    .cell-date { color:var(--gold); font-size:.7rem; }
+    .cell-badge { display:inline-block; padding:2px 8px; border-radius:var(--radius-full); font-size:.68rem; font-weight:600; }
+    .badge-active   { background:rgba(0,212,170,.15); color:var(--success); }
+    .badge-redeemed { background:rgba(226,75,74,.15); color:var(--danger); }
+    .badge-admin    { background:rgba(91,141,239,.15); color:#5B8DEF; }
+    .badge-buyer    { background:var(--accent-dim); color:var(--accent); }
+    .badge-pending  { background:rgba(239,159,39,.15); color:var(--warning); }
+    .badge-accepted { background:rgba(91,141,239,.15); color:#5B8DEF; }
+    .badge-completed{ background:rgba(0,212,170,.15); color:var(--success); }
+    .badge-rejected { background:rgba(226,75,74,.15); color:var(--danger); }
+
+    /* Expand row */
+    .expand-btn { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:.8rem; padding:2px 6px; border-radius:4px; }
+    .expand-btn:hover { color:var(--accent); background:var(--accent-dim); }
+    .json-row td { padding:0 !important; }
+    .json-block {
+      background:#0a0e1a; padding:16px 20px; font-family:var(--font-mono);
+      font-size:.72rem; line-height:1.7; color:#a8b4c8; overflow-x:auto;
+      border-top:1px solid var(--border-primary);
+    }
+    .json-key   { color:#79b8ff; }
+    .json-str   { color:#9ecbff; }
+    .json-num   { color:#f8c555; }
+    .json-bool  { color:#f97583; }
+    .json-null  { color:#6a737d; }
+
+    /* Pagination */
+    .pagination { display:flex; gap:8px; justify-content:center; align-items:center; margin-top:16px; flex-wrap:wrap; }
+    .pg-btn { padding:6px 14px; border-radius:var(--radius-sm); border:1px solid var(--border-primary); background:var(--bg-surface); color:var(--text-primary); cursor:pointer; font-size:.8rem; transition:all .15s; }
+    .pg-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .pg-btn.active { background:var(--accent); color:var(--bg-primary); border-color:var(--accent); }
+    .pg-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .pg-info { font-size:.78rem; color:var(--text-muted); }
+
+    /* Schema sidebar */
+    .schema-box {
+      background:var(--bg-surface); border:1px solid var(--border-primary);
+      border-radius:var(--radius-lg); padding:18px;
+    }
+    .schema-box h3 { font-size:.85rem; color:var(--text-secondary); margin-bottom:12px; text-transform:uppercase; letter-spacing:.06em; }
+    .schema-field { display:flex; align-items:center; gap:8px; padding:5px 0; border-bottom:1px solid var(--border-subtle); font-size:.78rem; }
+    .schema-field:last-child { border-bottom:none; }
+    .field-name { font-family:var(--font-mono); color:var(--accent); flex:1; }
+    .field-type { color:var(--text-muted); font-size:.7rem; }
+
+    /* Mongoose query display */
+    .query-box {
+      background:#0a0e1a; border:1px solid var(--border-primary);
+      border-radius:var(--radius-lg); padding:16px 20px;
+      font-family:var(--font-mono); font-size:.78rem; line-height:1.8;
+      color:#a8b4c8; overflow-x:auto;
+    }
+    .q-model { color:#79b8ff; font-weight:700; }
+    .q-method { color:#f97583; }
+    .q-arg { color:#9ecbff; }
+    .q-chain { color:#f8c555; }
+    .q-comment { color:#6a737d; }
+
+    @media(max-width:768px) {
+      .collection-stats { grid-template-columns:1fr; }
+      .doc-table { font-size:.7rem; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar scrolled"><div class="container">
+    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
+    <ul class="nav-links">
+      <li><a href="/dashboard.html">Dashboard</a></li>
+      <li><a href="/db-explorer.html" class="active">DB Explorer</a></li>
+      <li><a href="/admin-orders.html">Orders</a></li>
+      <li><a href="/mint.html">Mint</a></li>
+    </ul>
+    <div class="nav-actions" id="navActions"></div>
+  </div></nav>
+
+  <section class="page">
+    <div class="container">
+
+      <div style="margin-bottom:24px">
+        <h1 style="font-size:1.8rem;margin-bottom:4px">MongoDB <span class="text-gradient">Data Explorer</span></h1>
+        <p style="color:var(--text-secondary);font-size:.9rem">Live view of your Mongoose collections — every document stored in real-time</p>
+      </div>
+
+      <!-- DB Connection Banner -->
+      <div class="db-banner" id="dbBanner">
+        <div class="db-status-dot"></div>
+        <div class="db-info">
+          <div class="db-title" id="dbTitle">Connecting...</div>
+          <div class="db-sub" id="dbSub">Fetching connection info...</div>
+        </div>
+        <div class="db-models" id="dbModels"></div>
+      </div>
+
+      <!-- Collection Stats -->
+      <div class="collection-stats">
+        <div class="coll-card active" id="card-nfts" onclick="switchCollection('nfts')">
+          <div class="coll-icon">👟</div>
+          <div class="coll-name">nfts</div>
+          <div class="coll-count" id="cnt-nfts">—</div>
+          <div class="coll-label">documents</div>
+        </div>
+        <div class="coll-card" id="card-users" onclick="switchCollection('users')">
+          <div class="coll-icon">👤</div>
+          <div class="coll-name">users</div>
+          <div class="coll-count" id="cnt-users">—</div>
+          <div class="coll-label">documents</div>
+        </div>
+        <div class="coll-card" id="card-orders" onclick="switchCollection('orders')">
+          <div class="coll-icon">🛒</div>
+          <div class="coll-name">orders</div>
+          <div class="coll-count" id="cnt-orders">—</div>
+          <div class="coll-label">documents</div>
+        </div>
+      </div>
+
+      <!-- Mongoose Query Display -->
+      <div class="query-box" id="queryBox" style="margin-bottom:20px">
+        <span class="q-comment">// Mongoose query being executed:</span><br>
+        <span class="q-model">NFT</span>.<span class="q-method">find</span>(<span class="q-arg">{}</span>)
+          .<span class="q-chain">sort</span>(<span class="q-arg">{ createdAt: -1 }</span>)
+          .<span class="q-chain">skip</span>(<span class="q-arg">0</span>)
+          .<span class="q-chain">limit</span>(<span class="q-arg">10</span>)
+          .<span class="q-chain">lean</span>()
+      </div>
+
+      <!-- Explorer -->
+      <div class="explorer-layout">
+
+        <!-- Toolbar -->
+        <div class="explorer-toolbar">
+          <div class="toolbar-title" id="toolbarTitle">📂 nfts</div>
+          <div class="toolbar-count" id="toolbarCount"></div>
+          <select class="page-size-select" id="pageSizeSelect" onchange="changePageSize()">
+            <option value="5">5 / page</option>
+            <option value="10" selected>10 / page</option>
+            <option value="20">20 / page</option>
+            <option value="50">50 / page</option>
+          </select>
+          <button class="btn btn-secondary btn-sm" onclick="loadData()">↻ Refresh</button>
+        </div>
+
+        <!-- Schema -->
+        <div class="schema-box" id="schemaBox">
+          <h3>Schema Fields</h3>
+          <div id="schemaFields"><div class="spinner" style="width:20px;height:20px;margin:0 auto"></div></div>
+        </div>
+
+        <!-- Table -->
+        <div class="doc-table-wrap">
+          <div style="overflow-x:auto">
+            <table class="doc-table" id="docTable">
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody">
+                <tr><td colspan="20" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+
+      </div>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let currentCollection = 'nfts';
+    let currentPage = 1;
+    let currentLimit = 10;
+    let totalDocs = 0;
+    let expandedRows = new Set();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!Auth.requireAuth() || !Auth.requireAdmin()) return;
+      loadData();
+    });
+
+    function switchCollection(name) {
+      currentCollection = name;
+      currentPage = 1;
+      expandedRows.clear();
+      ['nfts','users','orders'].forEach(c => {
+        document.getElementById('card-'+c).classList.toggle('active', c === name);
+      });
+      loadData();
+    }
+
+    function changePageSize() {
+      currentLimit = Number(document.getElementById('pageSizeSelect').value);
+      currentPage = 1;
+      loadData();
+    }
+
+    async function loadData() {
+      document.getElementById('tableBody').innerHTML =
+        '<tr><td colspan="20" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto"></div></td></tr>';
+
+      try {
+        const res = await API.dbExplorer(currentCollection, currentPage, currentLimit);
+        const { docs, total, schema, stats, dbInfo } = res.data;
+        totalDocs = total;
+
+        // Update DB banner
+        document.getElementById('dbTitle').textContent =
+          `mongodb://${dbInfo.host}/${dbInfo.name}`;
+        document.getElementById('dbSub').textContent =
+          `State: ${dbInfo.state.toUpperCase()} • Mongoose models: ${dbInfo.models.join(', ')}`;
+        document.getElementById('dbModels').innerHTML =
+          dbInfo.models.map(m => `<span class="model-chip">${m}</span>`).join('');
+
+        // Update collection counts
+        document.getElementById('cnt-nfts').textContent   = stats.nfts.count;
+        document.getElementById('cnt-users').textContent  = stats.users.count;
+        document.getElementById('cnt-orders').textContent = stats.orders.count;
+
+        // Toolbar
+        document.getElementById('toolbarTitle').textContent = `📂 ${currentCollection}`;
+        document.getElementById('toolbarCount').textContent =
+          `${total} document${total !== 1 ? 's' : ''} • showing ${docs.length}`;
+
+        // Update query box
+        updateQueryBox();
+
+        // Schema
+        renderSchema(schema);
+
+        // Table
+        renderTable(docs, schema);
+
+        // Pagination
+        renderPagination(total);
+
+      } catch(e) {
+        document.getElementById('tableBody').innerHTML =
+          `<tr><td colspan="20" style="text-align:center;padding:40px;color:var(--danger)">${e.message}</td></tr>`;
+      }
+    }
+
+    function updateQueryBox() {
+      const skip = (currentPage - 1) * currentLimit;
+      const modelName = { nfts:'NFT', users:'User', orders:'Order' }[currentCollection];
+      document.getElementById('queryBox').innerHTML = `
+        <span class="q-comment">// Mongoose query being executed:</span><br>
+        <span class="q-model">${modelName}</span>.<span class="q-method">find</span>(<span class="q-arg">{}</span>)<br>
+        &nbsp;&nbsp;.<span class="q-chain">sort</span>(<span class="q-arg">{ createdAt: -1 }</span>)<br>
+        &nbsp;&nbsp;.<span class="q-chain">skip</span>(<span class="q-arg">${skip}</span>)<br>
+        &nbsp;&nbsp;.<span class="q-chain">limit</span>(<span class="q-arg">${currentLimit}</span>)<br>
+        &nbsp;&nbsp;.<span class="q-chain">lean</span>() <span class="q-comment">// returns plain JS objects</span>
+      `;
+    }
+
+    function renderSchema(fields) {
+      const typeMap = {
+        tokenId:'Number', productName:'String', serialNumber:'String',
+        category:'String', price:'Number', status:'String', owner:'String',
+        nfcUid:'String', imageUrl:'String', txHash:'String', ipfsUri:'String',
+        createdAt:'Date', name:'String', email:'String', role:'String',
+        walletAddress:'String', orderId:'String', buyer:'String',
+        buyerName:'String', total:'Number', paymentMethod:'String',
+        paymentRef:'String', shippingAddress:'String', acceptedAt:'Date',
+        transferredAt:'Date', emailSent:'Boolean'
+      };
+      document.getElementById('schemaFields').innerHTML = fields.map(f => `
+        <div class="schema-field">
+          <span class="field-name">${f}</span>
+          <span class="field-type">${typeMap[f] || 'Mixed'}</span>
+        </div>`).join('');
+    }
+
+    function renderTable(docs, schema) {
+      if (!docs.length) {
+        document.getElementById('tableHead').innerHTML = '';
+        document.getElementById('tableBody').innerHTML =
+          '<tr><td colspan="20" style="text-align:center;padding:40px;color:var(--text-muted)">No documents found</td></tr>';
+        return;
+      }
+
+      // Header
+      document.getElementById('tableHead').innerHTML = `<tr>
+        <th style="width:32px"></th>
+        <th>#</th>
+        ${schema.map(f => `<th>${f}</th>`).join('')}
+      </tr>`;
+
+      // Rows
+      document.getElementById('tableBody').innerHTML = docs.map((doc, idx) => {
+        const rowNum = (currentPage - 1) * currentLimit + idx + 1;
+        const rowId  = doc._id?.toString() || idx;
+        const cells  = schema.map(f => `<td>${formatCell(f, doc[f])}</td>`).join('');
+        const jsonHtml = syntaxHighlight(JSON.stringify(doc, null, 2));
+        const isExpanded = expandedRows.has(rowId);
+
+        return `
+          <tr id="row-${rowId}" class="${isExpanded ? 'expanded' : ''}">
+            <td>
+              <button class="expand-btn" onclick="toggleRow('${rowId}')" title="View full document">
+                ${isExpanded ? '▼' : '▶'}
+              </button>
+            </td>
+            <td class="cell-id">${rowNum}</td>
+            ${cells}
+          </tr>
+          <tr id="json-${rowId}" class="json-row" style="${isExpanded ? '' : 'display:none'}">
+            <td colspan="${schema.length + 2}">
+              <div class="json-block">${jsonHtml}</div>
+            </td>
+          </tr>`;
+      }).join('');
+    }
+
+    function toggleRow(rowId) {
+      const jsonRow = document.getElementById('json-'+rowId);
+      const row     = document.getElementById('row-'+rowId);
+      const btn     = row.querySelector('.expand-btn');
+      if (expandedRows.has(rowId)) {
+        expandedRows.delete(rowId);
+        jsonRow.style.display = 'none';
+        row.classList.remove('expanded');
+        btn.textContent = '▶';
+      } else {
+        expandedRows.add(rowId);
+        jsonRow.style.display = '';
+        row.classList.add('expanded');
+        btn.textContent = '▼';
+      }
+    }
+
+    function formatCell(field, val) {
+      if (val === null || val === undefined) return '<span class="cell-null">null</span>';
+      if (field === 'createdAt' || field === 'acceptedAt' || field === 'transferredAt' || field.endsWith('At')) {
+        return `<span class="cell-date">${val ? new Date(val).toLocaleString('en-IN') : '—'}</span>`;
+      }
+      if (field === 'status') {
+        return `<span class="cell-badge badge-${val}">${val}</span>`;
+      }
+      if (field === 'role') {
+        return `<span class="cell-badge badge-${val}">${val}</span>`;
+      }
+      if (typeof val === 'boolean') {
+        return val ? '<span class="cell-bool-t">true</span>' : '<span class="cell-bool-f">false</span>';
+      }
+      if (typeof val === 'number') {
+        return `<span class="cell-num">${field === 'price' || field === 'total' || field === 'subtotal' || field === 'fee' ? formatPrice(val) : val}</span>`;
+      }
+      if (Array.isArray(val)) {
+        return `<span class="cell-null">[${val.length} items]</span>`;
+      }
+      if (typeof val === 'object') {
+        return `<span class="cell-null">{object}</span>`;
+      }
+      const str = String(val);
+      // Truncate long strings (like base64 images)
+      if (str.startsWith('data:image')) return '<span class="cell-null">data:image/... (base64)</span>';
+      return `<span class="cell-val" title="${str.replace(/"/g,'&quot;')}">${str.length > 40 ? str.slice(0,40)+'…' : str}</span>`;
+    }
+
+    function renderPagination(total) {
+      const pages = Math.ceil(total / currentLimit);
+      if (pages <= 1) { document.getElementById('pagination').innerHTML = ''; return; }
+
+      let html = `<button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>← Prev</button>`;
+      const start = Math.max(1, currentPage - 2);
+      const end   = Math.min(pages, currentPage + 2);
+      if (start > 1) html += `<button class="pg-btn" onclick="goPage(1)">1</button>${start>2?'<span class="pg-info">…</span>':''}`;
+      for (let i = start; i <= end; i++) {
+        html += `<button class="pg-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+      }
+      if (end < pages) html += `${end<pages-1?'<span class="pg-info">…</span>':''}<button class="pg-btn" onclick="goPage(${pages})">${pages}</button>`;
+      html += `<button class="pg-btn" onclick="goPage(${currentPage+1})" ${currentPage===pages?'disabled':''}>Next →</button>`;
+      html += `<span class="pg-info">Page ${currentPage} of ${pages} • ${total} docs</span>`;
+      document.getElementById('pagination').innerHTML = html;
+    }
+
+    function goPage(p) {
+      if (p < 1) return;
+      currentPage = p;
+      expandedRows.clear();
+      loadData();
+    }
+
+    /* ── JSON syntax highlighter ── */
+    function syntaxHighlight(json) {
+      return json
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
+          let cls = 'json-num';
+          if (/^"/.test(match)) {
+            cls = /:$/.test(match) ? 'json-key' : 'json-str';
+          } else if (/true|false/.test(match)) {
+            cls = 'json-bool';
+          } else if (/null/.test(match)) {
+            cls = 'json-null';
+          }
+          return `<span class="${cls}">${match}</span>`;
+        });
+    }
+  </script>
+</body>
+</html>

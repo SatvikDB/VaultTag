@@ -1,5 +1,7 @@
 const NFT = require('../models/NFT');
 const User = require('../models/User');
+const Order = require('../models/Order');
+const mongoose = require('mongoose');
 const { success, error } = require('../utils/apiResponse');
 
 /**
@@ -88,4 +90,49 @@ exports.deleteNft = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+};
+
+/**
+ * GET /api/admin/db-explorer — Admin only
+ * Returns live MongoDB collection data for the explorer UI
+ */
+exports.dbExplorer = async (req, res, next) => {
+  try {
+    const { collection = 'nfts', page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    let docs = [], total = 0, schema = [];
+
+    if (collection === 'nfts') {
+      total = await NFT.countDocuments();
+      docs  = await NFT.find().sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
+      schema = ['tokenId','productName','serialNumber','category','price','status','owner','nfcUid','imageUrl','txHash','ipfsUri','createdAt'];
+    } else if (collection === 'users') {
+      total = await User.countDocuments();
+      docs  = await User.find().sort({ createdAt: -1 }).skip(skip).limit(Number(limit))
+                .select('-passwordHash').lean();
+      schema = ['name','email','role','walletAddress','createdAt'];
+    } else if (collection === 'orders') {
+      total = await Order.countDocuments();
+      docs  = await Order.find().sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean();
+      schema = ['orderId','buyer','buyerName','total','paymentMethod','paymentRef','status','acceptedAt','transferredAt','emailSent','createdAt'];
+    }
+
+    // Collection-level stats
+    const stats = {
+      nfts:   { count: await NFT.countDocuments(),   label: 'NFTs',   icon: '👟' },
+      users:  { count: await User.countDocuments(),  label: 'Users',  icon: '👤' },
+      orders: { count: await Order.countDocuments(), label: 'Orders', icon: '🛒' }
+    };
+
+    // DB connection info
+    const dbInfo = {
+      host:   mongoose.connection.host,
+      name:   mongoose.connection.name,
+      state:  ['disconnected','connected','connecting','disconnecting'][mongoose.connection.readyState] || 'unknown',
+      models: Object.keys(mongoose.models)
+    };
+
+    return success(res, { docs, total, schema, stats, dbInfo, page: Number(page), limit: Number(limit) });
+  } catch (err) { next(err); }
 };
