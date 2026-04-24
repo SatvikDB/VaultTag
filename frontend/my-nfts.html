@@ -87,7 +87,7 @@
         }
 
         grid.innerHTML = nfts.map(n => `
-          <div class="product-card" onclick="window.location.href='/product.html?id=${n.tokenId}'">
+          <div class="product-card" onclick="window.location.href='/product.html?id=${n.tokenId}&name=${encodeURIComponent(n.productName)}&price=${n.price}&cat=${encodeURIComponent(n.category)}&status=${n.status}&img=${encodeURIComponent(n.imageUrl||'')}'">
             <div class="product-card-image">
               <img src="${n.imageUrl || 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=600'}" alt="${n.productName}" loading="lazy">
             </div>

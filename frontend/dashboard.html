@@ -15,7 +15,13 @@
     .nft-table th { text-align:left; padding:12px 16px; color:var(--text-secondary); font-weight:500; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--border-primary); }
     .nft-table td { padding:12px 16px; border-bottom:1px solid var(--border-subtle); vertical-align:middle; }
     .nft-table tr:hover td { background:var(--bg-surface-hover); }
-    .nft-table .img-cell { width:40px; height:40px; border-radius:var(--radius-sm); object-fit:cover; }
+    .nft-table .img-cell { width:52px; height:52px; border-radius:var(--radius-md); object-fit:cover; display:block; }
+    .img-cell-wrap {
+      width:52px; height:52px; border-radius:var(--radius-md);
+      background:var(--bg-secondary); overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--text-muted); font-size:1.1rem;
+    }
     .table-wrap { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-lg); overflow:hidden; }
     .table-header { padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-primary); }
     .table-header h3 { font-size:1rem; }
@@ -106,7 +112,13 @@
 
         tbody.innerHTML = nfts.map(n => `
           <tr>
-            <td>${n.imageUrl ? `<img src="${n.imageUrl}" class="img-cell" alt="">` : '<div class="img-cell" style="background:var(--bg-secondary)"></div>'}</td>
+            <td>
+              <div class="img-cell-wrap">
+                ${n.imageUrl
+                  ? `<img class="img-cell" src="${n.imageUrl}" alt="${n.productName}">`
+                  : '👟'}
+              </div>
+            </td>
             <td><strong>${n.productName}</strong></td>
             <td><span class="text-mono">#${n.tokenId || '—'}</span></td>
             <td>${n.category}</td>
