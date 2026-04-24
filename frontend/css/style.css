@@ -736,6 +736,18 @@ textarea.form-input {
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
+/* ── Scroll Animation — animate-in state ── */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+}
+
+.animate-on-scroll.animate-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .hero-content {

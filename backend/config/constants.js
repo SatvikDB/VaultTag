@@ -1,7 +1,7 @@
 module.exports = {
   CATEGORIES: ['Footwear', 'Clothing', 'Artwork', 'Accessories', 'Electronics'],
   STATUSES: ['unminted', 'active', 'redeemed'],
-  ROLES: ['admin', 'buyer'],
+  ROLES: ['superadmin', 'admin', 'seller', 'buyer'],
   JWT_EXPIRY: '7d',
   BCRYPT_SALT_ROUNDS: 12,
   RATE_LIMIT: {

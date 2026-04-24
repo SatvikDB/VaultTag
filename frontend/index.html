@@ -264,7 +264,6 @@
       <ul class="nav-links">
         <li><a href="/" class="active">Home</a></li>
         <li><a href="/collection.html">Collection</a></li>
-        <li><a href="/verify.html">Verify</a></li>
       </ul>
       <div class="nav-actions" id="navActions"></div>
     </div>
@@ -283,7 +282,6 @@
           <p>VaultTag bridges physical sneakers with blockchain-verified NFTs. Every pair is authenticated, every transfer is traced, every fake is exposed.</p>
           <div class="hero-cta">
             <a href="/collection.html" class="btn btn-primary btn-lg">Explore Collection</a>
-            <a href="/verify.html" class="btn btn-secondary btn-lg">Verify a Product</a>
           </div>
           <div class="hero-stats">
             <div>
@@ -306,8 +304,8 @@
           <div class="shoe-card__visual">
             <div class="shoe-card__blob"></div>
             <img
-              src="https://www.shutterstock.com/image-photo/tangerang-indonesia-september-25-2025-600nw-2682476557.jpg"
-              alt="Adidas ZX 2K Boost"
+              src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80"
+              alt="Nike Air Jordan"
               class="shoe-card__img"
               id="shoeCardImg"
             >
@@ -315,8 +313,8 @@
 
           <!-- Name + tagline -->
           <div class="shoe-card__info">
-            <h2 class="shoe-card__name">Nike Air jordan ZX</h2>
-            <p class="shoe-card__tagline">FUTURE-READY TRAINERS WITH WRAPPED BOOST FOR EXCEPTIONAL COMFORT.</p>
+            <h2 class="shoe-card__name">Nike Air Jordan 1</h2>
+            <p class="shoe-card__tagline">BLOCKCHAIN-VERIFIED AUTHENTIC SNEAKER — SCAN NFC TO CONFIRM OWNERSHIP.</p>
           </div>
 
           <!-- Size selector -->
@@ -330,10 +328,13 @@
           <!-- View toggle (card / side) -->
           <div class="shoe-card__views">
             <button class="view-btn view-btn--active"
-              data-img="https://www.shutterstock.com/image-photo/tangerang-indonesia-september-25-2025-600nw-2682476557.jpg">
-              <span>Card View</span>
+              data-img="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80">
+              <span>Front View</span>
             </button>
-           
+            <button class="view-btn"
+              data-img="https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&q=80">
+              <span>Side View</span>
+            </button>
           </div>
 
           <!-- CTA -->
@@ -388,15 +389,6 @@
         <div class="skeleton" style="height:400px;border-radius:var(--radius-lg)"></div>
         <div class="skeleton" style="height:400px;border-radius:var(--radius-lg)"></div>
       </div>
-    </div>
-  </section>
-
-  <!-- CTA -->
-  <section class="cta-section">
-    <div class="container animate-on-scroll">
-      <h2>Ready to <span class="text-gradient">Verify</span>?</h2>
-      <p>Check any product's authenticity instantly — no account needed.</p>
-      <a href="/verify.html" class="btn btn-primary btn-lg">Verify a Product Now</a>
     </div>
   </section>
 
@@ -455,9 +447,9 @@
 
         if (nfts.length === 0) {
           nfts = [
-            { tokenId: 1, productName: 'Air Jordan 1 Retro High OG', price: 1, category: 'Footwear', status: 'active', imageUrl: 'https://t4.ftcdn.net/jpg/04/10/65/53/360_F_410655365_MjietOoPZAMAdqA74M6EXqRL3F8g5dHH.jpg' },
-            { tokenId: 2, productName: 'Nike Dunk Low Panda', price: 2, category: 'Footwear', status: 'active', imageUrl: 'https://cloudfront-us-east-1.images.arcpublishing.com/gray/KHE3L2JKUVF6LALO4EN74TJKAU.JPG' },
-            { tokenId: 3, productName: 'Yeezy Boost 350 V2', price: 3, category: 'Footwear', status: 'active', imageUrl: 'https://png.pngtree.com/thumb_back/fw800/background/20260101/pngtree-black-and-white-nike-shoes-on-dark-surface-image_20983505.webp' }
+            { tokenId: 1, productName: 'Air Jordan 1 Retro High OG', price: 18500, category: 'Footwear', status: 'active', imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
+            { tokenId: 2, productName: 'Nike Dunk Low Panda', price: 12000, category: 'Footwear', status: 'active', imageUrl: 'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=500&q=80' },
+            { tokenId: 3, productName: 'Yeezy Boost 350 V2', price: 22000, category: 'Footwear', status: 'active', imageUrl: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=500&q=80' }
           ];
         }
 
@@ -469,7 +461,7 @@
             data-id="${nft.tokenId}"
             onclick="selectFeaturedCard(this, event)">
             <div class="product-card-image">
-              <img src="${nft.imageUrl || 'https://t4.ftcdn.net/jpg/04/10/65/53/360_F_410655365_MjietOoPZAMAdqA74M6EXqRL3F8g5dHH.jpg'}" alt="${nft.productName}" loading="lazy">
+              <img src="${nft.imageUrl || 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80'}" alt="${nft.productName}" loading="lazy">
             </div>
             <div class="product-card-body">
               <div class="product-card-name">${nft.productName}</div>

@@ -18,8 +18,8 @@ exports.register = async (req, res, next) => {
     const user = await User.create({
       name,
       email: email.toLowerCase(),
-      passwordHash: password, // Will be hashed by pre-save hook
-      role: role === 'admin' ? 'admin' : 'buyer' // Only allow admin if explicitly set
+      passwordHash: password,
+      role: ['superadmin', 'admin', 'seller'].includes(role) ? role : 'buyer'
     });
 
     const token = generateToken(user);
