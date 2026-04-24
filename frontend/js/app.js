@@ -28,9 +28,10 @@ const Auth = {
     return u && u.role === 'admin';
   },
   logout() {
+    const wasAdmin = this.isAdmin();
     localStorage.removeItem('vt_token');
     localStorage.removeItem('vt_user');
-    window.location.href = '/login.html';
+    window.location.href = wasAdmin ? '/login.html?role=admin' : '/login.html';
   },
   requireAuth() {
     if (!this.isLoggedIn()) {
@@ -41,7 +42,7 @@ const Auth = {
   },
   requireAdmin() {
     if (!this.isAdmin()) {
-      window.location.href = '/';
+      window.location.href = '/login.html?role=admin';
       return false;
     }
     return true;

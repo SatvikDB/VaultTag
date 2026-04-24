@@ -6,119 +6,387 @@
   <title>Login — VaultTag</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    .auth-page { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:80px 24px; }
-    .auth-card { width:100%; max-width:440px; }
-    .auth-card h1 { font-size:2rem; margin-bottom:8px; text-align:center; }
-    .auth-card>p { color:var(--text-secondary); text-align:center; margin-bottom:32px; }
-    .auth-tabs { display:flex; border-bottom:1px solid var(--border-primary); margin-bottom:28px; }
-    .auth-tab {
-      flex:1; text-align:center; padding:12px; cursor:pointer;
-      color:var(--text-secondary); font-weight:500; font-size:0.9rem;
-      border-bottom:2px solid transparent; transition:all var(--transition-fast);
+    /* ── Page shell ── */
+    body { overflow-x: hidden; }
+    .auth-page {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 80px 24px 40px;
+      position: relative;
     }
-    .auth-tab.active { color:var(--text-primary); border-bottom-color:var(--accent); }
-    .auth-form { display:none; }
-    .auth-form.active { display:block; }
-    .auth-footer { text-align:center; margin-top:24px; font-size:0.85rem; color:var(--text-muted); }
-    .auth-divider { display:flex; align-items:center; gap:12px; margin:24px 0; color:var(--text-muted); font-size:0.8rem; }
-    .auth-divider::before,.auth-divider::after { content:''; flex:1; height:1px; background:var(--border-primary); }
+
+    /* ── Logo header ── */
+    .auth-logo {
+      text-align: center; margin-bottom: 12px;
+    }
+    .auth-logo .logo-mark {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), #009E7E);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; margin: 0 auto 12px;
+      box-shadow: 0 8px 32px var(--accent-glow);
+    }
+    .auth-logo h1 {
+      font-size: 1.8rem; margin-bottom: 4px;
+    }
+    .auth-logo p { color: var(--text-secondary); font-size: .9rem; }
+
+    /* ── Role selector screen ── */
+    #roleScreen { width: 100%; max-width: 480px; }
+
+    .role-cards {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 16px; margin-top: 32px;
+    }
+    .role-card {
+      background: var(--bg-surface);
+      border: 2px solid var(--border-primary);
+      border-radius: var(--radius-xl);
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .25s var(--ease-out);
+      position: relative;
+      overflow: hidden;
+    }
+    .role-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      opacity: 0;
+      transition: opacity .25s;
+    }
+    .role-card.admin-card::before {
+      background: radial-gradient(circle at 50% 0%, rgba(91,141,239,.15), transparent 70%);
+    }
+    .role-card.buyer-card::before {
+      background: radial-gradient(circle at 50% 0%, rgba(0,212,170,.15), transparent 70%);
+    }
+    .role-card:hover { transform: translateY(-6px); }
+    .role-card:hover::before { opacity: 1; }
+    .role-card.admin-card:hover { border-color: #5B8DEF; box-shadow: 0 16px 48px rgba(91,141,239,.25); }
+    .role-card.buyer-card:hover { border-color: var(--accent); box-shadow: 0 16px 48px var(--accent-glow); }
+
+    .role-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; margin: 0 auto 16px;
+    }
+    .admin-card .role-icon { background: rgba(91,141,239,.15); border: 2px solid rgba(91,141,239,.3); }
+    .buyer-card .role-icon { background: var(--accent-dim); border: 2px solid rgba(0,212,170,.3); }
+
+    .role-title {
+      font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .admin-card .role-title { color: #5B8DEF; }
+    .buyer-card .role-title { color: var(--accent); }
+
+    .role-desc { font-size: .78rem; color: var(--text-muted); line-height: 1.5; }
+
+    .role-arrow {
+      margin-top: 16px; font-size: 1.2rem;
+      opacity: 0; transform: translateY(4px);
+      transition: all .2s;
+    }
+    .role-card:hover .role-arrow { opacity: 1; transform: translateY(0); }
+
+    /* ── Auth form screens ── */
+    .auth-screen {
+      display: none; width: 100%; max-width: 420px;
+      animation: fadeInUp .35s var(--ease-out);
+    }
+    .auth-screen.visible { display: block; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .auth-card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+    }
+
+    /* Role badge at top of form */
+    .role-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: var(--radius-full);
+      font-size: .78rem; font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .role-badge.admin { background: rgba(91,141,239,.15); color: #5B8DEF; border: 1px solid rgba(91,141,239,.25); }
+    .role-badge.buyer { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(0,212,170,.2); }
+
+    .auth-card h2 { font-size: 1.5rem; margin-bottom: 4px; }
+    .auth-card .sub { color: var(--text-secondary); font-size: .85rem; margin-bottom: 24px; }
+
+    /* Tabs (buyer only) */
+    .auth-tabs {
+      display: flex; border-bottom: 1px solid var(--border-primary);
+      margin-bottom: 24px;
+    }
+    .auth-tab {
+      flex: 1; text-align: center; padding: 10px;
+      cursor: pointer; color: var(--text-secondary);
+      font-weight: 500; font-size: .88rem;
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition-fast);
+    }
+    .auth-tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: none; border: none; color: var(--text-muted);
+      font-size: .82rem; cursor: pointer; padding: 0;
+      margin-bottom: 20px; transition: color .15s;
+    }
+    .back-btn:hover { color: var(--text-primary); }
+
+    .auth-hint {
+      text-align: center; margin-top: 16px;
+      font-size: .78rem; color: var(--text-muted);
+      background: var(--bg-secondary); border-radius: var(--radius-md);
+      padding: 10px 14px;
+    }
+    .auth-hint strong { color: var(--text-secondary); }
+
+    /* Admin lock icon decoration */
+    .admin-lock {
+      text-align: center; padding: 16px 0 8px;
+      font-size: .8rem; color: var(--text-muted);
+    }
+    .admin-lock svg { display: block; margin: 0 auto 6px; opacity: .4; }
   </style>
 </head>
 <body>
   <div class="particles-bg" id="particles"></div>
+
   <nav class="navbar scrolled"><div class="container">
     <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/verify.html">Verify</a></li>
-    </ul>
     <div class="nav-actions"></div>
   </div></nav>
 
   <section class="auth-page">
-    <div class="auth-card card-glass">
-      <h1>Welcome to <span class="text-gradient">VaultTag</span></h1>
-      <p>Sign in to manage your NFTs</p>
 
-      <div class="auth-tabs">
-        <div class="auth-tab active" onclick="switchTab('login')">Login</div>
-        <div class="auth-tab" onclick="switchTab('register')">Register</div>
+    <!-- ── Step 1: Choose role ── -->
+    <div id="roleScreen">
+      <div class="auth-logo">
+        <div class="logo-mark">⬡</div>
+        <h1>Welcome to <span class="text-gradient">VaultTag</span></h1>
+        <p>Blockchain-verified authentic products</p>
       </div>
 
-      <!-- Login Form -->
-      <form class="auth-form active" id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-input" id="loginEmail" placeholder="admin@vaulttag.com" required>
+      <div class="role-cards">
+        <!-- Admin -->
+        <div class="role-card admin-card" onclick="showScreen('adminScreen')">
+          <div class="role-icon">🛡️</div>
+          <div class="role-title">Admin</div>
+          <div class="role-desc">Manage products, mint NFTs, handle orders</div>
+          <div class="role-arrow">→</div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" required>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%" id="loginBtn">Sign In</button>
-        <div class="auth-footer">Demo: admin@vaulttag.com / Admin@123</div>
-      </form>
 
-      <!-- Register Form -->
-      <form class="auth-form" id="registerForm" onsubmit="handleRegister(event)">
-        <div class="form-group">
-          <label class="form-label">Full Name</label>
-          <input type="text" class="form-input" id="regName" placeholder="John Doe" required>
+        <!-- Buyer -->
+        <div class="role-card buyer-card" onclick="showScreen('buyerScreen')">
+          <div class="role-icon">🛍️</div>
+          <div class="role-title">Buyer</div>
+          <div class="role-desc">Browse, purchase & verify authentic products</div>
+          <div class="role-arrow">→</div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-input" id="regEmail" placeholder="you@email.com" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <input type="password" class="form-input" id="regPassword" placeholder="Min 6 characters" required minlength="6">
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:100%" id="regBtn">Create Account</button>
-      </form>
+      </div>
     </div>
+
+    <!-- ── Step 2a: Admin login ── -->
+    <div class="auth-screen" id="adminScreen">
+      <button class="back-btn" onclick="showScreen('roleScreen')">
+        ← Back
+      </button>
+      <div class="auth-card">
+        <span class="role-badge admin">🛡️ Admin Portal</span>
+        <h2>Admin <span class="text-gradient">Sign In</span></h2>
+        <p class="sub">Restricted access — admin credentials only</p>
+
+        <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Admin Email</label>
+            <input type="email" class="form-input" id="adminEmail" placeholder="admin@vaulttag.com" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" id="adminPassword" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;background:linear-gradient(135deg,#5B8DEF,#3B6FD4)" id="adminLoginBtn">
+            Sign In as Admin
+          </button>
+        </form>
+
+        <div class="admin-lock">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+          Registration is not available for admin accounts
+        </div>
+
+        <div class="auth-hint">Demo: <strong>admin@vaulttag.com</strong> / <strong>Admin@123</strong></div>
+      </div>
+    </div>
+
+    <!-- ── Step 2b: Buyer login / register ── -->
+    <div class="auth-screen" id="buyerScreen">
+      <button class="back-btn" onclick="showScreen('roleScreen')">
+        ← Back
+      </button>
+      <div class="auth-card">
+        <span class="role-badge buyer">🛍️ Buyer Portal</span>
+        <h2>Buyer <span class="text-gradient">Access</span></h2>
+        <p class="sub">Sign in or create a new account</p>
+
+        <div class="auth-tabs">
+          <div class="auth-tab active" id="tabLogin" onclick="switchBuyerTab('login')">Sign In</div>
+          <div class="auth-tab" id="tabRegister" onclick="switchBuyerTab('register')">Register</div>
+        </div>
+
+        <!-- Buyer login -->
+        <form class="auth-form active" id="buyerLoginForm" onsubmit="handleBuyerLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="buyerEmail" placeholder="you@email.com" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" id="buyerPassword" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%" id="buyerLoginBtn">Sign In</button>
+        </form>
+
+        <!-- Buyer register -->
+        <form class="auth-form" id="buyerRegisterForm" onsubmit="handleBuyerRegister(event)">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-input" id="regName" placeholder="John Doe" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-input" id="regEmail" placeholder="you@email.com" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" id="regPassword" placeholder="Min 6 characters" required minlength="6" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%" id="regBtn">Create Account</button>
+        </form>
+
+        <div class="auth-hint">Demo: <strong>buyer@vaulttag.com</strong> / <strong>Buyer@123</strong></div>
+      </div>
+    </div>
+
   </section>
 
   <script src="/js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       initParticles(document.getElementById('particles'));
+
+      // Already logged in → redirect
       if (Auth.isLoggedIn()) {
-        window.location.href = Auth.isAdmin() ? '/dashboard.html' : '/my-nfts.html';
+        window.location.href = Auth.isAdmin() ? '/dashboard.html' : '/index.html';
+        return;
       }
-      if (window.location.hash === '#register') switchTab('register');
+
+      // Deep-link support: ?role=admin or ?role=buyer or #register
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('role') === 'admin')  showScreen('adminScreen');
+      if (params.get('role') === 'buyer')  showScreen('buyerScreen');
+      if (window.location.hash === '#register') {
+        showScreen('buyerScreen');
+        switchBuyerTab('register');
+      }
     });
 
-    function switchTab(tab) {
-      document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (tab === 'login' ? i === 0 : i === 1)));
-      document.getElementById('loginForm').classList.toggle('active', tab === 'login');
-      document.getElementById('registerForm').classList.toggle('active', tab === 'register');
+    /* ── Screen switcher ── */
+    function showScreen(id) {
+      document.getElementById('roleScreen').style.display  = 'none';
+      document.getElementById('adminScreen').classList.remove('visible');
+      document.getElementById('buyerScreen').classList.remove('visible');
+
+      if (id === 'roleScreen') {
+        document.getElementById('roleScreen').style.display = 'block';
+      } else {
+        document.getElementById(id).classList.add('visible');
+      }
     }
 
-    async function handleLogin(e) {
+    /* ── Buyer tab switcher ── */
+    function switchBuyerTab(tab) {
+      document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+      document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
+      document.getElementById('buyerLoginForm').classList.toggle('active', tab === 'login');
+      document.getElementById('buyerRegisterForm').classList.toggle('active', tab === 'register');
+    }
+
+    /* ── Admin login ── */
+    async function handleAdminLogin(e) {
       e.preventDefault();
-      const btn = document.getElementById('loginBtn');
+      const btn = document.getElementById('adminLoginBtn');
       btn.disabled = true; btn.textContent = 'Signing in...';
       try {
         const res = await API.login(
-          document.getElementById('loginEmail').value,
-          document.getElementById('loginPassword').value
+          document.getElementById('adminEmail').value,
+          document.getElementById('adminPassword').value
         );
+        // Enforce admin role
+        if (res.data.user.role !== 'admin') {
+          Toast.error('This account does not have admin access. Please use the Buyer portal.');
+          btn.disabled = false; btn.textContent = 'Sign In as Admin';
+          return;
+        }
+        Auth.setToken(res.data.token);
+        Auth.setUser(res.data.user);
+        Toast.success('Welcome, Admin!');
+        setTimeout(() => { window.location.href = '/dashboard.html'; }, 500);
+      } catch (err) {
+        Toast.error(err.message);
+        btn.disabled = false; btn.textContent = 'Sign In as Admin';
+      }
+    }
+
+    /* ── Buyer login ── */
+    async function handleBuyerLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('buyerLoginBtn');
+      btn.disabled = true; btn.textContent = 'Signing in...';
+      try {
+        const res = await API.login(
+          document.getElementById('buyerEmail').value,
+          document.getElementById('buyerPassword').value
+        );
+        // Prevent admin from logging in via buyer portal
+        if (res.data.user.role === 'admin') {
+          Toast.error('Admin accounts must use the Admin portal.');
+          btn.disabled = false; btn.textContent = 'Sign In';
+          return;
+        }
         Auth.setToken(res.data.token);
         Auth.setUser(res.data.user);
         Toast.success('Welcome back!');
-        setTimeout(() => {
-          window.location.href = res.data.user.role === 'admin' ? '/dashboard.html' : '/my-nfts.html';
-        }, 500);
+        setTimeout(() => { window.location.href = '/index.html'; }, 500);
       } catch (err) {
         Toast.error(err.message);
         btn.disabled = false; btn.textContent = 'Sign In';
       }
     }
 
-    async function handleRegister(e) {
+    /* ── Buyer register ── */
+    async function handleBuyerRegister(e) {
       e.preventDefault();
       const btn = document.getElementById('regBtn');
-      btn.disabled = true; btn.textContent = 'Creating...';
+      btn.disabled = true; btn.textContent = 'Creating account...';
       try {
         const res = await API.register(
           document.getElementById('regName').value,
@@ -127,8 +395,8 @@
         );
         Auth.setToken(res.data.token);
         Auth.setUser(res.data.user);
-        Toast.success('Account created!');
-        setTimeout(() => { window.location.href = '/my-nfts.html'; }, 500);
+        Toast.success('Account created! Welcome to VaultTag.');
+        setTimeout(() => { window.location.href = '/index.html'; }, 500);
       } catch (err) {
         Toast.error(err.message);
         btn.disabled = false; btn.textContent = 'Create Account';
