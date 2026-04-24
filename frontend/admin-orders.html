@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders — Admin VaultTag</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .page { padding-top:90px; padding-bottom:60px; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px; }
+    .filter-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
+    .tab-btn { padding:8px 18px; border-radius:var(--radius-full); border:1px solid var(--border-primary); background:transparent; color:var(--text-secondary); font-size:.82rem; font-weight:600; cursor:pointer; transition:all .2s; }
+    .tab-btn.active { background:var(--accent); color:var(--bg-primary); border-color:var(--accent); }
+    .orders-list { display:flex; flex-direction:column; gap:16px; }
+    .order-card { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-lg); padding:20px; transition:border-color .2s; }
+    .order-card:hover { border-color:var(--border-glow); }
+    .order-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
+    .order-id { font-family:var(--font-mono); font-size:.9rem; color:var(--accent); font-weight:700; }
+    .order-buyer { font-size:.82rem; color:var(--text-secondary); margin-top:2px; }
+    .order-date { font-size:.75rem; color:var(--text-muted); }
+    .order-items-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+    .order-item-chip { display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border-radius:var(--radius-sm); padding:6px 10px; font-size:.8rem; }
+    .order-item-chip img { width:32px; height:32px; border-radius:4px; object-fit:cover; }
+    .order-meta { display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+    .order-total { font-family:var(--font-display); font-weight:700; font-size:1.1rem; color:var(--gold); }
+    .order-method { font-size:.78rem; background:var(--bg-secondary); padding:4px 10px; border-radius:var(--radius-full); color:var(--text-secondary); }
+    .order-ref { font-family:var(--font-mono); font-size:.72rem; color:var(--text-muted); word-break:break-all; }
+    .order-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .note-input { flex:1; min-width:200px; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-primary); border-radius:var(--radius-md); color:var(--text-primary); font-size:.82rem; outline:none; }
+    .note-input:focus { border-color:var(--accent); }
+    .empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
+  </style>
+</head>
+<body>
+  <nav class="navbar scrolled"><div class="container">
+    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
+    <ul class="nav-links">
+      <li><a href="/dashboard.html">Dashboard</a></li>
+      <li><a href="/admin-orders.html" class="active">Orders</a></li>
+      <li><a href="/admin-settings.html">Settings</a></li>
+      <li><a href="/mint.html">Mint</a></li>
+    </ul>
+    <div class="nav-actions" id="navActions"></div>
+  </div></nav>
+
+  <section class="page">
+    <div class="container">
+      <div class="page-header">
+        <div>
+          <h1 style="font-size:1.8rem">Buyer <span class="text-gradient">Orders</span></h1>
+          <p style="color:var(--text-secondary);font-size:.9rem">Review and confirm buyer payments</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="loadOrders(currentFilter)">↻ Refresh</button>
+      </div>
+
+      <div class="filter-tabs">
+        <button class="tab-btn active" onclick="loadOrders('pending',this)">⏳ Pending</button>
+        <button class="tab-btn" onclick="loadOrders('accepted',this)">✅ Accepted</button>
+        <button class="tab-btn" onclick="loadOrders('rejected',this)">❌ Rejected</button>
+        <button class="tab-btn" onclick="loadOrders('',this)">All</button>
+      </div>
+
+      <div class="orders-list" id="ordersList">
+        <div class="empty"><div class="spinner" style="margin:0 auto 12px"></div>Loading...</div>
+      </div>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let currentFilter = 'pending';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!Auth.requireAuth() || !Auth.requireAdmin()) return;
+      loadOrders('pending');
+    });
+
+    async function loadOrders(status, btn) {
+      currentFilter = status;
+      if (btn) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      }
+      const list = document.getElementById('ordersList');
+      list.innerHTML = '<div class="empty"><div class="spinner" style="margin:0 auto 12px"></div>Loading...</div>';
+      try {
+        const res = await API.getAllOrders(status);
+        const orders = res.data.orders;
+        if (!orders.length) { list.innerHTML = '<div class="empty">No orders found.</div>'; return; }
+        list.innerHTML = orders.map(o => renderOrder(o)).join('');
+      } catch(e) {
+        list.innerHTML = `<div class="empty" style="color:var(--danger)">${e.message}</div>`;
+      }
+    }
+
+    function renderOrder(o) {
+      const statusColor = { pending:'var(--warning)', accepted:'var(--success)', rejected:'var(--danger)', completed:'var(--accent)' }[o.status] || 'var(--text-muted)';
+      const itemChips = o.items.map(i => `
+        <div class="order-item-chip">
+          ${i.imageUrl ? `<img src="${i.imageUrl}" alt="">` : '👟'}
+          <span>${i.productName}</span>
+          <strong style="color:var(--gold)">${formatPrice(i.price)}</strong>
+        </div>`).join('');
+
+      const isPending = o.status === 'pending';
+      return `
+        <div class="order-card" id="oc-${o.orderId}">
+          <div class="order-header">
+            <div>
+              <div class="order-id">${o.orderId}</div>
+              <div class="order-buyer">👤 ${o.buyer} ${o.buyerName ? '('+o.buyerName+')' : ''}</div>
+              <div class="order-date">${formatDate(o.createdAt)}</div>
+            </div>
+            <span class="badge" style="background:${statusColor}22;color:${statusColor}">${o.status.toUpperCase()}</span>
+          </div>
+
+          <div class="order-items-row">${itemChips}</div>
+
+          <div class="order-meta">
+            <span class="order-total">${formatPrice(o.total)}</span>
+            <span class="order-method">💳 ${o.paymentMethod.toUpperCase()}</span>
+            ${o.paymentRef ? `<span class="order-ref">Ref: ${o.paymentRef}</span>` : ''}
+            ${o.shippingAddress ? `<span style="font-size:.78rem;color:var(--text-muted)">📦 ${o.shippingAddress}</span>` : ''}
+          </div>
+
+          ${o.adminNote ? `<div style="font-size:.82rem;color:var(--text-secondary);margin-bottom:12px;padding:8px 12px;background:var(--bg-secondary);border-radius:var(--radius-sm)">📝 ${o.adminNote}</div>` : ''}
+
+          ${isPending ? `
+            <div class="order-actions">
+              <input type="text" class="note-input" id="note-${o.orderId}" placeholder="Optional note to buyer...">
+              <button class="btn btn-primary btn-sm" onclick="acceptOrder('${o.orderId}')">✅ Accept & Email Buyer</button>
+              <button class="btn btn-danger btn-sm" onclick="rejectOrder('${o.orderId}')">❌ Reject</button>
+            </div>` : ''}
+
+          ${o.emailSent ? '<div style="font-size:.75rem;color:var(--success);margin-top:8px">📧 Confirmation email sent</div>' : ''}
+        </div>`;
+    }
+
+    async function acceptOrder(orderId) {
+      const note = document.getElementById('note-'+orderId)?.value.trim() || '';
+      const btn = event.target;
+      btn.disabled = true; btn.textContent = 'Sending...';
+      try {
+        const res = await API.acceptOrder(orderId, note);
+        Toast.success('Order accepted! Email sent to buyer.');
+        if (res.data.emailPreview) {
+          console.log('📧 Email preview:', res.data.emailPreview);
+          Toast.success('Preview: ' + res.data.emailPreview);
+        }
+        loadOrders(currentFilter);
+      } catch(e) { Toast.error(e.message); btn.disabled=false; btn.textContent='✅ Accept & Email Buyer'; }
+    }
+
+    async function rejectOrder(orderId) {
+      const note = document.getElementById('note-'+orderId)?.value.trim() || '';
+      if (!confirm('Reject this order?')) return;
+      try {
+        await API.rejectOrder(orderId, note);
+        Toast.success('Order rejected.');
+        loadOrders(currentFilter);
+      } catch(e) { Toast.error(e.message); }
+    }
+  </script>
+</body>
+</html>

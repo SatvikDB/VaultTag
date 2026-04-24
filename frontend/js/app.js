@@ -99,7 +99,17 @@ const API = {
   // Admin
   getStats: () => API.request('GET', '/admin/stats'),
   getUsers: () => API.request('GET', '/admin/users'),
-  deleteNft: (tokenId) => API.request('DELETE', `/admin/nft/${tokenId}`)
+  deleteNft: (tokenId) => API.request('DELETE', `/admin/nft/${tokenId}`),
+
+  // Orders
+  createOrder: (data) => API.request('POST', '/orders', data),
+  getMyOrders: () => API.request('GET', '/orders/my'),
+  getAllOrders: (status) => API.request('GET', `/orders/all${status ? '?status='+status : ''}`),
+  acceptOrder: (orderId, adminNote) => API.request('POST', `/orders/${orderId}/accept`, { adminNote }),
+  rejectOrder: (orderId, adminNote) => API.request('POST', `/orders/${orderId}/reject`, { adminNote }),
+  getOrderSettings: () => API.request('GET', '/orders/settings'),
+  saveOrderSettings: (data) => API.request('POST', '/orders/settings', data),
+  getPublicPaymentInfo: () => API.request('GET', '/orders/payment-info', null, false)
 };
 
 // ── Toast Notifications ──
@@ -165,7 +175,10 @@ function initNavbar() {
       actions.innerHTML = `
         ${cartBtn}
         ${Auth.isAdmin() ? '<a href="/admin-nfts.html" class="btn btn-sm btn-secondary">Manage NFTs</a>' : ''}
+        ${Auth.isAdmin() ? '<a href="/admin-orders.html" class="btn btn-sm btn-secondary">Orders</a>' : ''}
+        ${Auth.isAdmin() ? '<a href="/admin-settings.html" class="btn btn-sm btn-secondary">Settings</a>' : ''}
         ${!Auth.isAdmin() ? '<a href="/my-nfts.html" class="btn btn-sm btn-secondary">My NFTs</a>' : ''}
+        ${!Auth.isAdmin() ? '<a href="/my-orders.html" class="btn btn-sm btn-secondary">My Orders</a>' : ''}
         <a href="/profile.html" class="btn btn-sm btn-secondary">Profile</a>
         <button onclick="Auth.logout()" class="btn btn-sm btn-secondary">Logout</button>
       `;
@@ -202,7 +215,7 @@ function formatDate(date) {
 }
 
 function formatPrice(price) {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(price);
 }
 
 function truncateId(id, len = 16) {
@@ -258,3 +271,9 @@ const Cart = {
     }
   }
 };
+
+// ── Auto-init on every page ──
+document.addEventListener('DOMContentLoaded', () => {
+  initNavbar();
+  initScrollAnimations();
+});

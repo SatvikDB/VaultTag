@@ -194,12 +194,13 @@
     function proceedToCheckout() {
       const items = Cart.getItems();
       if (items.length === 0) return;
-      // Pass cart summary to checkout page via sessionStorage
+      const subtotal = Cart.total();
+      const fee      = subtotal * 0.025;
       sessionStorage.setItem('vt_checkout', JSON.stringify({
         items,
-        total   : Cart.total(),
-        fee     : Cart.total() * 0.025,
-        grand   : Cart.total() * 1.025
+        subtotal,
+        fee,
+        grand: subtotal + fee
       }));
       window.location.href = '/checkout.html';
     }

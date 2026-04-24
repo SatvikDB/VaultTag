@@ -69,7 +69,10 @@
     let currentPage = 1;
     let debounceTimer;
 
-    document.addEventListener('DOMContentLoaded', loadCollection);
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!Auth.isLoggedIn()) { window.location.href = '/login.html'; return; }
+      loadCollection();
+    });
 
     function debounceLoad() {
       clearTimeout(debounceTimer);
@@ -98,9 +101,9 @@
         } else {
           // Public — use verify or show demo data
           nfts = [
-            { tokenId:1, productName:'Air Jordan 1 Retro High OG', price:299, category:'Footwear', status:'active', imageUrl:'https://t4.ftcdn.net/jpg/04/10/65/53/360_F_410655365_MjietOoPZAMAdqA74M6EXqRL3F8g5dHH.jpg' },
-            { tokenId:2, productName:'Nike Dunk Low Panda', price:180, category:'Footwear', status:'active', imageUrl:'https://cloudfront-us-east-1.images.arcpublishing.com/gray/KHE3L2JKUVF6LALO4EN74TJKAU.JPG' },
-            { tokenId:3, productName:'Yeezy Boost 350 V2', price:450, category:'Footwear', status:'active', imageUrl:'https://png.pngtree.com/thumb_back/fw800/background/20260101/pngtree-black-and-white-nike-shoes-on-dark-surface-image_20983505.webp' }
+            { tokenId:1, productName:'Air Jordan 1 Retro High OG', price:1, category:'Footwear', status:'active', imageUrl:'https://t4.ftcdn.net/jpg/04/10/65/53/360_F_410655365_MjietOoPZAMAdqA74M6EXqRL3F8g5dHH.jpg' },
+            { tokenId:2, productName:'Nike Dunk Low Panda', price:2, category:'Footwear', status:'active', imageUrl:'https://cloudfront-us-east-1.images.arcpublishing.com/gray/KHE3L2JKUVF6LALO4EN74TJKAU.JPG' },
+            { tokenId:3, productName:'Yeezy Boost 350 V2', price:3, category:'Footwear', status:'active', imageUrl:'https://png.pngtree.com/thumb_back/fw800/background/20260101/pngtree-black-and-white-nike-shoes-on-dark-surface-image_20983505.webp' }
           ];
         }
 

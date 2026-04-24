@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Settings — Admin VaultTag</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .page { padding-top:90px; padding-bottom:60px; }
+    .settings-layout { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
+    .settings-card { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-xl); padding:28px; }
+    .settings-card h2 { font-size:1.05rem; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+    .settings-card h2 span { font-size:1.3rem; }
+
+    /* QR upload */
+    .qr-upload-area {
+      border: 2px dashed var(--border-primary); border-radius: var(--radius-lg);
+      padding: 24px; text-align: center; cursor: pointer;
+      transition: all .2s; position: relative; background: var(--bg-primary);
+    }
+    .qr-upload-area:hover, .qr-upload-area.drag-over {
+      border-color: var(--accent); background: var(--accent-dim);
+    }
+    .qr-upload-area input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .qr-upload-icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .qr-upload-text { font-size: .85rem; color: var(--text-secondary); }
+    .qr-upload-hint { font-size: .72rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* QR preview */
+    .qr-preview-wrap {
+      display: none; position: relative; margin-top: 16px;
+      background: #fff; border-radius: var(--radius-md);
+      padding: 12px; text-align: center;
+    }
+    .qr-preview-wrap.visible { display: block; }
+    .qr-preview-wrap img { max-width: 200px; max-height: 200px; margin: 0 auto; display: block; border-radius: 4px; }
+    .qr-remove-btn {
+      position: absolute; top: 8px; right: 8px;
+      background: var(--danger); color: #fff; border: none;
+      border-radius: 50%; width: 24px; height: 24px; font-size: .75rem;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+    .qr-label { font-size: .72rem; color: var(--text-muted); margin-top: 8px; }
+
+    @media(max-width:768px) { .settings-layout { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <nav class="navbar scrolled"><div class="container">
+    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
+    <ul class="nav-links">
+      <li><a href="/dashboard.html">Dashboard</a></li>
+      <li><a href="/admin-orders.html">Orders</a></li>
+      <li><a href="/admin-settings.html" class="active">Settings</a></li>
+      <li><a href="/mint.html">Mint</a></li>
+    </ul>
+    <div class="nav-actions" id="navActions"></div>
+  </div></nav>
+
+  <section class="page">
+    <div class="container">
+      <h1 style="font-size:1.8rem;margin-bottom:8px">Payment <span class="text-gradient">Settings</span></h1>
+      <p style="color:var(--text-secondary);margin-bottom:32px">Configure how buyers can pay you. These details are shown on the checkout page.</p>
+
+      <div class="settings-layout">
+
+        <!-- UPI -->
+        <div class="settings-card">
+          <h2><span>📱</span> UPI Settings</h2>
+          <div class="form-group">
+            <label class="form-label">UPI ID</label>
+            <input type="text" class="form-input" id="upiId" placeholder="yourname@upi">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account Holder Name</label>
+            <input type="text" class="form-input" id="accountHolder" placeholder="John Doe">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Bank Name</label>
+            <input type="text" class="form-input" id="bankName" placeholder="HDFC Bank">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account Number</label>
+            <input type="text" class="form-input" id="accountNumber" placeholder="1234567890">
+          </div>
+          <div class="form-group">
+            <label class="form-label">IFSC Code</label>
+            <input type="text" class="form-input" id="ifscCode" placeholder="HDFC0001234">
+          </div>
+
+          <!-- QR Upload -->
+          <div class="form-label" style="margin-bottom:8px">UPI QR Code Image</div>
+          <div class="qr-upload-area" id="qrUploadArea">
+            <input type="file" id="qrFileInput" accept="image/*" onchange="handleQrFile(this.files[0])">
+            <div class="qr-upload-icon">📷</div>
+            <div class="qr-upload-text">Click or drag & drop your UPI QR code</div>
+            <div class="qr-upload-hint">PNG, JPG, WEBP — max 2MB</div>
+          </div>
+          <div class="qr-preview-wrap" id="qrPreviewWrap">
+            <button class="qr-remove-btn" onclick="removeQr()" title="Remove QR">✕</button>
+            <img id="qrPreviewImg" src="" alt="UPI QR Code">
+            <div class="qr-label">This QR will be shown to buyers at checkout</div>
+          </div>
+        </div>
+
+        <!-- MetaMask + API -->
+        <div style="display:flex;flex-direction:column;gap:28px">
+          <div class="settings-card">
+            <h2><span>🦊</span> MetaMask / Crypto</h2>
+            <div class="form-group">
+              <label class="form-label">Admin Wallet Address (Polygon)</label>
+              <input type="text" class="form-input" id="metamaskAddress" placeholder="0x...">
+            </div>
+            <p style="font-size:.78rem;color:var(--text-muted)">Buyers will send MATIC to this address. Make sure it's a Polygon-compatible wallet.</p>
+          </div>
+
+          <div class="settings-card">
+            <h2><span>💳</span> API Payment Gateway</h2>
+            <div class="form-group">
+              <label class="form-label">Provider</label>
+              <select class="form-input form-select" id="apiProvider">
+                <option value="">— Select —</option>
+                <option value="Razorpay">Razorpay</option>
+                <option value="Stripe">Stripe</option>
+                <option value="PayU">PayU</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Public API Key</label>
+              <input type="text" class="form-input" id="apiKeyPublic" placeholder="rzp_live_... or pk_live_...">
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <h2><span>📧</span> Notifications</h2>
+            <div class="form-group">
+              <label class="form-label">Notification Email</label>
+              <input type="email" class="form-input" id="notificationEmail" placeholder="admin@yourdomain.com">
+            </div>
+            <p style="font-size:.78rem;color:var(--text-muted)">Receive an email when a new order is placed.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:28px;text-align:right">
+        <button class="btn btn-primary btn-lg" id="saveBtn" onclick="saveSettings()">💾 Save All Settings</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let qrBase64 = '';   // holds current QR as data URL
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!Auth.requireAuth() || !Auth.requireAdmin()) return;
+      try {
+        const res = await API.getOrderSettings();
+        const s = res.data.settings || {};
+        document.getElementById('upiId').value             = s.upiId || '';
+        document.getElementById('accountHolder').value     = s.accountHolder || '';
+        document.getElementById('bankName').value          = s.bankName || '';
+        document.getElementById('accountNumber').value     = s.accountNumber || '';
+        document.getElementById('ifscCode').value          = s.ifscCode || '';
+        document.getElementById('metamaskAddress').value   = s.metamaskAddress || '';
+        document.getElementById('apiProvider').value       = s.apiProvider || '';
+        document.getElementById('apiKeyPublic').value      = s.apiKeyPublic || '';
+        document.getElementById('notificationEmail').value = s.notificationEmail || '';
+
+        // Load existing QR
+        if (s.upiQrImage) {
+          qrBase64 = s.upiQrImage;
+          showQrPreview(s.upiQrImage);
+        }
+      } catch(e) { Toast.error('Could not load settings: ' + e.message); }
+
+      // Drag-and-drop
+      const area = document.getElementById('qrUploadArea');
+      area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('drag-over'); });
+      area.addEventListener('dragleave', () => area.classList.remove('drag-over'));
+      area.addEventListener('drop', e => {
+        e.preventDefault(); area.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) handleQrFile(file);
+      });
+    });
+
+    function handleQrFile(file) {
+      if (!file) return;
+      if (!file.type.startsWith('image/')) { Toast.error('Please upload an image file'); return; }
+      if (file.size > 2 * 1024 * 1024) { Toast.error('Image must be under 2MB'); return; }
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        qrBase64 = e.target.result;
+        showQrPreview(qrBase64);
+        Toast.success('QR image loaded — click Save to apply');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function showQrPreview(dataUrl) {
+      document.getElementById('qrPreviewImg').src = dataUrl;
+      document.getElementById('qrPreviewWrap').classList.add('visible');
+      document.getElementById('qrUploadArea').style.display = 'none';
+    }
+
+    function removeQr() {
+      qrBase64 = '';
+      document.getElementById('qrPreviewImg').src = '';
+      document.getElementById('qrPreviewWrap').classList.remove('visible');
+      document.getElementById('qrUploadArea').style.display = '';
+      document.getElementById('qrFileInput').value = '';
+    }
+
+    async function saveSettings() {
+      const btn = document.getElementById('saveBtn');
+      btn.disabled = true; btn.textContent = 'Saving...';
+      try {
+        await API.saveOrderSettings({
+          upiId:             document.getElementById('upiId').value.trim(),
+          upiQrImage:        qrBase64,
+          accountHolder:     document.getElementById('accountHolder').value.trim(),
+          bankName:          document.getElementById('bankName').value.trim(),
+          accountNumber:     document.getElementById('accountNumber').value.trim(),
+          ifscCode:          document.getElementById('ifscCode').value.trim(),
+          metamaskAddress:   document.getElementById('metamaskAddress').value.trim(),
+          apiProvider:       document.getElementById('apiProvider').value,
+          apiKeyPublic:      document.getElementById('apiKeyPublic').value.trim(),
+          notificationEmail: document.getElementById('notificationEmail').value.trim()
+        });
+        Toast.success('Settings saved successfully!');
+      } catch(e) { Toast.error(e.message); }
+      finally { btn.disabled=false; btn.textContent='💾 Save All Settings'; }
+    }
+  </script>
+</body>
+</html>
