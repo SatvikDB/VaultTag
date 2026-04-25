@@ -1,122 +1,78 @@
+# 🏷️ VaultTag — NFT Marketplace for Physical Goods
 
-VaultTag 🏷️
-Where Style Meets Trust
+**Where Style Meets Trust**
 
-VaultTag is a blockchain-powered NFT marketplace for physical luxury products. Every product gets a unique digital identity minted as an NFT on the Polygon blockchain — making authenticity verifiable, ownership traceable, and counterfeiting impossible.
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-🌐 What It Does
-VaultTag bridges the gap between physical products and blockchain technology. When a seller lists a product, a blockchain-backed NFT is minted for it. When a buyer purchases it, ownership transfers on-chain. Every scan, every transfer, every redemption is permanently recorded.
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-👥 Role-Based Platform
-Role	Access
-👑 SuperAdmin	Full platform control — manage admins/sellers, fraud detection, revenue analytics, user blocking
-🛡️ Admin	Oversee orders, verify payments, manage disputes, revenue tracking
-🏪 Seller	Mint NFTs, link NFC tags, manage product listings, fulfill orders
-🛍️ Buyer	Browse products, purchase, verify authenticity, view ownership history
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-✨ Key Features
-NFT Minting — Each physical product gets a blockchain-verified digital certificate on Polygon Amoy Testnet
-NFC Tag Binding — Link a physical NFC chip to a product's NFT for instant scan-to-verify
-Ownership Transfer — NFT ownership moves on-chain when a buyer purchases a product
-Fraud Detection — SuperAdmin panel flags suspicious/redeemed product attempts
-Revenue Analytics — Sales reports, user growth charts, avg order value tracking
-Role-Based Dashboards — Separate, purpose-built dashboards for each role
-Product Verification — Buyers can verify any product's authenticity via Token ID
-Order Management — Full order lifecycle: pending → payment verified → NFT transferred
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-🛠️ Tech Stack
+VaultTag is a blockchain-powered NFT marketplace for physical luxury products. Every product gets a unique digital identity minted as an NFT on the Polygon blockchain — making authenticity verifiable, ownership traceable, and counterfeiting nearly impossible. :contentReference[oaicite:0]{index=0}
 
-Frontend
---------
-Vanilla HTML, CSS, JavaScript
-Three.js for animated backgrounds
-Responsive dark-themed UI with glassmorphism
+---
 
-Backend
--------
-Node.js + Express.js
-MongoDB Atlas (Mongoose)
-JWT Authentication
-bcryptjs password hashing
-Express Rate Limiting + Helmet security
+## 🌐 What It Does
 
-Blockchain
-----------
-Polygon Amoy Testnet
-Ethers.js
-Hardhat (smart contract deployment)
-Solidity smart contract (VaultTag.sol)
+VaultTag bridges the gap between physical products and blockchain technology.
 
-Storage & Payments
-------------------
-Pinata / IPFS for NFT metadata
-Razorpay payment gateway
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-🚀 Getting Started
-Prerequisites
-Node.js v18+
-MongoDB Atlas account
-Polygon wallet with Amoy testnet MATIC
-Installation
-# Clone the repo
-git clone https://github.com/SatvikDB/VaultTag.git
-cd VaultTag/backend
+- Sellers list products → NFT is minted  
+- Buyers purchase → Ownership transfers on-chain  
+- Every scan, transfer, and redemption is recorded permanently  
 
-# Install dependencies
-npm install
+This creates a **transparent, secure, and tamper-proof commerce system**.
 
-# Configure environment
-cp .env.example .env
-# Fill in your MONGO_URI, JWT_SECRET, RAZORPAY keys, etc.
+---
 
-# Seed the database with demo users and products
-node seed.js
+## 👥 Role-Based Platform
 
-# Start the server
-npm run dev
-Open http://localhost:3000 — the login page loads automatically.
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-🔑 Demo Credentials
-Role	Email	Password
-SuperAdmin	superadmin@vaulttag.com	Super@123
-Admin	admin@vaulttag.com	Admin@123
-Seller	seller@vaulttag.com	Seller@123
-Buyer	buyer@vaulttag.com	Buyer@123
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-📁 Project Structure
-VaultTag/
-├── backend/
-│   ├── controllers/     # Auth, NFT, Admin, Order logic
-│   ├── models/          # User, NFT, Order, AdminSettings
-│   ├── routes/          # API route definitions
-│   ├── middleware/       # Auth, role guards, error handler
-│   ├── services/        # Blockchain, IPFS, Email
-│   └── server.js        # Express app entry point
-├── frontend/
-│   ├── css/style.css    # Global design system
-│   ├── js/app.js        # Shared utilities, API client, Auth
-│   ├── login.html       # Role-based login landing page
-│   ├── superadmin-dashboard.html
-│   ├── admin-dashboard.html
-│   ├── dashboard.html   # Seller dashboard
-│   ├── buyer-dashboard.html
-│   └── ...              # Collection, product, verify, orders pages
-└── contracts/
-    ├── contracts/VaultTag.sol   # Solidity NFT contract
-    └── scripts/deploy.js        # Hardhat deployment script
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-🔐 Environment Variables
+| Role | Access |
+|------|--------|
+| 👑 SuperAdmin | Full platform control, fraud detection, analytics, user management |
+| 🛡️ Admin | Order management, payment verification, dispute handling |
+| 🏪 Seller | Mint NFTs, link NFC tags, manage products |
+| 🛍️ Buyer | Browse, purchase, verify authenticity, track ownership |
 
-PORT=3000
-MONGO_URI=your_mongodb_atlas_uri
-JWT_SECRET=your_jwt_secret
+---
 
-POLYGON_RPC_URL=https://rpc-amoy.polygon.technology
-ADMIN_PRIVATE_KEY=your_wallet_private_key
-CONTRACT_ADDRESS=your_deployed_contract_address
+## ✨ Key Features
 
-PINATA_JWT=your_pinata_jwt
-PINATA_GATEWAY=your_pinata_gateway
+- 🪙 **NFT Minting** — Each product gets a blockchain-backed identity  
+- 📲 **NFC Tag Binding** — Scan physical product to verify authenticity  
+- 🔄 **Ownership Transfer** — Fully on-chain NFT transfer  
+- 🛡️ **Fraud Detection** — Detect reused or suspicious NFTs  
+- 📊 **Revenue Analytics** — Sales insights and tracking  
+- 🧾 **Product Verification** — Verify via Token ID  
+- 📦 **Order Management** — Complete lifecycle tracking  
 
-RAZORPAY_KEY_ID=your_razorpay_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret.
+---
+
+## 🧱 Tech Stack
+
+### 🔹 Frontend
+- HTML, CSS, JavaScript  
+- Three.js (animations)  
+- Glassmorphism UI  
+
+### 🔹 Backend
+- Node.js + Express.js  
+- MongoDB Atlas (Mongoose)  
+- JWT Authentication  
+- bcryptjs (password hashing)  
+- Helmet + Rate Limiting (security)  
+
+### 🔹 Blockchain
+- Polygon Amoy Testnet  
+- Solidity Smart Contracts  
+- Ethers.js  
+- Hardhat  
+
+### 🔹 Storage & Payments
+- IPFS (via Pinata)  
+- Razorpay  
+
+---
+
+## ⚙️ How It Works
+
+```text
+1. Seller lists product → NFT minted
+2. Metadata stored on IPFS
+3. Buyer purchases product
+4. Ownership transferred on blockchain
+5. Buyer verifies via NFC / Token ID
+6. Product redeemed → marked as used
