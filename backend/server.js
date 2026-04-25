@@ -31,8 +31,12 @@ app.use(helmet({
 }));
 
 // CORS — allow frontend
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? true   // allow all origins in production (Render serves frontend itself)
+  : ['http://localhost:5173','http://localhost:5500','http://127.0.0.1:5500','http://localhost:3000','http://10.39.233.126:5173'];
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5500', 'http://127.0.0.1:5500', 'http://localhost:3000', 'http://10.39.233.126:5173'],
+  origin: allowedOrigins,
   credentials: true
 }));
 
