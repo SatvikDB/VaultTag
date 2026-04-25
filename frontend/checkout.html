@@ -145,12 +145,17 @@
             <label class="pay-opt" id="opt-upi" onclick="selectPay('upi')">
               <input type="radio" name="pay" value="upi">
               <span class="pay-opt__icon">📱</span>
-              <div><div class="pay-opt__title">UPI</div><div class="pay-opt__sub">Google Pay, PhonePe, Paytm</div></div>
+              <div><div class="pay-opt__title">UPI</div><div class="pay-opt__sub">Google Pay, PhonePe, Paytm via Razorpay</div></div>
             </label>
             <label class="pay-opt" id="opt-api" onclick="selectPay('api')">
               <input type="radio" name="pay" value="api">
               <span class="pay-opt__icon">💳</span>
-              <div><div class="pay-opt__title">Card / API Payment</div><div class="pay-opt__sub" id="apiProviderLabel">Razorpay / Stripe</div></div>
+              <div><div class="pay-opt__title">Card / Net Banking</div><div class="pay-opt__sub" id="apiProviderLabel">Razorpay — Visa, Mastercard, Rupay</div></div>
+            </label>
+            <label class="pay-opt" id="opt-cod" onclick="selectPay('cod')">
+              <input type="radio" name="pay" value="cod">
+              <span class="pay-opt__icon">📦</span>
+              <div><div class="pay-opt__title">Cash on Delivery</div><div class="pay-opt__sub">Pay ₹50 extra when your order arrives</div></div>
             </label>
           </div>
 
@@ -185,8 +190,8 @@
               Click the button below to pay via UPI (GPay, PhonePe, etc.) using Razorpay.
             </div>
             
-            <button class="btn-metamask" id="rzpBtn" onclick="payWithRazorpay()" style="background:linear-gradient(135deg,#3395ff,#006aff);margin-bottom:12px">
-              🚀 Pay with Razorpay (UPI)
+            <button class="btn-metamask" id="rzpBtnUpi" onclick="payWithRazorpay('upi')" style="background:linear-gradient(135deg,#3395ff,#006aff)">
+              📱 Pay ₹<span id="rzpAmtUpi">—</span> via UPI (Razorpay)
             </button>
             <div id="upiStatus" style="font-size:.8rem;color:var(--text-muted);text-align:center;margin-bottom:16px"></div>
 
@@ -213,20 +218,31 @@
             </div>
           </div>
 
-          <!-- API / Card panel -->
+          <!-- Card / Net Banking panel (Razorpay) -->
           <div class="pay-panel" id="panel-api">
             <div style="font-size:.8rem;color:var(--text-secondary);background:var(--bg-secondary);border-radius:var(--radius-md);padding:12px 14px;line-height:1.7">
-              <strong style="color:var(--text-primary)">How to pay via API gateway:</strong><br>
-              1. Use the payment gateway details below<br>
-              2. Complete the payment on the gateway<br>
-              3. Copy the <strong>Transaction / Reference ID</strong><br>
-              4. Paste it below and click <strong>Confirm Order</strong>
+              <strong style="color:var(--text-primary)">💳 Card or Net Banking via Razorpay</strong><br>
+              Visa, Mastercard, Rupay &amp; all major net banking. 100% secure.
             </div>
-            <p style="font-size:.82rem;color:var(--text-secondary);margin:0" id="apiInstructions">Loading payment gateway info...</p>
-            <div class="form-group" style="margin:0">
-              <label class="form-label">Payment Reference / Transaction ID *</label>
-              <input type="text" class="form-input" id="apiTxId" placeholder="Enter reference from payment gateway">
+            <button class="btn-metamask" id="rzpBtnCard" onclick="payWithRazorpay('card')" style="background:linear-gradient(135deg,#7B2FBE,#A855F7)">
+              💳 Pay ₹<span id="rzpAmtCard">—</span> via Card / Net Banking
+            </button>
+            <div id="cardStatus" style="font-size:.8rem;color:var(--text-muted);text-align:center"></div>
+          </div>
+
+          <!-- COD panel -->
+          <div class="pay-panel" id="panel-cod">
+            <div style="font-size:.8rem;color:var(--text-secondary);background:var(--bg-secondary);border-radius:var(--radius-md);padding:12px 14px;line-height:1.7">
+              <strong style="color:var(--text-primary)">📦 Cash on Delivery</strong><br>
+              Pay when your order arrives at your doorstep.<br>
+              <span style="color:var(--gold)">+₹50 COD handling fee</span> added to your total.<br>
+              ✅ No advance payment — just confirm your shipping address!
             </div>
+            <div class="info-box">
+              <div class="lbl">COD Order Total (including ₹50 fee)</div>
+              <div class="val" id="codTotal" style="color:var(--gold);font-size:1.2rem;font-weight:800">—</div>
+            </div>
+            <div style="font-size:.75rem;color:var(--text-muted);padding:4px 0">📝 Admin verifies address &amp; dispatches in 2-3 days. Pay cash at delivery.</div>
           </div>
         </div>
 
@@ -276,23 +292,18 @@
       try {
         const res = await API.getPublicPaymentInfo();
         paymentInfo = res.data.paymentInfo || {};
-        document.getElementById('mmAddress').textContent = paymentInfo.metamaskAddress || 'Not configured';
-        document.getElementById('upiIdVal').textContent  = paymentInfo.upiId || 'Not configured';
+        document.getElementById('mmAddress').textContent    = paymentInfo.metamaskAddress || 'Not configured';
+        document.getElementById('upiIdVal').textContent     = paymentInfo.upiId || 'Not configured';
         document.getElementById('upiAmountInstructions').textContent = formatPrice(checkoutData.grand);
-        document.getElementById('mmAmount').textContent  = (checkoutData.grand * 0.85).toFixed(4) + ' MATIC';
+        document.getElementById('mmAmount').textContent     = (checkoutData.grand * 0.85).toFixed(4) + ' MATIC';
+        // Pre-fill Razorpay button amounts
+        document.getElementById('rzpAmtUpi').textContent  = checkoutData.grand.toLocaleString('en-IN');
+        document.getElementById('rzpAmtCard').textContent = checkoutData.grand.toLocaleString('en-IN');
 
         // Show QR if available
         if (paymentInfo.upiQrImage) {
           document.getElementById('upiQrImg').src = paymentInfo.upiQrImage;
           document.getElementById('upiQrWrap').style.display = 'block';
-        }
-
-        if (paymentInfo.apiProvider) {
-          document.getElementById('apiProviderLabel').textContent = paymentInfo.apiProvider;
-          document.getElementById('apiInstructions').textContent =
-            `Pay via ${paymentInfo.apiProvider}. Enter the transaction reference below after payment.`;
-        } else {
-          document.getElementById('apiInstructions').textContent = 'API payment not configured by admin. Please use MetaMask or UPI.';
         }
       } catch(e) {
         console.warn('Could not load payment info:', e.message);
@@ -320,15 +331,27 @@
 
     function selectPay(type) {
       selectedPay = type;
-      ['metamask','upi','api'].forEach(t => {
-        document.getElementById('opt-'+t).classList.toggle('selected', t===type);
-        document.getElementById('opt-'+t).querySelector('input').checked = (t===type);
-        document.getElementById('panel-'+t).classList.toggle('visible', t===type);
+      ['metamask','upi','api','cod'].forEach(t => {
+        const opt = document.getElementById('opt-'+t);
+        if (!opt) return;
+        opt.classList.toggle('selected', t===type);
+        opt.querySelector('input').checked = (t===type);
+        const panel = document.getElementById('panel-'+t);
+        if (panel) panel.classList.toggle('visible', t===type);
       });
       metamaskTxHash = '';
       razorpayPaymentId = '';
       document.getElementById('mmStatus').textContent = '';
       document.getElementById('upiStatus').textContent = '';
+      if (document.getElementById('cardStatus')) document.getElementById('cardStatus').textContent = '';
+      // Update COD total
+      if (type === 'cod' && checkoutData) {
+        const codTotal = checkoutData.grand + 50;
+        document.getElementById('codTotal').textContent = formatPrice(codTotal);
+        document.getElementById('payBtn').textContent = `Confirm COD Order — ${formatPrice(codTotal)}`;
+      } else if (checkoutData) {
+        document.getElementById('payBtn').textContent = `Confirm Order — ${formatPrice(checkoutData.grand)}`;
+      }
     }
 
     async function connectMetaMask() {
@@ -391,48 +414,51 @@
       }
     }
 
-    async function payWithRazorpay() {
-      const btn = document.getElementById('rzpBtn');
-      const status = document.getElementById('upiStatus');
-      
+    async function payWithRazorpay(mode = 'upi') {
+      const isCard = mode === 'card';
+      const btn    = document.getElementById(isCard ? 'rzpBtnCard' : 'rzpBtnUpi');
+      const status = document.getElementById(isCard ? 'cardStatus' : 'upiStatus');
+
       try {
         btn.disabled = true;
         status.textContent = 'Initializing secure payment...';
-        
-        const res = await API.request('POST', '/orders/razorpay/create', { 
-          amount: checkoutData.grand 
-        });
-        
+
+        const res = await API.request('POST', '/orders/razorpay/create', { amount: checkoutData.grand });
+        if (!res.success) throw new Error(res.message || 'Razorpay init failed');
+
         const options = {
-          "key": res.data.key,
-          "amount": res.data.amount,
-          "currency": res.data.currency,
-          "name": "VaultTag",
-          "description": "Premium NFT Asset Purchase",
-          "order_id": res.data.orderId,
-          "handler": function (response){
+          key:         res.data.key,
+          amount:      res.data.amount,
+          currency:    res.data.currency || 'INR',
+          name:        'VaultTag',
+          description: 'Premium NFT Asset Purchase',
+          order_id:    res.data.orderId,
+          method:      isCard ? undefined : 'upi',   // restrict to UPI if mode=upi
+          handler(response) {
             razorpayPaymentId = response.razorpay_payment_id;
-            status.innerHTML = `<span style="color:var(--success);font-weight:600">✅ Payment Successful!</span><br><span style="font-size:0.75rem;color:var(--text-muted)">ID: ${razorpayPaymentId}</span>`;
-            Toast.success('Payment authorized via Razorpay');
+            status.innerHTML = `<span style="color:var(--success);font-weight:700">✅ Payment Successful!</span><br><span style="font-size:.72rem;color:var(--text-muted)">ID: ${razorpayPaymentId}</span>`;
+            Toast.success('Payment authorized via Razorpay ✅');
             btn.textContent = '✅ Payment Verified';
-            btn.style.background = 'var(--success)';
+            btn.style.background = 'linear-gradient(135deg,#00D4AA,#009E7E)';
+            btn.disabled = false;
           },
-          "prefill": {
-            "name": document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value,
-            "email": document.getElementById('email').value
+          prefill: {
+            name:  document.getElementById('firstName').value + ' ' + document.getElementById('lastName').value,
+            email: document.getElementById('email').value
           },
-          "theme": { "color": "#00D4AA" }
+          theme: { color: isCard ? '#A855F7' : '#3395ff' },
+          modal: { ondismiss() { btn.disabled = false; status.textContent = 'Payment cancelled.'; } }
         };
-        
+
         const rzp = new Razorpay(options);
-        rzp.on('payment.failed', function (response){
-          status.textContent = '❌ Payment failed: ' + response.error.description;
+        rzp.on('payment.failed', (r) => {
+          status.innerHTML = `<span style="color:#EF4444">❌ ${r.error.description}</span>`;
           btn.disabled = false;
         });
         rzp.open();
-        status.textContent = 'Follow instructions in the popup...';
+        status.textContent = 'Complete payment in the popup...';
       } catch (err) {
-        status.textContent = '❌ Error: ' + err.message;
+        status.innerHTML = `<span style="color:#EF4444">❌ ${err.message}</span>`;
         btn.disabled = false;
       }
     }
@@ -444,7 +470,8 @@
     function getPaymentRef() {
       if (selectedPay === 'metamask') return metamaskTxHash;
       if (selectedPay === 'upi')      return razorpayPaymentId || document.getElementById('upiTxId').value.trim();
-      if (selectedPay === 'api')      return document.getElementById('apiTxId').value.trim();
+      if (selectedPay === 'api')      return razorpayPaymentId || document.getElementById('apiTxId')?.value.trim();
+      if (selectedPay === 'cod')      return 'COD';
       return '';
     }
 
@@ -453,11 +480,15 @@
       if (!document.getElementById('email').value.trim())     { Toast.error('Enter email'); return false; }
       if (!document.getElementById('address').value.trim())   { Toast.error('Enter shipping address'); return false; }
       if (selectedPay === 'metamask' && !metamaskTxHash)      { Toast.error('Please complete MetaMask payment first'); return false; }
-      if (selectedPay === 'upi' && !razorpayPaymentId && !document.getElementById('upiTxId').value.trim()) { 
-        Toast.error('Please complete Razorpay payment or enter Transaction ID'); 
-        return false; 
+      if (selectedPay === 'upi' && !razorpayPaymentId && !document.getElementById('upiTxId').value.trim()) {
+        Toast.error('Complete Razorpay payment or enter UPI Transaction ID');
+        return false;
       }
-      if (selectedPay === 'api' && !document.getElementById('apiTxId').value.trim()) { Toast.error('Enter payment reference'); return false; }
+      if (selectedPay === 'api' && !razorpayPaymentId) {
+        Toast.error('Please complete card/net banking payment first');
+        return false;
+      }
+      // COD: no payment required upfront
       return true;
     }
 
@@ -477,7 +508,7 @@
           items: checkoutData.items,
           subtotal: checkoutData.subtotal || (checkoutData.grand - checkoutData.fee),
           fee: checkoutData.fee,
-          total: checkoutData.grand,
+          total: selectedPay === 'cod' ? checkoutData.grand + 50 : checkoutData.grand,
           paymentMethod: selectedPay,
           paymentRef: getPaymentRef(),
           shippingAddress: [

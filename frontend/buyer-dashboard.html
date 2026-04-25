@@ -115,7 +115,47 @@
     .empty-msg { text-align:center; padding:32px; color:rgba(255,255,255,.3); font-size:.85rem; }
     .pulse { animation:pulse 2s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* Buyer Order Tracker */
+    .order-tracker { display:flex; flex-direction:column; gap:0; }
+    .ot-row { display:flex; align-items:flex-start; gap:14px; padding:16px 18px; border-bottom:1px solid rgba(255,255,255,.06); transition:background .2s; }
+    .ot-row:last-child { border-bottom:none; }
+    .ot-row:hover { background:rgba(255,255,255,.04); }
+    .ot-row.ot-new { animation:otFlash .8s ease; }
+    @keyframes otFlash { 0%,100%{background:transparent} 50%{background:rgba(0,212,170,.08)} }
+    .ot-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+    .ot-icon.pending  { background:rgba(255,185,50,.12); }
+    .ot-icon.accepted { background:rgba(91,141,239,.12); }
+    .ot-icon.completed{ background:rgba(0,212,170,.12); }
+    .ot-icon.rejected { background:rgba(239,68,68,.12); }
+    .ot-icon.cod      { background:rgba(168,85,247,.12); }
+    .ot-body { flex:1; min-width:0; }
+    .ot-title { font-size:.85rem; font-weight:700; color:#eef0ff; margin-bottom:3px; }
+    .ot-meta  { font-size:.72rem; color:rgba(255,255,255,.4); }
+    .ot-status { padding:3px 10px; border-radius:50px; font-size:.65rem; font-weight:800; white-space:nowrap; }
+    .ot-status.pending  { background:rgba(255,185,50,.15); color:#FFB932; }
+    .ot-status.accepted { background:rgba(91,141,239,.15); color:#5B8DEF; }
+    .ot-status.completed{ background:rgba(0,212,170,.15); color:#00D4AA; }
+    .ot-status.rejected { background:rgba(239,68,68,.15); color:#EF4444; }
+    .ot-status.cod      { background:rgba(168,85,247,.15); color:#A855F7; }
+    .ot-amount { font-size:.88rem; font-weight:800; color:#FFB932; }
+
+    /* Order stepper */
+    .order-stepper { display:flex; align-items:flex-start; gap:0; margin-top:8px; }
+    .os-step-wrap { display:flex; flex-direction:column; align-items:center; }
+    .os-step { display:flex; align-items:center; }
+    .os-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.15); }
+    .os-dot.done   { background:#00D4AA; box-shadow:0 0 6px rgba(0,212,170,.5); }
+    .os-dot.active { background:#FFB932; animation:livePulse 1.2s infinite; }
+    .os-line { width:22px; height:2px; background:rgba(255,255,255,.1); }
+    .os-line.done { background:rgba(0,212,170,.4); }
+    .os-label { font-size:.56rem; color:rgba(255,255,255,.3); margin-top:3px; white-space:nowrap; }
+    @keyframes livePulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .buyer-live-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.2); border-radius:100px; padding:3px 10px; font-size:.65rem; font-weight:800; color:#EF4444; }
+    .buyer-live-dot { width:6px; height:6px; border-radius:50%; background:#EF4444; animation:livePulse 1.2s infinite; }
   </style>
+
 </head>
 <body>
   <div class="bg-orbs"><div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div></div>
@@ -210,6 +250,20 @@
         <div class="empty-msg pulse" style="grid-column:1/-1">Loading your collection…</div>
       </div>
     </div>
+
+    <!-- ══ REAL-TIME ORDER TRACKER ════════════════════════ -->
+    <div style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div class="sec-title" style="margin-bottom:0">📦 My Orders — Live Tracking</div>
+        <div class="buyer-live-badge"><div class="buyer-live-dot"></div> LIVE</div>
+        <span id="buyerLastUpdated" style="font-size:.65rem;color:rgba(255,255,255,.25);margin-left:auto">Connecting…</span>
+      </div>
+      <div class="panel" style="padding:0;overflow:hidden">
+        <div class="order-tracker" id="orderTracker">
+          <div class="empty-msg pulse">Loading your orders…</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="/js/app.js"></script>
@@ -226,7 +280,9 @@
       document.getElementById('userEmail').textContent  = user.email || '';
       document.getElementById('userSince').textContent  = 'Member since ' + new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', { month:'long', year:'numeric' });
 
-      loadMyNfts(); loadOrders();
+      loadMyNfts();
+      loadOrders();
+      startBuyerOrderTracker();
     });
 
     async function loadMyNfts() {
@@ -302,6 +358,119 @@
         const orders = r.data?.orders || [];
         document.getElementById('sOrders').textContent = orders.length;
       } catch(e) {}
+    }
+
+    /* ── Buyer Real-Time Order Tracker ──────────────────── */
+    let btKnownIds  = new Set();
+    let btFirstLoad = true;
+    let btInterval  = null;
+
+    const OT_ICONS = { pending:'⏳', accepted:'✅', completed:'🏆', rejected:'❌', cod:'📦' };
+    const OT_STEPS = [
+      { key:'ordered',  label:'Ordered' },
+      { key:'verified', label:'Verified' },
+      { key:'shipped',  label:'Shipped' },
+      { key:'done',     label:'Done' }
+    ];
+
+    function getStepIndex(status) {
+      if (status === 'pending')   return 0;
+      if (status === 'accepted')  return 1;
+      if (status === 'completed') return 3;
+      if (status === 'rejected')  return -1;
+      return 0;
+    }
+
+    function renderStepper(status) {
+      if (status === 'rejected') {
+        return `<div class="order-stepper"><span style="font-size:.65rem;color:#EF4444;font-weight:700">✕ Order Rejected</span></div>`;
+      }
+      const idx = getStepIndex(status);
+      return `<div class="order-stepper">` + OT_STEPS.map((s, i) => `
+        <div class="os-step-wrap">
+          <div class="os-step">
+            ${ i > 0 ? `<div class="os-line ${i <= idx ? 'done' : ''}"></div>` : '' }
+            <div class="os-dot ${ i < idx ? 'done' : i === idx ? 'active' : '' }"></div>
+          </div>
+          <div class="os-label">${s.label}</div>
+        </div>`).join('') + `</div>`;
+    }
+
+    function timeAgoB(d) {
+      const s = Math.floor((Date.now() - new Date(d)) / 1000);
+      if (s < 60)  return `${s}s ago`;
+      if (s < 3600) return `${Math.floor(s/60)}m ago`;
+      if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+      return new Date(d).toLocaleDateString('en-IN', { day:'numeric', month:'short' });
+    }
+
+    async function fetchMyOrders() {
+      try {
+        const r = await API.getMyOrders();
+        const orders = (r.data?.orders || []).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        // Detect new / status-changed orders
+        if (!btFirstLoad) {
+          orders.forEach(o => {
+            if (!btKnownIds.has(o.orderId + o.status)) {
+              const el = document.getElementById('ot-' + o.orderId);
+              if (el) {
+                el.classList.add('ot-new');
+                setTimeout(() => el.classList.remove('ot-new'), 1000);
+              }
+              if (!btKnownIds.has(o.orderId)) {
+                Toast.success(`📦 Order ${o.orderId?.slice(-6)} status: ${o.status.toUpperCase()}`);
+              }
+              btKnownIds.add(o.orderId + o.status);
+            }
+          });
+        } else {
+          orders.forEach(o => btKnownIds.add(o.orderId + o.status));
+          btFirstLoad = false;
+        }
+
+        document.getElementById('sOrders').textContent = orders.length;
+        document.getElementById('buyerLastUpdated').textContent =
+          'Updated ' + new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+
+        const tracker = document.getElementById('orderTracker');
+        if (!orders.length) {
+          tracker.innerHTML = `<div class="empty-msg">No orders yet. <a href="/collection.html" style="color:#00D4AA">Shop now →</a></div>`;
+          return;
+        }
+
+        tracker.innerHTML = orders.map(o => {
+          const product  = o.items?.[0]?.productName || 'Order';
+          const count    = o.items?.length || 1;
+          const status   = o.status || 'pending';
+          const method   = o.paymentMethod === 'cod' ? 'COD' : o.paymentMethod?.toUpperCase();
+          return `
+          <div class="ot-row" id="ot-${o.orderId}">
+            <div class="ot-icon ${status}">${OT_ICONS[status] || '●'}</div>
+            <div class="ot-body">
+              <div class="ot-title">${product}${count > 1 ? ` +${count-1} more` : ''}</div>
+              <div class="ot-meta">#${o.orderId?.slice(-8)} &nbsp;·&nbsp; ${method} &nbsp;·&nbsp; ${timeAgoB(o.createdAt)}</div>
+              ${ o.adminNote ? `<div style="font-size:.7rem;color:rgba(255,255,255,.35);margin-top:3px">📝 ${o.adminNote}</div>` : '' }
+              ${renderStepper(status)}
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div class="ot-amount">${formatPrice(o.total)}</div>
+              <div class="ot-status ${status}">${status.toUpperCase()}</div>
+            </div>
+          </div>`;
+        }).join('');
+      } catch(e) {
+        document.getElementById('buyerLastUpdated').textContent = '⚠ Error';
+      }
+    }
+
+    function startBuyerOrderTracker() {
+      fetchMyOrders();
+      btInterval = setInterval(fetchMyOrders, 5000);
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) clearInterval(btInterval);
+        else { fetchMyOrders(); btInterval = setInterval(fetchMyOrders, 5000); }
+      });
     }
   </script>
 </body>
