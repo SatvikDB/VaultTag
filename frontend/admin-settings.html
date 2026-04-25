@@ -1,69 +1,237 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment Settings — Admin VaultTag</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    .page { padding-top:90px; padding-bottom:60px; }
-    .settings-layout { display:grid; grid-template-columns:1fr 1fr; gap:28px; }
-    .settings-card { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-xl); padding:28px; }
-    .settings-card h2 { font-size:1.05rem; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
-    .settings-card h2 span { font-size:1.3rem; }
+    .page {
+      padding-top: 90px;
+      padding-bottom: 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #0f0c29 0%, #302b63 45%, #24243e 100%);
+      background-attachment: fixed;
+      color: #eef0ff;
+      min-height: 100vh;
+    }
+
+    /* Animated background orbs */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .2;
+      animation: orbDrift 10s ease-in-out infinite alternate;
+    }
+
+    .bg-orb-1 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #7B2FBE, transparent);
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+
+    .bg-orb-2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #00D4AA, transparent);
+      bottom: -60px;
+      right: -60px;
+      animation-delay: 3s;
+    }
+
+    .bg-orb-3 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, #5B8DEF, transparent);
+      top: 50%;
+      left: 60%;
+      animation-delay: 6s;
+    }
+
+    @keyframes orbDrift {
+      from {
+        transform: translate(0, 0) scale(1)
+      }
+
+      to {
+        transform: translate(30px, -40px) scale(1.1)
+      }
+    }
+
+    /* Grid overlay */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .03) 1px, transparent 1px);
+      background-size: 52px 52px;
+    }
+
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    .settings-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+    }
+
+    .settings-card h2 {
+      font-size: 1.05rem;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .settings-card h2 span {
+      font-size: 1.3rem;
+    }
 
     /* QR upload */
     .qr-upload-area {
-      border: 2px dashed var(--border-primary); border-radius: var(--radius-lg);
-      padding: 24px; text-align: center; cursor: pointer;
-      transition: all .2s; position: relative; background: var(--bg-primary);
+      border: 2px dashed var(--border-primary);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+      background: var(--bg-primary);
     }
-    .qr-upload-area:hover, .qr-upload-area.drag-over {
-      border-color: var(--accent); background: var(--accent-dim);
+
+    .qr-upload-area:hover,
+    .qr-upload-area.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-dim);
     }
+
     .qr-upload-area input[type=file] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
     }
-    .qr-upload-icon { font-size: 2.5rem; margin-bottom: 8px; }
-    .qr-upload-text { font-size: .85rem; color: var(--text-secondary); }
-    .qr-upload-hint { font-size: .72rem; color: var(--text-muted); margin-top: 4px; }
+
+    .qr-upload-icon {
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+
+    .qr-upload-text {
+      font-size: .85rem;
+      color: var(--text-secondary);
+    }
+
+    .qr-upload-hint {
+      font-size: .72rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
 
     /* QR preview */
     .qr-preview-wrap {
-      display: none; position: relative; margin-top: 16px;
-      background: #fff; border-radius: var(--radius-md);
-      padding: 12px; text-align: center;
+      display: none;
+      position: relative;
+      margin-top: 16px;
+      background: #fff;
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
     }
-    .qr-preview-wrap.visible { display: block; }
-    .qr-preview-wrap img { max-width: 200px; max-height: 200px; margin: 0 auto; display: block; border-radius: 4px; }
+
+    .qr-preview-wrap.visible {
+      display: block;
+    }
+
+    .qr-preview-wrap img {
+      max-width: 200px;
+      max-height: 200px;
+      margin: 0 auto;
+      display: block;
+      border-radius: 4px;
+    }
+
     .qr-remove-btn {
-      position: absolute; top: 8px; right: 8px;
-      background: var(--danger); color: #fff; border: none;
-      border-radius: 50%; width: 24px; height: 24px; font-size: .75rem;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: .75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       line-height: 1;
     }
-    .qr-label { font-size: .72rem; color: var(--text-muted); margin-top: 8px; }
 
-    @media(max-width:768px) { .settings-layout { grid-template-columns:1fr; } }
+    .qr-label {
+      font-size: .72rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    @media(max-width:768px) {
+      .settings-layout {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <nav class="navbar scrolled"><div class="container">
-    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
-    <ul class="nav-links">
-      <li><a href="/dashboard.html">Dashboard</a></li>
-      <li><a href="/admin-orders.html">Orders</a></li>
-      <li><a href="/admin-settings.html" class="active">Settings</a></li>
-      <li><a href="/mint.html">Mint</a></li>
-    </ul>
-    <div class="nav-actions" id="navActions"></div>
-  </div></nav>
+  <div class="bg-orbs">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+  <div class="bg-grid"></div>
+  <nav class="navbar scrolled">
+    <div class="container">
+      <a href="/dashboard.html" class="nav-logo">
+        <div class="logo-icon">⬡</div>VaultTag
+      </a>
+      <ul class="nav-links"></ul>
+      <div class="nav-actions" id="navActions"></div>
+    </div>
+  </nav>
 
   <section class="page">
     <div class="container">
       <h1 style="font-size:1.8rem;margin-bottom:8px">Payment <span class="text-gradient">Settings</span></h1>
-      <p style="color:var(--text-secondary);margin-bottom:32px">Configure how buyers can pay you. These details are shown on the checkout page.</p>
+      <p style="color:var(--text-secondary);margin-bottom:32px">Configure how buyers can pay you. These details are
+        shown on the checkout page.</p>
 
       <div class="settings-layout">
 
@@ -114,7 +282,8 @@
               <label class="form-label">Admin Wallet Address (Polygon)</label>
               <input type="text" class="form-input" id="metamaskAddress" placeholder="0x...">
             </div>
-            <p style="font-size:.78rem;color:var(--text-muted)">Buyers will send MATIC to this address. Make sure it's a Polygon-compatible wallet.</p>
+            <p style="font-size:.78rem;color:var(--text-muted)">Buyers will send MATIC to this address. Make sure it's a
+              Polygon-compatible wallet.</p>
           </div>
 
           <div class="settings-card">
@@ -160,14 +329,14 @@
       try {
         const res = await API.getOrderSettings();
         const s = res.data.settings || {};
-        document.getElementById('upiId').value             = s.upiId || '';
-        document.getElementById('accountHolder').value     = s.accountHolder || '';
-        document.getElementById('bankName').value          = s.bankName || '';
-        document.getElementById('accountNumber').value     = s.accountNumber || '';
-        document.getElementById('ifscCode').value          = s.ifscCode || '';
-        document.getElementById('metamaskAddress').value   = s.metamaskAddress || '';
-        document.getElementById('apiProvider').value       = s.apiProvider || '';
-        document.getElementById('apiKeyPublic').value      = s.apiKeyPublic || '';
+        document.getElementById('upiId').value = s.upiId || '';
+        document.getElementById('accountHolder').value = s.accountHolder || '';
+        document.getElementById('bankName').value = s.bankName || '';
+        document.getElementById('accountNumber').value = s.accountNumber || '';
+        document.getElementById('ifscCode').value = s.ifscCode || '';
+        document.getElementById('metamaskAddress').value = s.metamaskAddress || '';
+        document.getElementById('apiProvider').value = s.apiProvider || '';
+        document.getElementById('apiKeyPublic').value = s.apiKeyPublic || '';
         document.getElementById('notificationEmail').value = s.notificationEmail || '';
 
         // Load existing QR
@@ -175,7 +344,7 @@
           qrBase64 = s.upiQrImage;
           showQrPreview(s.upiQrImage);
         }
-      } catch(e) { Toast.error('Could not load settings: ' + e.message); }
+      } catch (e) { Toast.error('Could not load settings: ' + e.message); }
 
       // Drag-and-drop
       const area = document.getElementById('qrUploadArea');
@@ -221,21 +390,22 @@
       btn.disabled = true; btn.textContent = 'Saving...';
       try {
         await API.saveOrderSettings({
-          upiId:             document.getElementById('upiId').value.trim(),
-          upiQrImage:        qrBase64,
-          accountHolder:     document.getElementById('accountHolder').value.trim(),
-          bankName:          document.getElementById('bankName').value.trim(),
-          accountNumber:     document.getElementById('accountNumber').value.trim(),
-          ifscCode:          document.getElementById('ifscCode').value.trim(),
-          metamaskAddress:   document.getElementById('metamaskAddress').value.trim(),
-          apiProvider:       document.getElementById('apiProvider').value,
-          apiKeyPublic:      document.getElementById('apiKeyPublic').value.trim(),
+          upiId: document.getElementById('upiId').value.trim(),
+          upiQrImage: qrBase64,
+          accountHolder: document.getElementById('accountHolder').value.trim(),
+          bankName: document.getElementById('bankName').value.trim(),
+          accountNumber: document.getElementById('accountNumber').value.trim(),
+          ifscCode: document.getElementById('ifscCode').value.trim(),
+          metamaskAddress: document.getElementById('metamaskAddress').value.trim(),
+          apiProvider: document.getElementById('apiProvider').value,
+          apiKeyPublic: document.getElementById('apiKeyPublic').value.trim(),
           notificationEmail: document.getElementById('notificationEmail').value.trim()
         });
         Toast.success('Settings saved successfully!');
-      } catch(e) { Toast.error(e.message); }
-      finally { btn.disabled=false; btn.textContent='💾 Save All Settings'; }
+      } catch (e) { Toast.error(e.message); }
+      finally { btn.disabled = false; btn.textContent = '💾 Save All Settings'; }
     }
   </script>
 </body>
+
 </html>

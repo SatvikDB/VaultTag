@@ -56,7 +56,7 @@ const Auth = {
   },
   requireSeller() {
     const u = this.getUser();
-    if (!u || !['seller','admin','superadmin'].includes(u.role)) {
+    if (!u || !['seller', 'admin', 'superadmin'].includes(u.role)) {
       window.location.href = '/login.html?role=seller';
       return false;
     }
@@ -117,7 +117,7 @@ const API = {
   getStats: () => API.request('GET', '/admin/stats'),
   getUsers: () => API.request('GET', '/admin/users'),
   deleteNft: (tokenId) => API.request('DELETE', `/admin/nft/${tokenId}`),
-  dbExplorer: (collection, page, limit) => API.request('GET', `/admin/db-explorer?collection=${collection}&page=${page||1}&limit=${limit||10}`),
+  dbExplorer: (collection, page, limit) => API.request('GET', `/admin/db-explorer?collection=${collection}&page=${page || 1}&limit=${limit || 10}`),
   // SuperAdmin
   createAdmin: (data) => API.request('POST', '/admin/create-admin', data),
   deleteUser: (userId) => API.request('DELETE', `/admin/user/${userId}`),
@@ -127,7 +127,7 @@ const API = {
   // Orders
   createOrder: (data) => API.request('POST', '/orders', data),
   getMyOrders: () => API.request('GET', '/orders/my'),
-  getAllOrders: (status) => API.request('GET', `/orders/all${status ? '?status='+status : ''}`),
+  getAllOrders: (status) => API.request('GET', `/orders/all${status ? '?status=' + status : ''}`),
   acceptOrder: (orderId, adminNote) => API.request('POST', `/orders/${orderId}/accept`, { adminNote }),
   transferOrder: (orderId) => API.request('POST', `/orders/${orderId}/transfer`, {}),
   rejectOrder: (orderId, adminNote) => API.request('POST', `/orders/${orderId}/reject`, { adminNote }),
@@ -188,6 +188,14 @@ function initNavbar() {
     nav.classList.toggle('scrolled', window.scrollY > 50);
   });
 
+  const logo = document.querySelector('.nav-logo');
+  if (logo && Auth.isLoggedIn()) {
+    const user = Auth.getUser();
+    if (user && user.role === 'seller') {
+      logo.href = '/dashboard.html';
+    }
+  }
+
   const actions = document.querySelector('.nav-actions');
   if (actions) {
     if (Auth.isLoggedIn()) {
@@ -200,24 +208,32 @@ function initNavbar() {
       } else if (role === 'admin') {
         links = ``;
       } else if (role === 'seller') {
+        const path = window.location.pathname;
         links = `
-          <a href="/admin-nfts.html" class="btn btn-sm btn-secondary">Manage NFTs</a>
-          <a href="/admin-orders.html" class="btn btn-sm btn-secondary">Orders</a>
-          <a href="/admin-settings.html" class="btn btn-sm btn-secondary">Settings</a>
+          <a href="/dashboard.html" class="btn btn-sm ${path.includes('dashboard.html') ? 'btn-primary' : 'btn-secondary'}">Dashboard</a>
+          <a href="/mint.html" class="btn btn-sm ${path.includes('mint.html') ? 'btn-primary' : 'btn-secondary'}">Mint</a>
+          <a href="/admin-nfts.html" class="btn btn-sm ${path.includes('admin-nfts.html') ? 'btn-primary' : 'btn-secondary'}">Manage NFTs</a>
+          <a href="/admin-orders.html" class="btn btn-sm ${path.includes('admin-orders.html') ? 'btn-primary' : 'btn-secondary'}">Orders</a>
+          <a href="/admin-settings.html" class="btn btn-sm ${path.includes('admin-settings.html') ? 'btn-primary' : 'btn-secondary'}">Settings</a>
         `;
       } else {
+        const path = window.location.pathname;
         links = `
-          <a href="/buyer-dashboard.html" class="btn btn-sm btn-secondary">Dashboard</a>
-          <a href="/my-nfts.html" class="btn btn-sm btn-secondary">My NFTs</a>
-          <a href="/my-orders.html" class="btn btn-sm btn-secondary">My Orders</a>
+          <a href="/" class="btn btn-sm ${path === '/' || path.includes('index.html') ? 'btn-primary' : 'btn-secondary'}">Home</a>
+          <a href="/verify.html" class="btn btn-sm ${path.includes('verify.html') ? 'btn-primary' : 'btn-secondary'}">Verify</a>
+          <a href="/collection.html" class="btn btn-sm ${path.includes('collection.html') ? 'btn-primary' : 'btn-secondary'}">Collection</a>
+          <a href="/buyer-dashboard.html" class="btn btn-sm ${path.includes('buyer-dashboard.html') ? 'btn-primary' : 'btn-secondary'}">Dashboard</a>
+          <a href="/my-nfts.html" class="btn btn-sm ${path.includes('my-nfts.html') ? 'btn-primary' : 'btn-secondary'}">My NFTs</a>
+          <a href="/my-orders.html" class="btn btn-sm ${path.includes('my-orders.html') ? 'btn-primary' : 'btn-secondary'}">My Orders</a>
         `;
       }
 
+      const path = window.location.pathname;
       actions.innerHTML = (role === 'superadmin' || role === 'admin')
         ? links
         : `
         ${links}
-        <a href="/profile.html" class="btn btn-sm btn-secondary">Profile</a>
+        <a href="/profile.html" class="btn btn-sm ${path.includes('profile.html') ? 'btn-primary' : 'btn-secondary'}">Profile</a>
         <button onclick="Auth.logout()" class="btn btn-sm btn-secondary">Logout</button>
       `;
     } else {
@@ -281,12 +297,12 @@ const Cart = {
       return false;
     }
     items.push({
-      tokenId   : nft.tokenId,
+      tokenId: nft.tokenId,
       productName: nft.productName,
-      price     : nft.price,
-      imageUrl  : nft.imageUrl || '',
-      category  : nft.category || 'Footwear',
-      status    : nft.status   || 'active'
+      price: nft.price,
+      imageUrl: nft.imageUrl || '',
+      category: nft.category || 'Footwear',
+      status: nft.status || 'active'
     });
     Cart.saveItems(items);
     Toast.success('Added to cart');

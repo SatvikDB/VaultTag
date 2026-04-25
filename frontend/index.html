@@ -1,81 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VaultTag — Own the Real. Verify the Authentic.</title>
-  <meta name="description" content="VaultTag is a premium NFT marketplace for physical shoes. Verify authenticity with NFC + blockchain technology.">
+  <meta name="description"
+    content="VaultTag is a premium NFT marketplace for physical shoes. Verify authenticity with NFC + blockchain technology.">
   <link rel="stylesheet" href="/css/style.css">
   <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #0f0c29 0%, #302b63 45%, #24243e 100%);
+      background-attachment: fixed;
+      color: #eef0ff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background orbs */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .2;
+      animation: orbDrift 10s ease-in-out infinite alternate;
+    }
+
+    .bg-orb-1 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #7B2FBE, transparent);
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+
+    .bg-orb-2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #00D4AA, transparent);
+      bottom: -60px;
+      right: -60px;
+      animation-delay: 3s;
+    }
+
+    .bg-orb-3 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, #5B8DEF, transparent);
+      top: 50%;
+      left: 60%;
+      animation-delay: 6s;
+    }
+
+    @keyframes orbDrift {
+      from {
+        transform: translate(0, 0) scale(1)
+      }
+
+      to {
+        transform: translate(30px, -40px) scale(1.1)
+      }
+    }
+
+    /* Grid overlay */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .03) 1px, transparent 1px);
+      background-size: 52px 52px;
+    }
+
+    .hero,
+    .section {
+      position: relative;
+      z-index: 1;
+    }
+
     /* Landing-specific styles */
     .hero-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 16px; border-radius: var(--radius-full);
-      background: var(--accent-dim); border: 1px solid rgba(0,212,170,0.2);
-      font-size: 0.8rem; color: var(--accent); font-weight: 500;
-      margin-bottom: 24px; animation: fadeInUp 0.8s var(--ease-out);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius-full);
+      background: var(--accent-dim);
+      border: 1px solid rgba(0, 212, 170, 0.2);
+      font-size: 0.8rem;
+      color: var(--accent);
+      font-weight: 500;
+      margin-bottom: 24px;
+      animation: fadeInUp 0.8s var(--ease-out);
     }
-    .hero-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: blink 2s infinite; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    .hero-text h1 { animation: fadeInUp 0.8s var(--ease-out) 0.1s both; }
-    .hero-text p { animation: fadeInUp 0.8s var(--ease-out) 0.2s both; }
-    .hero-cta { animation: fadeInUp 0.8s var(--ease-out) 0.3s both; }
-    .hero-3d { animation: fadeInUp 0.8s var(--ease-out) 0.4s both; }
+    .hero-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.3
+      }
+    }
+
+    .hero-text h1 {
+      animation: fadeInUp 0.8s var(--ease-out) 0.1s both;
+    }
+
+    .hero-text p {
+      animation: fadeInUp 0.8s var(--ease-out) 0.2s both;
+    }
+
+    .hero-cta {
+      animation: fadeInUp 0.8s var(--ease-out) 0.3s both;
+    }
+
+    .hero-3d {
+      animation: fadeInUp 0.8s var(--ease-out) 0.4s both;
+    }
 
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .hero-stats {
-      display: flex; gap: 40px; margin-top: 48px;
+      display: flex;
+      gap: 40px;
+      margin-top: 48px;
       animation: fadeInUp 0.8s var(--ease-out) 0.5s both;
     }
-    .hero-stat-value { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; }
-    .hero-stat-label { font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px; }
+
+    .hero-stat-value {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+
+    .hero-stat-label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
 
     /* How it works */
-    .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px; }
-    .step-card { text-align: center; padding: 32px 20px; }
-    .step-number {
-      width: 56px; height: 56px; border-radius: 50%;
-      background: var(--accent-dim); border: 1px solid rgba(0,212,170,0.2);
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-display); font-weight: 700; font-size: 1.2rem;
-      color: var(--accent); margin: 0 auto 16px;
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-top: 48px;
     }
-    .step-card h3 { font-size: 1rem; margin-bottom: 8px; }
-    .step-card p { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; }
+
+    .step-card {
+      text-align: center;
+      padding: 32px 20px;
+    }
+
+    .step-number {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      border: 1px solid rgba(0, 212, 170, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: var(--accent);
+      margin: 0 auto 16px;
+    }
+
+    .step-card h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .step-card p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
 
     /* Featured section */
-    .section-header { text-align: center; margin-bottom: 48px; }
-    .section-header h2 { font-size: 2.2rem; margin-bottom: 12px; }
-    .section-header p { color: var(--text-secondary); font-size: 1rem; max-width: 500px; margin: 0 auto; }
+    .section-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-header h2 {
+      font-size: 2.2rem;
+      margin-bottom: 12px;
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
 
     /* CTA section */
     .cta-section {
-      text-align: center; padding: 80px 0;
+      text-align: center;
+      padding: 80px 0;
       background: linear-gradient(180deg, transparent, var(--accent-dim), transparent);
       position: relative;
     }
-    .cta-section h2 { font-size: 2.5rem; margin-bottom: 16px; }
-    .cta-section p { color: var(--text-secondary); margin-bottom: 32px; font-size: 1.05rem; }
+
+    .cta-section h2 {
+      font-size: 2.5rem;
+      margin-bottom: 16px;
+    }
+
+    .cta-section p {
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      font-size: 1.05rem;
+    }
 
     /* Footer */
     .footer {
       border-top: 1px solid var(--border-primary);
-      padding: 40px 0; text-align: center;
-      color: var(--text-muted); font-size: 0.85rem;
+      padding: 40px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
     }
-    .footer a { color: var(--text-secondary); }
+
+    .footer a {
+      color: var(--text-secondary);
+    }
 
     @media (max-width: 768px) {
-      .steps-grid { grid-template-columns: 1fr 1fr; }
-      .hero-stats { flex-direction: column; gap: 20px; align-items: center; }
+      .steps-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .hero-stats {
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+      }
     }
+
     @media (max-width: 480px) {
-      .steps-grid { grid-template-columns: 1fr; }
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* ── Shoe Product Card — blended into dark bg ── */
@@ -83,26 +285,29 @@
       background: rgba(17, 22, 51, 0.45);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255,255,255,0.07);
+      border: 1px solid rgba(255, 255, 255, 0.07);
       border-radius: 28px;
       padding: 28px 28px 24px;
       max-width: 420px;
       width: 100%;
       margin: 0 auto;
-      box-shadow: 0 32px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
       display: flex;
       flex-direction: column;
       gap: 20px;
       position: relative;
       overflow: hidden;
     }
+
     /* subtle top-edge glow line */
     .shoe-card::before {
       content: '';
       position: absolute;
-      top: 0; left: 10%; right: 10%;
+      top: 0;
+      left: 10%;
+      right: 10%;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(0,212,170,0.5), transparent);
+      background: linear-gradient(90deg, transparent, rgba(0, 212, 170, 0.5), transparent);
     }
 
     /* Circular gradient blob behind shoe */
@@ -113,21 +318,34 @@
       align-items: center;
       justify-content: center;
     }
+
     .shoe-card__blob {
       position: absolute;
       width: 260px;
       height: 260px;
       border-radius: 50%;
-      background: radial-gradient(circle at 40% 40%, rgba(255,77,77,0.55) 0%, rgba(168,85,247,0.45) 50%, rgba(59,130,246,0.55) 100%);
+      background: radial-gradient(circle at 40% 40%, rgba(255, 77, 77, 0.55) 0%, rgba(168, 85, 247, 0.45) 50%, rgba(59, 130, 246, 0.55) 100%);
       filter: blur(28px);
-      top: 50%; left: 50%;
+      top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
       animation: blob-pulse 6s ease-in-out infinite;
     }
+
     @keyframes blob-pulse {
-      0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.8; }
-      50%      { transform: translate(-50%,-50%) scale(1.08); opacity: 1; }
+
+      0%,
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+      }
+
+      50% {
+        transform: translate(-50%, -50%) scale(1.08);
+        opacity: 1;
+      }
     }
+
     .shoe-card__img {
       position: relative;
       z-index: 2;
@@ -135,9 +353,10 @@
       max-width: 340px;
       height: 220px;
       object-fit: contain;
-      filter: drop-shadow(0 16px 32px rgba(0,0,0,0.6));
-      transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+      filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.6));
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
+
     .shoe-card:hover .shoe-card__img {
       transform: translateY(-8px) scale(1.04);
     }
@@ -151,6 +370,7 @@
       line-height: 1.1;
       margin-bottom: 8px;
     }
+
     .shoe-card__tagline {
       font-size: 0.78rem;
       color: var(--text-secondary);
@@ -161,14 +381,19 @@
     }
 
     /* Size buttons */
-    .shoe-card__sizes { display: flex; gap: 10px; flex-wrap: wrap; }
+    .shoe-card__sizes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .size-btn {
       flex: 1;
       min-width: 56px;
       padding: 12px 8px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--text-secondary);
       font-family: var(--font-display);
       font-size: 0.95rem;
@@ -176,11 +401,13 @@
       cursor: pointer;
       transition: all 0.2s;
     }
+
     .size-btn:hover {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255, 255, 255, 0.1);
       color: var(--text-primary);
-      border-color: rgba(255,255,255,0.2);
+      border-color: rgba(255, 255, 255, 0.2);
     }
+
     .size-btn--active {
       background: var(--accent);
       color: var(--bg-primary);
@@ -188,12 +415,16 @@
     }
 
     /* View toggle */
-    .shoe-card__views { display: flex; gap: 8px; }
+    .shoe-card__views {
+      display: flex;
+      gap: 8px;
+    }
+
     .view-btn {
       flex: 1;
       padding: 8px 12px;
       border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       background: transparent;
       color: var(--text-muted);
       font-size: 0.8rem;
@@ -201,10 +432,12 @@
       cursor: pointer;
       transition: all 0.2s;
     }
+
     .view-btn:hover {
-      border-color: rgba(255,255,255,0.2);
+      border-color: rgba(255, 255, 255, 0.2);
       color: var(--text-secondary);
     }
+
     .view-btn--active {
       border-color: var(--accent);
       color: var(--accent);
@@ -225,32 +458,50 @@
       text-align: center;
       text-decoration: none;
       transition: all 0.25s;
-      box-shadow: 0 8px 28px rgba(255,77,77,0.35);
+      box-shadow: 0 8px 28px rgba(255, 77, 77, 0.35);
     }
+
     .shoe-card__cta:hover {
       transform: translateY(-2px);
-      box-shadow: 0 14px 36px rgba(255,77,77,0.5);
+      box-shadow: 0 14px 36px rgba(255, 77, 77, 0.5);
       color: #fff;
     }
 
     @media (max-width: 768px) {
-      .shoe-card { max-width: 100%; }
-      .shoe-card__name { font-size: 1.6rem; }
+      .shoe-card {
+        max-width: 100%;
+      }
+
+      .shoe-card__name {
+        font-size: 1.6rem;
+      }
     }
 
     /* Featured card selected state */
-    .featured-card { cursor: pointer; transition: all 0.3s var(--ease-out); }
+    .featured-card {
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+    }
+
     .featured-card--active {
       border-color: var(--accent) !important;
-      box-shadow: 0 0 0 2px var(--accent), 0 20px 60px rgba(0,212,170,0.2) !important;
+      box-shadow: 0 0 0 2px var(--accent), 0 20px 60px rgba(0, 212, 170, 0.2) !important;
       transform: translateY(-6px) !important;
     }
+
     .featured-card--active .product-card-image img {
       transform: scale(1.05);
     }
   </style>
 </head>
+
 <body>
+  <div class="bg-orbs">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+  <div class="bg-grid"></div>
   <!-- Particles -->
   <div class="particles-bg" id="particles"></div>
 
@@ -261,10 +512,7 @@
         <div class="logo-icon">⬡</div>
         VaultTag
       </a>
-      <ul class="nav-links">
-        <li><a href="/" class="active">Home</a></li>
-        <li><a href="/collection.html">Collection</a></li>
-      </ul>
+      <ul class="nav-links"></ul>
       <div class="nav-actions" id="navActions"></div>
     </div>
   </nav>
@@ -279,7 +527,8 @@
             Powered by Polygon Blockchain
           </div>
           <h1>Own the Real.<br><span class="text-gradient">Verify the Authentic.</span></h1>
-          <p>VaultTag bridges physical sneakers with blockchain-verified NFTs. Every pair is authenticated, every transfer is traced, every fake is exposed.</p>
+          <p>VaultTag bridges physical sneakers with blockchain-verified NFTs. Every pair is authenticated, every
+            transfer is traced, every fake is exposed.</p>
           <div class="hero-cta">
             <a href="/collection.html" class="btn btn-primary btn-lg">Explore Collection</a>
           </div>
@@ -303,12 +552,8 @@
           <!-- Circular gradient backdrop + shoe image -->
           <div class="shoe-card__visual">
             <div class="shoe-card__blob"></div>
-            <img
-              src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80"
-              alt="Nike Air Jordan"
-              class="shoe-card__img"
-              id="shoeCardImg"
-            >
+            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80" alt="Nike Air Jordan"
+              class="shoe-card__img" id="shoeCardImg">
           </div>
 
           <!-- Name + tagline -->
@@ -331,8 +576,7 @@
               data-img="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80">
               <span>Front View</span>
             </button>
-            <button class="view-btn"
-              data-img="https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&q=80">
+            <button class="view-btn" data-img="https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=600&q=80">
               <span>Side View</span>
             </button>
           </div>
@@ -365,7 +609,8 @@
         <div class="step-card card animate-on-scroll">
           <div class="step-number">3</div>
           <h3>Scan & Verify</h3>
-          <p>Anyone can tap their phone to the NFC tag or enter the token ID online. Blockchain confirms authenticity.</p>
+          <p>Anyone can tap their phone to the NFC tag or enter the token ID online. Blockchain confirms authenticity.
+          </p>
         </div>
         <div class="step-card card animate-on-scroll">
           <div class="step-number">4</div>
@@ -396,7 +641,8 @@
   <footer class="footer">
     <div class="container">
       <p>© 2026 VaultTag — NFT Marketplace for Physical Goods</p>
-      <p style="margin-top:8px"><a href="https://amoy.polygonscan.com" target="_blank">Polygon Amoy Testnet</a> • Built with ♥ and blockchain</p>
+      <p style="margin-top:8px"><a href="https://amoy.polygonscan.com" target="_blank">Polygon Amoy Testnet</a> • Built
+        with ♥ and blockchain</p>
     </div>
   </footer>
 
@@ -497,16 +743,16 @@
       document.querySelectorAll('.featured-card').forEach(c => c.classList.remove('featured-card--active'));
       card.classList.add('featured-card--active');
 
-      const img     = document.getElementById('shoeCardImg');
-      const nameEl  = document.querySelector('.shoe-card__name');
-      const tagEl   = document.querySelector('.shoe-card__tagline');
-      const ctaEl   = document.querySelector('.shoe-card__cta');
+      const img = document.getElementById('shoeCardImg');
+      const nameEl = document.querySelector('.shoe-card__name');
+      const tagEl = document.querySelector('.shoe-card__tagline');
+      const ctaEl = document.querySelector('.shoe-card__cta');
 
-      const newSrc  = card.dataset.img;
+      const newSrc = card.dataset.img;
       const newName = card.dataset.name;
-      const newId   = card.dataset.id;
+      const newId = card.dataset.id;
       const newPrice = card.dataset.price;
-      const newCat  = 'Footwear';
+      const newCat = 'Footwear';
       const newStatus = 'active';
 
       // Fade out → swap → fade in
@@ -517,10 +763,10 @@
       setTimeout(() => {
         if (newSrc) img.src = newSrc;
         nameEl.textContent = newName;
-        tagEl.textContent  = 'BLOCKCHAIN-VERIFIED AUTHENTIC PRODUCT — TOKEN #' + newId;
-        ctaEl.href         = `/product.html?id=${newId}&name=${encodeURIComponent(newName)}&price=${newPrice}&cat=${encodeURIComponent(newCat)}&status=${newStatus}&img=${encodeURIComponent(newSrc)}`;
+        tagEl.textContent = 'BLOCKCHAIN-VERIFIED AUTHENTIC PRODUCT — TOKEN #' + newId;
+        ctaEl.href = `/product.html?id=${newId}&name=${encodeURIComponent(newName)}&price=${newPrice}&cat=${encodeURIComponent(newCat)}&status=${newStatus}&img=${encodeURIComponent(newSrc)}`;
 
-        img.style.opacity   = '1';
+        img.style.opacity = '1';
         img.style.transform = 'scale(1)';
       }, 250);
 
@@ -529,4 +775,5 @@
     }
   </script>
 </body>
+
 </html>

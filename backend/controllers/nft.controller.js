@@ -260,7 +260,14 @@ exports.getMyNfts = async (req, res, next) => {
 exports.browseNfts = async (req, res, next) => {
   try {
     const { page = 1, limit = 12, category, search } = req.query;
-    const query = { status: 'active' };   // buyers only see active items
+    // Get all admin/seller emails to filter marketplace
+    const staffUsers = await User.find({ role: { $in: ['admin', 'superadmin', 'seller'] } }, 'email');
+    const staffEmails = staffUsers.map(u => u.email);
+
+    const query = { 
+      status: 'active',
+      owner: { $in: staffEmails } 
+    };
 
     if (category) query.category = category;
     if (search) {

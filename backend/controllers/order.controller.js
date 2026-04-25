@@ -116,6 +116,7 @@ exports.transferOrder = async (req, res, next) => {
         const previousOwner = nft.owner;
         nft.owner = order.buyer;
         nft.ownerWallet = null;
+        nft.status = 'active'; // Keep active but we will filter marketplace
         nft.transferHistory.push({ from: previousOwner, to: order.buyer, txHash: null, at: new Date() });
         await nft.save();
 

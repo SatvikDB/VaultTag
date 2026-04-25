@@ -14,7 +14,7 @@ router.get('/payment-info', c.getPublicPaymentInfo);
 router.post('/', auth, [
   body('items').isArray({ min: 1 }).withMessage('Items required'),
   body('total').isNumeric().withMessage('Total required'),
-  body('paymentMethod').isIn(['metamask','upi','api']).withMessage('Invalid payment method')
+  body('paymentMethod').isIn(['metamask','upi','api','card']).withMessage('Invalid payment method')
 ], validate, c.createOrder);
 
 router.get('/my', auth, c.getMyOrders);

@@ -14,7 +14,7 @@ const orderSchema = new mongoose.Schema({
   subtotal:       { type: Number, required: true },
   fee:            { type: Number, default: 0 },
   total:          { type: Number, required: true },
-  paymentMethod:  { type: String, enum: ['metamask','upi','api','cod'], required: true },
+  paymentMethod:  { type: String, enum: ['metamask','upi','api','cod','card'], required: true },
   paymentRef:     { type: String, default: '' },
   shippingAddress:{ type: String, default: '' },
   status:         { type: String, enum: ['pending','accepted','rejected','completed'], default: 'pending' },

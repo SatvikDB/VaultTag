@@ -1,14 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Seller Dashboard — VaultTag</title>
   <link rel="stylesheet" href="/css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
   <style>
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-    html, body { height:100%; }
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
 
     body {
       font-family: 'Inter', sans-serif;
@@ -19,121 +31,481 @@
     }
 
     /* Animated background orbs */
-    .bg-orbs { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
-    .bg-orb { position:absolute; border-radius:50%; filter:blur(90px); opacity:.2; animation:orbDrift 10s ease-in-out infinite alternate; }
-    .bg-orb-1 { width:500px; height:500px; background:radial-gradient(circle,#7B2FBE,transparent); top:-100px; left:-100px; animation-delay:0s; }
-    .bg-orb-2 { width:400px; height:400px; background:radial-gradient(circle,#00D4AA,transparent); bottom:-60px; right:-60px; animation-delay:3s; }
-    .bg-orb-3 { width:300px; height:300px; background:radial-gradient(circle,#5B8DEF,transparent); top:50%; left:60%; animation-delay:6s; }
-    @keyframes orbDrift { from{transform:translate(0,0) scale(1)} to{transform:translate(30px,-40px) scale(1.1)} }
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .2;
+      animation: orbDrift 10s ease-in-out infinite alternate;
+    }
+
+    .bg-orb-1 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #7B2FBE, transparent);
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+
+    .bg-orb-2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #00D4AA, transparent);
+      bottom: -60px;
+      right: -60px;
+      animation-delay: 3s;
+    }
+
+    .bg-orb-3 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, #5B8DEF, transparent);
+      top: 50%;
+      left: 60%;
+      animation-delay: 6s;
+    }
+
+    @keyframes orbDrift {
+      from {
+        transform: translate(0, 0) scale(1)
+      }
+
+      to {
+        transform: translate(30px, -40px) scale(1.1)
+      }
+    }
 
     /* Grid overlay */
-    .bg-grid { position:fixed; inset:0; z-index:0; pointer-events:none;
-      background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
-      background-size: 52px 52px; }
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .03) 1px, transparent 1px);
+      background-size: 52px 52px;
+    }
 
-    .dash { position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:90px 24px 60px; }
+    .dash {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 90px 24px 60px;
+    }
 
     /* Page entry animations */
-    @keyframes fadeSlideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
-    .anim-in { animation: fadeSlideUp .5s cubic-bezier(.4,0,.2,1) both; }
-    .anim-in-1 { animation-delay:.05s; }
-    .anim-in-2 { animation-delay:.12s; }
-    .anim-in-3 { animation-delay:.2s; }
-    .anim-in-4 { animation-delay:.28s; }
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px)
+      }
 
-    .dash-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:36px; flex-wrap:wrap; gap:16px; }
-    .dash-title { font-size:1.9rem; font-weight:800; letter-spacing:-0.5px; }
-    .dash-title .grad { background:linear-gradient(135deg,#5B8DEF,#00D4AA); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-    .dash-subtitle { color:rgba(255,255,255,.45); font-size:.85rem; margin-top:4px; }
-    .role-chip { display:inline-flex; align-items:center; gap:8px; padding:8px 18px; border-radius:50px; font-size:.78rem; font-weight:700; background:rgba(91,141,239,.15); color:#5B8DEF; border:1px solid rgba(91,141,239,.3); backdrop-filter:blur(8px); }
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
 
-    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:32px; }
-    @media(max-width:768px){ .stats-row { grid-template-columns:repeat(2,1fr); } }
+    .anim-in {
+      animation: fadeSlideUp .5s cubic-bezier(.4, 0, .2, 1) both;
+    }
+
+    .anim-in-1 {
+      animation-delay: .05s;
+    }
+
+    .anim-in-2 {
+      animation-delay: .12s;
+    }
+
+    .anim-in-3 {
+      animation-delay: .2s;
+    }
+
+    .anim-in-4 {
+      animation-delay: .28s;
+    }
+
+    .dash-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .dash-title {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .dash-title .grad {
+      background: linear-gradient(135deg, #5B8DEF, #00D4AA);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .dash-subtitle {
+      color: rgba(255, 255, 255, .45);
+      font-size: .85rem;
+      margin-top: 4px;
+    }
+
+    .role-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 50px;
+      font-size: .78rem;
+      font-weight: 700;
+      background: rgba(91, 141, 239, .15);
+      color: #5B8DEF;
+      border: 1px solid rgba(91, 141, 239, .3);
+      backdrop-filter: blur(8px);
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    @media(max-width:768px) {
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
     .stat-box {
-      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
-      border-radius:18px; padding:22px 16px; text-align:center;
-      transition:transform .3s ease, box-shadow .3s ease, background .3s ease;
-      position:relative; overflow:hidden;
+      background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .1);
+      border-radius: 18px;
+      padding: 22px 16px;
+      text-align: center;
+      transition: transform .3s ease, box-shadow .3s ease, background .3s ease;
+      position: relative;
+      overflow: hidden;
       backdrop-filter: blur(12px);
     }
-    .stat-box::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
-    .stat-box.blue::before { background:linear-gradient(90deg,#5B8DEF,#3B6FD4); }
-    .stat-box.teal::before { background:linear-gradient(90deg,#00D4AA,#009E7E); }
-    .stat-box.red::before { background:linear-gradient(90deg,#EF4444,#DC2626); }
-    .stat-box.gold::before { background:linear-gradient(90deg,#FFB932,#FF6B00); }
-    .stat-box:hover { transform:translateY(-6px); background:rgba(255,255,255,.1); box-shadow:0 20px 50px rgba(0,0,0,.3); }
-    .stat-num { font-size:2rem; font-weight:800; margin-bottom:4px; color:#fff; }
-    .stat-lbl { font-size:.7rem; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.6px; }
 
-    .sec-title { font-size:.78rem; font-weight:700; color:rgba(255,255,255,.5); margin-bottom:16px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.5px; }
-    .sec-title::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.08); }
+    .stat-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+    }
+
+    .stat-box.blue::before {
+      background: linear-gradient(90deg, #5B8DEF, #3B6FD4);
+    }
+
+    .stat-box.teal::before {
+      background: linear-gradient(90deg, #00D4AA, #009E7E);
+    }
+
+    .stat-box.red::before {
+      background: linear-gradient(90deg, #EF4444, #DC2626);
+    }
+
+    .stat-box.gold::before {
+      background: linear-gradient(90deg, #FFB932, #FF6B00);
+    }
+
+    .stat-box:hover {
+      transform: translateY(-6px);
+      background: rgba(255, 255, 255, .1);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+    }
+
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .stat-lbl {
+      font-size: .7rem;
+      color: rgba(255, 255, 255, .4);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+    }
+
+    .sec-title {
+      font-size: .78rem;
+      font-weight: 700;
+      color: rgba(255, 255, 255, .5);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .sec-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, .08);
+    }
+
     .panel {
-      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
-      border-radius:20px; padding:24px; margin-bottom:24px;
-      backdrop-filter:blur(12px);
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(12px);
       transition: box-shadow .3s ease;
     }
-    .panel:hover { box-shadow: 0 8px 32px rgba(0,0,0,.25); }
+
+    .panel:hover {
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .25);
+    }
 
     /* Feature Cards */
-    .feature-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:32px; }
-    .feature-card {
-      background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08);
-      border-radius:18px; padding:22px 18px; cursor:pointer;
-      transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease, background .3s ease;
-      text-decoration:none; color:inherit; display:block;
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      margin-bottom: 32px;
     }
-    .feature-card:hover { transform:translateY(-6px); background:rgba(255,255,255,.09); }
-    .feature-card.blue:hover { border-color:rgba(91,141,239,.5); box-shadow:0 16px 40px rgba(91,141,239,.2); }
-    .feature-card.teal:hover { border-color:rgba(0,212,170,.5); box-shadow:0 16px 40px rgba(0,212,170,.2); }
-    .feature-card.purple:hover { border-color:rgba(168,85,247,.5); box-shadow:0 16px 40px rgba(168,85,247,.2); }
-    .feature-card.gold:hover { border-color:rgba(255,185,50,.5); box-shadow:0 16px 40px rgba(255,185,50,.2); }
-    .fc-icon { font-size:1.8rem; margin-bottom:12px; }
-    .fc-title { font-weight:700; font-size:.92rem; margin-bottom:4px; color:#eef0ff; }
-    .fc-desc { font-size:.72rem; color:rgba(255,255,255,.4); line-height:1.5; }
+
+    .feature-card {
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 18px;
+      padding: 22px 18px;
+      cursor: pointer;
+      transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease, background .3s ease;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-6px);
+      background: rgba(255, 255, 255, .09);
+    }
+
+    .feature-card.blue:hover {
+      border-color: rgba(91, 141, 239, .5);
+      box-shadow: 0 16px 40px rgba(91, 141, 239, .2);
+    }
+
+    .feature-card.teal:hover {
+      border-color: rgba(0, 212, 170, .5);
+      box-shadow: 0 16px 40px rgba(0, 212, 170, .2);
+    }
+
+    .feature-card.purple:hover {
+      border-color: rgba(168, 85, 247, .5);
+      box-shadow: 0 16px 40px rgba(168, 85, 247, .2);
+    }
+
+    .feature-card.gold:hover {
+      border-color: rgba(255, 185, 50, .5);
+      box-shadow: 0 16px 40px rgba(255, 185, 50, .2);
+    }
+
+    .fc-icon {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+
+    .fc-title {
+      font-weight: 700;
+      font-size: .92rem;
+      margin-bottom: 4px;
+      color: #eef0ff;
+    }
+
+    .fc-desc {
+      font-size: .72rem;
+      color: rgba(255, 255, 255, .4);
+      line-height: 1.5;
+    }
 
     /* NFC Status */
-    .nfc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
-    .nfc-item { padding:16px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:14px; transition:all .25s; }
-    .nfc-item:hover { background:rgba(255,255,255,.08); transform:translateY(-3px); }
-    .nfc-name { font-size:.82rem; font-weight:600; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .nfc-status { display:inline-flex; align-items:center; gap:6px; font-size:.7rem; font-weight:600; }
-    .nfc-dot { width:8px; height:8px; border-radius:50%; }
-    .nfc-dot.linked { background:#00D4AA; box-shadow:0 0 6px rgba(0,212,170,.6); }
-    .nfc-dot.unlinked { background:#6b6b80; }
+    .nfc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .nfc-item {
+      padding: 16px;
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(255, 255, 255, .07);
+      border-radius: 14px;
+      transition: all .25s;
+    }
+
+    .nfc-item:hover {
+      background: rgba(255, 255, 255, .08);
+      transform: translateY(-3px);
+    }
+
+    .nfc-name {
+      font-size: .82rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nfc-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .7rem;
+      font-weight: 600;
+    }
+
+    .nfc-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .nfc-dot.linked {
+      background: #00D4AA;
+      box-shadow: 0 0 6px rgba(0, 212, 170, .6);
+    }
+
+    .nfc-dot.unlinked {
+      background: #6b6b80;
+    }
 
     /* Products Table */
-    .vtable { width:100%; border-collapse:collapse; }
-    .vtable th { text-align:left; font-size:.68rem; text-transform:uppercase; letter-spacing:.6px; color:rgba(255,255,255,.35); padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.07); }
-    .vtable td { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.04); font-size:.84rem; vertical-align:middle; transition:background .2s; }
-    .vtable tr:hover td { background:rgba(255,255,255,.04); }
-    .img-thumb { width:44px; height:44px; border-radius:10px; background:rgba(255,255,255,.07); display:flex; align-items:center; justify-content:center; font-size:1.1rem; overflow:hidden; }
-    .img-thumb img { width:100%; height:100%; object-fit:cover; }
-    .status-pill { padding:3px 10px; border-radius:50px; font-size:.68rem; font-weight:700; }
-    .status-pill.active { background:rgba(0,212,170,.15); color:#00D4AA; }
-    .status-pill.redeemed { background:rgba(239,68,68,.15); color:#EF4444; }
-    .status-pill.unminted { background:rgba(107,107,128,.15); color:#9a9ab0; }
+    .vtable {
+      width: 100%;
+      border-collapse: collapse;
+    }
 
-    .empty-msg { text-align:center; padding:40px; color:rgba(255,255,255,.3); font-size:.85rem; }
-    .pulse { animation:pulse 2s ease-in-out infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .vtable th {
+      text-align: left;
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: rgba(255, 255, 255, .35);
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, .07);
+    }
+
+    .vtable td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, .04);
+      font-size: .84rem;
+      vertical-align: middle;
+      transition: background .2s;
+    }
+
+    .vtable tr:hover td {
+      background: rgba(255, 255, 255, .04);
+    }
+
+    .img-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .07);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      overflow: hidden;
+    }
+
+    .img-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .status-pill {
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: .68rem;
+      font-weight: 700;
+    }
+
+    .status-pill.active {
+      background: rgba(0, 212, 170, .15);
+      color: #00D4AA;
+    }
+
+    .status-pill.redeemed {
+      background: rgba(239, 68, 68, .15);
+      color: #EF4444;
+    }
+
+    .status-pill.unminted {
+      background: rgba(107, 107, 128, .15);
+      color: #9a9ab0;
+    }
+
+    .empty-msg {
+      text-align: center;
+      padding: 40px;
+      color: rgba(255, 255, 255, .3);
+      font-size: .85rem;
+    }
+
+    .pulse {
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: .4
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="bg-orbs"><div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div><div class="bg-orb bg-orb-3"></div></div>
+  <div class="bg-orbs">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
   <div class="bg-grid"></div>
   <div class="particles-bg" id="particles"></div>
-  <nav class="navbar scrolled"><div class="container">
-    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
-    <ul class="nav-links">
-      <li><a href="/dashboard.html" class="active">Dashboard</a></li>
-      <li><a href="/mint.html">Mint</a></li>
-      <li><a href="/admin-nfts.html">My Products</a></li>
-      <li><a href="/admin-orders.html">Orders</a></li>
-    </ul>
-    <div class="nav-actions" id="navActions"></div>
-  </div></nav>
+  <nav class="navbar scrolled">
+    <div class="container">
+      <a href="/dashboard.html" class="nav-logo">
+        <div class="logo-icon">⬡</div>VaultTag
+      </a>
+      <ul class="nav-links"></ul>
+      <div class="nav-actions" id="navActions"></div>
+    </div>
+  </nav>
 
   <div class="dash">
     <div class="dash-topbar anim-in anim-in-1">
@@ -147,10 +519,22 @@
 
     <!-- Stats -->
     <div class="stats-row anim-in anim-in-2">
-      <div class="stat-box blue"><div class="stat-num" id="sTotalNfts">—</div><div class="stat-lbl">Total Products</div></div>
-      <div class="stat-box teal"><div class="stat-num" id="sActive">—</div><div class="stat-lbl">Active NFTs</div></div>
-      <div class="stat-box red"><div class="stat-num" id="sRedeemed">—</div><div class="stat-lbl">Redeemed</div></div>
-      <div class="stat-box gold"><div class="stat-num" id="sOrders">—</div><div class="stat-lbl">Orders</div></div>
+      <div class="stat-box blue">
+        <div class="stat-num" id="sTotalNfts">—</div>
+        <div class="stat-lbl">Total Products</div>
+      </div>
+      <div class="stat-box teal">
+        <div class="stat-num" id="sActive">—</div>
+        <div class="stat-lbl">Active NFTs</div>
+      </div>
+      <div class="stat-box red">
+        <div class="stat-num" id="sRedeemed">—</div>
+        <div class="stat-lbl">Redeemed</div>
+      </div>
+      <div class="stat-box gold">
+        <div class="stat-num" id="sOrders">—</div>
+        <div class="stat-lbl">Orders</div>
+      </div>
     </div>
 
     <!-- Power Features -->
@@ -180,9 +564,23 @@
     <div class="sec-title">🎨 All Products</div>
     <div class="panel" style="padding:0;overflow:hidden">
       <table class="vtable">
-        <thead><tr><th></th><th>Product</th><th>Token</th><th>Category</th><th>Status</th><th>NFC</th><th>Action</th></tr></thead>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Product</th>
+            <th>Token</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>NFC</th>
+            <th>Action</th>
+          </tr>
+        </thead>
         <tbody id="productsBody">
-          <tr><td colspan="7"><div class="empty-msg pulse">Loading products…</div></td></tr>
+          <tr>
+            <td colspan="7">
+              <div class="empty-msg pulse">Loading products…</div>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -200,12 +598,12 @@
       try {
         const r = await API.getStats();
         if (r.success) {
-          document.getElementById('sTotalNfts').textContent = r.data.totalNfts    || 0;
-          document.getElementById('sActive').textContent    = r.data.activeNFTs   || 0;
-          document.getElementById('sRedeemed').textContent  = r.data.redeemedNFTs || 0;
-          document.getElementById('sOrders').textContent    = r.data.totalOrders  || 0;
+          document.getElementById('sTotalNfts').textContent = r.data.totalNfts || 0;
+          document.getElementById('sActive').textContent = r.data.activeNFTs || 0;
+          document.getElementById('sRedeemed').textContent = r.data.redeemedNFTs || 0;
+          document.getElementById('sOrders').textContent = r.data.totalOrders || 0;
         }
-      } catch(e) {}
+      } catch (e) { }
     }
 
     async function loadProducts() {
@@ -236,7 +634,7 @@
             <td><a href="/product.html?id=${n.tokenId}" class="btn btn-sm btn-secondary" style="padding:4px 12px;font-size:.72rem">View</a></td>
           </tr>`).join('');
 
-        nfcGrid.innerHTML = nfts.slice(0,6).map(n => `
+        nfcGrid.innerHTML = nfts.slice(0, 6).map(n => `
           <div class="nfc-item">
             <div class="nfc-name">${n.productName}</div>
             <div class="nfc-status">
@@ -244,7 +642,7 @@
               <span style="color:${n.nfcUid ? '#00D4AA' : '#6b6b80'}">${n.nfcUid ? 'Linked' : 'Unlinked'}</span>
             </div>
           </div>`).join('');
-      } catch(e) {
+      } catch (e) {
         document.getElementById('productsBody').innerHTML = `<tr><td colspan="7"><div class="empty-msg">Error loading products</div></td></tr>`;
       }
     }
@@ -255,7 +653,7 @@
         const r = await API.getAllOrders();
         const orders = r.data?.orders || [];
         if (!orders.length) { panel.innerHTML = '<div class="empty-msg">No orders yet</div>'; return; }
-        panel.innerHTML = orders.slice(0,4).map(o => `
+        panel.innerHTML = orders.slice(0, 4).map(o => `
           <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04)">
             <div style="flex:1">
               <div style="font-size:.84rem;font-weight:600">${o.items?.[0]?.productName || 'Order'}</div>
@@ -263,8 +661,9 @@
             </div>
             <span class="status-pill ${o.status === 'pending' ? 'unminted' : o.status === 'completed' ? 'active' : 'redeemed'}">${o.status.toUpperCase()}</span>
           </div>`).join('');
-      } catch(e) { panel.innerHTML = '<div class="empty-msg">Could not load orders</div>'; }
+      } catch (e) { panel.innerHTML = '<div class="empty-msg">Could not load orders</div>'; }
     }
   </script>
 </body>
+
 </html>

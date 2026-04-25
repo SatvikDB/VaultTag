@@ -1,85 +1,406 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orders — Admin VaultTag</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    .page { padding-top:90px; padding-bottom:60px; }
-    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:16px; }
-    .filter-tabs { display:flex; gap:8px; margin-bottom:24px; flex-wrap:wrap; }
-    .tab-btn { padding:8px 18px; border-radius:var(--radius-full); border:1px solid var(--border-primary); background:transparent; color:var(--text-secondary); font-size:.82rem; font-weight:600; cursor:pointer; transition:all .2s; }
-    .tab-btn.active { background:var(--accent); color:var(--bg-primary); border-color:var(--accent); }
-    .orders-list { display:flex; flex-direction:column; gap:20px; }
-    .order-card { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-lg); overflow:hidden; transition:border-color .2s; }
-    .order-card:hover { border-color:var(--border-glow); }
+    .page {
+      padding-top: 90px;
+      padding-bottom: 60px;
+      position: relative;
+      z-index: 1;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #0f0c29 0%, #302b63 45%, #24243e 100%);
+      background-attachment: fixed;
+      color: #eef0ff;
+      min-height: 100vh;
+    }
+
+    /* Animated background orbs */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .bg-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: .2;
+      animation: orbDrift 10s ease-in-out infinite alternate;
+    }
+
+    .bg-orb-1 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, #7B2FBE, transparent);
+      top: -100px;
+      left: -100px;
+      animation-delay: 0s;
+    }
+
+    .bg-orb-2 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #00D4AA, transparent);
+      bottom: -60px;
+      right: -60px;
+      animation-delay: 3s;
+    }
+
+    .bg-orb-3 {
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, #5B8DEF, transparent);
+      top: 50%;
+      left: 60%;
+      animation-delay: 6s;
+    }
+
+    @keyframes orbDrift {
+      from {
+        transform: translate(0, 0) scale(1)
+      }
+
+      to {
+        transform: translate(30px, -40px) scale(1.1)
+      }
+    }
+
+    /* Grid overlay */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255, 255, 255, .03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, .03) 1px, transparent 1px);
+      background-size: 52px 52px;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 8px 18px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-primary);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: var(--bg-primary);
+      border-color: var(--accent);
+    }
+
+    .orders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .order-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+
+    .order-card:hover {
+      border-color: var(--border-glow);
+    }
 
     /* Status stripe at top of card */
-    .order-stripe { height:4px; }
-    .stripe-pending   { background:var(--warning); }
-    .stripe-accepted  { background:var(--info); }
-    .stripe-completed { background:var(--success); }
-    .stripe-rejected  { background:var(--danger); }
+    .order-stripe {
+      height: 4px;
+    }
 
-    .order-body { padding:20px; }
-    .order-header { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:14px; }
-    .order-id { font-family:var(--font-mono); font-size:.9rem; color:var(--accent); font-weight:700; }
-    .order-buyer { font-size:.85rem; color:var(--text-secondary); margin-top:2px; }
-    .order-date { font-size:.75rem; color:var(--text-muted); }
-    .order-items-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
-    .order-item-chip { display:flex; align-items:center; gap:8px; background:var(--bg-secondary); border-radius:var(--radius-sm); padding:6px 10px; font-size:.8rem; }
-    .order-item-chip img { width:36px; height:36px; border-radius:4px; object-fit:cover; }
-    .order-meta { display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
-    .order-total { font-family:var(--font-display); font-weight:700; font-size:1.1rem; color:var(--gold); }
-    .order-method { font-size:.78rem; background:var(--bg-secondary); padding:4px 10px; border-radius:var(--radius-full); color:var(--text-secondary); }
-    .order-ref { font-family:var(--font-mono); font-size:.72rem; color:var(--text-muted); word-break:break-all; max-width:300px; overflow:hidden; text-overflow:ellipsis; }
+    .stripe-pending {
+      background: var(--warning);
+    }
+
+    .stripe-accepted {
+      background: var(--info);
+    }
+
+    .stripe-completed {
+      background: var(--success);
+    }
+
+    .stripe-rejected {
+      background: var(--danger);
+    }
+
+    .order-body {
+      padding: 20px;
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .order-id {
+      font-family: var(--font-mono);
+      font-size: .9rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .order-buyer {
+      font-size: .85rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .order-date {
+      font-size: .75rem;
+      color: var(--text-muted);
+    }
+
+    .order-items-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .order-item-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: .8rem;
+    }
+
+    .order-item-chip img {
+      width: 36px;
+      height: 36px;
+      border-radius: 4px;
+      object-fit: cover;
+    }
+
+    .order-meta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .order-total {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--gold);
+    }
+
+    .order-method {
+      font-size: .78rem;
+      background: var(--bg-secondary);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      color: var(--text-secondary);
+    }
+
+    .order-ref {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--text-muted);
+      word-break: break-all;
+      max-width: 300px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     /* Workflow steps */
-    .workflow { display:flex; gap:0; margin-bottom:16px; border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--border-primary); }
-    .wf-step { flex:1; padding:10px 14px; text-align:center; font-size:.75rem; font-weight:600; color:var(--text-muted); border-right:1px solid var(--border-primary); position:relative; }
-    .wf-step:last-child { border-right:none; }
-    .wf-step.done  { background:rgba(0,212,170,.1); color:var(--success); }
-    .wf-step.active{ background:rgba(91,141,239,.1); color:#5B8DEF; }
-    .wf-step .wf-num { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border-radius:50%; background:var(--border-primary); font-size:.65rem; margin-right:5px; }
-    .wf-step.done  .wf-num { background:var(--success); color:var(--bg-primary); }
-    .wf-step.active .wf-num { background:#5B8DEF; color:#fff; }
+    .workflow {
+      display: flex;
+      gap: 0;
+      margin-bottom: 16px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border-primary);
+    }
+
+    .wf-step {
+      flex: 1;
+      padding: 10px 14px;
+      text-align: center;
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-right: 1px solid var(--border-primary);
+      position: relative;
+    }
+
+    .wf-step:last-child {
+      border-right: none;
+    }
+
+    .wf-step.done {
+      background: rgba(0, 212, 170, .1);
+      color: var(--success);
+    }
+
+    .wf-step.active {
+      background: rgba(91, 141, 239, .1);
+      color: #5B8DEF;
+    }
+
+    .wf-step .wf-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--border-primary);
+      font-size: .65rem;
+      margin-right: 5px;
+    }
+
+    .wf-step.done .wf-num {
+      background: var(--success);
+      color: var(--bg-primary);
+    }
+
+    .wf-step.active .wf-num {
+      background: #5B8DEF;
+      color: #fff;
+    }
 
     /* Story box */
-    .story-box { background:rgba(201,169,98,.08); border:1px solid rgba(201,169,98,.2); border-radius:var(--radius-md); padding:12px 16px; margin-bottom:14px; font-size:.82rem; color:var(--text-secondary); line-height:1.6; }
-    .story-box strong { color:var(--gold); }
+    .story-box {
+      background: rgba(201, 169, 98, .08);
+      border: 1px solid rgba(201, 169, 98, .2);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      font-size: .82rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .story-box strong {
+      color: var(--gold);
+    }
 
     /* Action area */
-    .order-actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .note-input { flex:1; min-width:180px; padding:8px 12px; background:var(--bg-primary); border:1px solid var(--border-primary); border-radius:var(--radius-md); color:var(--text-primary); font-size:.82rem; outline:none; }
-    .note-input:focus { border-color:var(--accent); }
+    .order-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .note-input {
+      flex: 1;
+      min-width: 180px;
+      padding: 8px 12px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: .82rem;
+      outline: none;
+    }
+
+    .note-input:focus {
+      border-color: var(--accent);
+    }
 
     /* Transfer result */
-    .transfer-result { margin-top:12px; padding:12px 16px; background:rgba(0,212,170,.06); border:1px solid rgba(0,212,170,.2); border-radius:var(--radius-md); }
-    .transfer-result .tr-title { font-size:.75rem; color:var(--accent); font-weight:600; margin-bottom:8px; }
-    .transfer-row { font-size:.78rem; display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+    .transfer-result {
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: rgba(0, 212, 170, .06);
+      border: 1px solid rgba(0, 212, 170, .2);
+      border-radius: var(--radius-md);
+    }
 
-    .empty { text-align:center; padding:60px 20px; color:var(--text-muted); }
+    .transfer-result .tr-title {
+      font-size: .75rem;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .transfer-row {
+      font-size: .78rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
   </style>
 </head>
+
 <body>
-  <nav class="navbar scrolled"><div class="container">
-    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
-    <ul class="nav-links">
-      <li><a href="/dashboard.html">Dashboard</a></li>
-      <li><a href="/admin-orders.html" class="active">Orders</a></li>
-      <li><a href="/admin-settings.html">Settings</a></li>
-      <li><a href="/mint.html">Mint</a></li>
-    </ul>
-    <div class="nav-actions" id="navActions"></div>
-  </div></nav>
+  <div class="bg-orbs">
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+  </div>
+  <div class="bg-grid"></div>
+  <nav class="navbar scrolled">
+    <div class="container">
+      <a href="/dashboard.html" class="nav-logo">
+        <div class="logo-icon">⬡</div>VaultTag
+      </a>
+      <ul class="nav-links"></ul>
+      <div class="nav-actions" id="navActions"></div>
+    </div>
+  </nav>
 
   <section class="page">
     <div class="container">
       <div class="page-header">
         <div>
           <h1 style="font-size:1.8rem">Buyer <span class="text-gradient">Orders</span></h1>
-          <p style="color:var(--text-secondary);font-size:.9rem">Verify payment first, then transfer NFT ownership to buyer</p>
+          <p style="color:var(--text-secondary);font-size:.9rem">Verify payment first, then transfer NFT ownership to
+            buyer</p>
         </div>
         <button class="btn btn-secondary btn-sm" onclick="loadOrders(currentFilter)">↻ Refresh</button>
       </div>
@@ -93,7 +414,9 @@
       </div>
 
       <div class="orders-list" id="ordersList">
-        <div class="empty"><div class="spinner" style="margin:0 auto 12px"></div>Loading...</div>
+        <div class="empty">
+          <div class="spinner" style="margin:0 auto 12px"></div>Loading...
+        </div>
       </div>
     </div>
   </section>
@@ -123,24 +446,24 @@
           return;
         }
         list.innerHTML = orders.map(o => renderOrder(o)).join('');
-      } catch(e) {
+      } catch (e) {
         list.innerHTML = `<div class="empty" style="color:var(--danger)">${e.message}</div>`;
       }
     }
 
     function renderOrder(o) {
       const statusColor = {
-        pending:'var(--warning)', accepted:'#5B8DEF',
-        completed:'var(--success)', rejected:'var(--danger)'
+        pending: 'var(--warning)', accepted: '#5B8DEF',
+        completed: 'var(--success)', rejected: 'var(--danger)'
       }[o.status] || 'var(--text-muted)';
 
-      const stripeClass = { pending:'stripe-pending', accepted:'stripe-accepted', completed:'stripe-completed', rejected:'stripe-rejected' }[o.status] || '';
+      const stripeClass = { pending: 'stripe-pending', accepted: 'stripe-accepted', completed: 'stripe-completed', rejected: 'stripe-rejected' }[o.status] || '';
 
       const buyerName = o.buyerName || o.buyer.split('@')[0];
 
       // Workflow steps
-      const step1Done   = ['accepted','completed','rejected'].includes(o.status);
-      const step2Done   = o.status === 'completed';
+      const step1Done = ['accepted', 'completed', 'rejected'].includes(o.status);
+      const step2Done = o.status === 'completed';
       const step1Active = o.status === 'pending';
       const step2Active = o.status === 'accepted';
 
@@ -161,12 +484,12 @@
       const story = `
         <div class="story-box">
           ${o.status === 'pending'
-            ? `<strong>${buyerName}</strong> wants to buy <strong>${o.items.map(i=>i.productName).join(', ')}</strong>. They paid <strong>${formatPrice(o.total)}</strong> via <strong>${o.paymentMethod.toUpperCase()}</strong>${o.paymentRef ? ` (Ref: <code style="font-size:.75rem">${o.paymentRef.slice(0,30)}${o.paymentRef.length>30?'…':''}</code>)` : ''}. Verify the payment in your ${o.paymentMethod === 'upi' ? 'UPI app' : 'wallet'}, then click <strong>Verify Payment</strong>.`
-            : o.status === 'accepted'
+          ? `<strong>${buyerName}</strong> wants to buy <strong>${o.items.map(i => i.productName).join(', ')}</strong>. They paid <strong>${formatPrice(o.total)}</strong> via <strong>${o.paymentMethod.toUpperCase()}</strong>${o.paymentRef ? ` (Ref: <code style="font-size:.75rem">${o.paymentRef.slice(0, 30)}${o.paymentRef.length > 30 ? '…' : ''}</code>)` : ''}. Verify the payment in your ${o.paymentMethod === 'upi' ? 'UPI app' : 'wallet'}, then click <strong>Verify Payment</strong>.`
+          : o.status === 'accepted'
             ? `Payment from <strong>${buyerName}</strong> has been verified ✅. Now transfer the NFT ownership to complete the purchase. Once transferred, <strong>${buyerName}</strong> will own the product on the blockchain.`
             : o.status === 'completed'
-            ? `<strong>${buyerName}</strong> now owns ${o.items.map(i=>`<strong>${i.productName}</strong>`).join(', ')}. The NFT ownership has been transferred on the blockchain. 🎉`
-            : `Order was rejected. <strong>${buyerName}</strong>'s payment was not accepted.`}
+              ? `<strong>${buyerName}</strong> now owns ${o.items.map(i => `<strong>${i.productName}</strong>`).join(', ')}. The NFT ownership has been transferred on the blockchain. 🎉`
+              : `Order was rejected. <strong>${buyerName}</strong>'s payment was not accepted.`}
         </div>`;
 
       const itemChips = o.items.map(i => `
@@ -205,7 +528,7 @@
             ${o.transferResults.map(r => `
               <div class="transfer-row">
                 <span>${r.success ? '✅' : '❌'}</span>
-                <span style="color:var(--text-secondary)">${r.productName || 'Token #'+r.tokenId}</span>
+                <span style="color:var(--text-secondary)">${r.productName || 'Token #' + r.tokenId}</span>
                 <span style="color:var(--text-muted)">${r.success ? `→ ownership transferred to ${o.buyer}` : r.reason}</span>
               </div>`).join('')}
           </div>`;
@@ -218,11 +541,11 @@
             <div class="order-header">
               <div>
                 <div class="order-id">${o.orderId}</div>
-                <div class="order-buyer">👤 ${o.buyer} ${o.buyerName ? '('+o.buyerName+')' : ''}</div>
+                <div class="order-buyer">👤 ${o.buyer} ${o.buyerName ? '(' + o.buyerName + ')' : ''}</div>
                 <div class="order-date">${formatDate(o.createdAt)}</div>
               </div>
               <span class="badge" style="background:${statusColor}22;color:${statusColor}">
-                ${{ pending:'⏳ PENDING', accepted:'💳 PAYMENT VERIFIED', completed:'✅ COMPLETED', rejected:'❌ REJECTED' }[o.status] || o.status.toUpperCase()}
+                ${{ pending: '⏳ PENDING', accepted: '💳 PAYMENT VERIFIED', completed: '✅ COMPLETED', rejected: '❌ REJECTED' }[o.status] || o.status.toUpperCase()}
               </span>
             </div>
 
@@ -234,7 +557,7 @@
             <div class="order-meta">
               <span class="order-total">${formatPrice(o.total)}</span>
               <span class="order-method">💳 ${o.paymentMethod.toUpperCase()}</span>
-              ${o.paymentRef ? `<span class="order-ref" title="${o.paymentRef}">Ref: ${o.paymentRef.slice(0,40)}${o.paymentRef.length>40?'…':''}</span>` : ''}
+              ${o.paymentRef ? `<span class="order-ref" title="${o.paymentRef}">Ref: ${o.paymentRef.slice(0, 40)}${o.paymentRef.length > 40 ? '…' : ''}</span>` : ''}
               ${o.shippingAddress ? `<span style="font-size:.78rem;color:var(--text-muted)">📦 ${o.shippingAddress}</span>` : ''}
             </div>
 
@@ -249,14 +572,14 @@
 
     /* ── Step 1: Verify payment ── */
     async function acceptOrder(orderId) {
-      const note = document.getElementById('note-'+orderId)?.value.trim() || '';
+      const note = document.getElementById('note-' + orderId)?.value.trim() || '';
       const btn = event.target;
       btn.disabled = true; btn.textContent = 'Verifying...';
       try {
         await API.acceptOrder(orderId, note);
         Toast.success('Payment verified! Now transfer the NFT to the buyer.');
         loadOrders(currentFilter);
-      } catch(e) {
+      } catch (e) {
         Toast.error(e.message);
         btn.disabled = false; btn.textContent = '💳 Verify Payment';
       }
@@ -274,7 +597,7 @@
           Toast.error(`${r.productName}: ${r.reason}`);
         });
         loadOrders(currentFilter);
-      } catch(e) {
+      } catch (e) {
         Toast.error(e.message);
         btn.disabled = false; btn.textContent = '🔄 Transfer NFT to Buyer';
       }
@@ -282,14 +605,15 @@
 
     /* ── Reject ── */
     async function rejectOrder(orderId) {
-      const note = document.getElementById('note-'+orderId)?.value.trim() || '';
+      const note = document.getElementById('note-' + orderId)?.value.trim() || '';
       if (!confirm('Reject this order? The buyer will not receive the NFT.')) return;
       try {
         await API.rejectOrder(orderId, note);
         Toast.success('Order rejected.');
         loadOrders(currentFilter);
-      } catch(e) { Toast.error(e.message); }
+      } catch (e) { Toast.error(e.message); }
     }
   </script>
 </body>
+
 </html>

@@ -1,92 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Detail — VaultTag</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    .product-page { padding-top:100px; padding-bottom:60px; }
-    .product-layout { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:start; }
-    .product-viewer { position:sticky; top:100px; }
+    .product-page {
+      padding-top: 100px;
+      padding-bottom: 60px;
+    }
+
+    .product-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    .product-viewer {
+      position: sticky;
+      top: 100px;
+    }
+
     .product-image-wrap {
-      width:100%; aspect-ratio:1; border-radius:var(--radius-xl); overflow:hidden;
-      background: var(--bg-secondary); border:1px solid var(--border-primary);
-      position: relative; display: flex; align-items: center; justify-content: center;
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-primary);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
     .product-image-wrap img {
-      width:100%; height:100%; object-fit:cover;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       transition: transform 0.5s var(--ease-out);
-      position: relative; z-index: 1;
+      position: relative;
+      z-index: 1;
     }
-    .product-image-wrap:hover img { transform: scale(1.04); }
+
+    .product-image-wrap:hover img {
+      transform: scale(1.04);
+    }
+
     .product-image-wrap::before {
       content: '';
       position: absolute;
-      width: 70%; height: 70%;
+      width: 70%;
+      height: 70%;
       border-radius: 50%;
-      background: radial-gradient(circle at 40% 40%, rgba(255,77,77,0.3) 0%, rgba(168,85,247,0.25) 50%, rgba(59,130,246,0.3) 100%);
+      background: radial-gradient(circle at 40% 40%, rgba(255, 77, 77, 0.3) 0%, rgba(168, 85, 247, 0.25) 50%, rgba(59, 130, 246, 0.3) 100%);
       filter: blur(40px);
-      pointer-events: none; z-index: 0;
+      pointer-events: none;
+      z-index: 0;
       animation: blob-pulse 6s ease-in-out infinite;
     }
+
     @keyframes blob-pulse {
-      0%,100% { transform: scale(1); opacity: 0.7; }
-      50%      { transform: scale(1.1); opacity: 1; }
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.7;
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: 1;
+      }
     }
+
     .product-no-img {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      width: 100%; height: 100%; gap: 12px; color: var(--text-muted);
-      position: relative; z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      gap: 12px;
+      color: var(--text-muted);
+      position: relative;
+      z-index: 1;
     }
-    .product-no-img svg { opacity: 0.3; }
-    .product-no-img span { font-size: 0.85rem; }
 
-    .product-info h1 { font-size:2rem; margin-bottom:8px; }
-    .product-meta { display:flex; align-items:center; gap:12px; margin-bottom:24px; flex-wrap:wrap; }
-    .product-price { font-size:1.8rem; font-weight:700; color:var(--gold); font-family:var(--font-display); margin-bottom:24px; }
-    .product-desc { color:var(--text-secondary); line-height:1.7; margin-bottom:32px; }
+    .product-no-img svg {
+      opacity: 0.3;
+    }
 
-    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:32px; }
+    .product-no-img span {
+      font-size: 0.85rem;
+    }
+
+    .product-info h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .product-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .product-price {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--gold);
+      font-family: var(--font-display);
+      margin-bottom: 24px;
+    }
+
+    .product-desc {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
     .info-item {
-      background:var(--bg-surface); border:1px solid var(--border-primary);
-      border-radius:var(--radius-md); padding:14px 16px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-primary);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
     }
-    .info-item .label { font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
-    .info-item .value { font-weight:600; font-size:0.9rem; }
 
-    .timeline { margin-top:32px; }
-    .timeline h3 { font-size:1.1rem; margin-bottom:16px; }
+    .info-item .label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .info-item .value {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .timeline {
+      margin-top: 32px;
+    }
+
+    .timeline h3 {
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+    }
+
     .timeline-item {
-      display:flex; gap:16px; padding:12px 0;
-      border-left:2px solid var(--border-primary); margin-left:8px; padding-left:20px; position:relative;
+      display: flex;
+      gap: 16px;
+      padding: 12px 0;
+      border-left: 2px solid var(--border-primary);
+      margin-left: 8px;
+      padding-left: 20px;
+      position: relative;
     }
-    .timeline-item::before {
-      content:''; position:absolute; left:-6px; top:16px;
-      width:10px; height:10px; border-radius:50%; background:var(--accent); border:2px solid var(--bg-primary);
-    }
-    .timeline-item:last-child { border-left-color:transparent; }
-    .timeline-from-to { font-size:0.85rem; }
-    .timeline-date { font-size:0.75rem; color:var(--text-muted); margin-top:2px; }
-    .timeline-tx { font-size:0.7rem; font-family:var(--font-mono); color:var(--text-muted); margin-top:2px; }
 
-    .action-buttons { display:flex; gap:12px; flex-wrap:wrap; margin-top:24px; }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -6px;
+      top: 16px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg-primary);
+    }
+
+    .timeline-item:last-child {
+      border-left-color: transparent;
+    }
+
+    .timeline-from-to {
+      font-size: 0.85rem;
+    }
+
+    .timeline-date {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .timeline-tx {
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
 
     @media(max-width:768px) {
-      .product-layout { grid-template-columns:1fr; }
-      .product-viewer { position:static; }
+      .product-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .product-viewer {
+        position: static;
+      }
     }
   </style>
 </head>
+
 <body>
-  <nav class="navbar scrolled"><div class="container">
-    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
-    <ul class="nav-links">
-      <li><a href="/">Home</a></li>
-      <li><a href="/collection.html">Collection</a></li>
-    </ul>
-    <div class="nav-actions" id="navActions"></div>
-  </div></nav>
+  <nav class="navbar scrolled">
+    <div class="container">
+      <a href="/" class="nav-logo">
+        <div class="logo-icon">⬡</div>VaultTag
+      </a>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/collection.html">Collection</a></li>
+      </ul>
+      <div class="nav-actions" id="navActions"></div>
+    </div>
+  </nav>
 
   <section class="product-page">
     <div class="container">
@@ -104,11 +253,13 @@
     <div class="modal">
       <h3 style="margin-bottom:8px;color:var(--danger)">⚠ Confirm Redemption</h3>
       <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9rem">
-        This action is <strong>permanent and irreversible</strong>. The token will be marked as redeemed on the Polygon blockchain forever. No admin can undo this.
+        This action is <strong>permanent and irreversible</strong>. The token will be marked as redeemed on the Polygon
+        blockchain forever. No admin can undo this.
       </p>
       <div style="display:flex;gap:12px">
         <button class="btn btn-secondary" style="flex:1" onclick="closeModal('redeemModal')">Cancel</button>
-        <button class="btn btn-danger" style="flex:1" id="confirmRedeemBtn" onclick="confirmRedeem()">Redeem Forever</button>
+        <button class="btn btn-danger" style="flex:1" id="confirmRedeemBtn" onclick="confirmRedeem()">Redeem
+          Forever</button>
       </div>
     </div>
   </div>
@@ -117,13 +268,15 @@
   <div class="modal-overlay" id="transferModal">
     <div class="modal">
       <h3 style="margin-bottom:8px">Transfer Ownership</h3>
-      <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9rem">Enter the email of the new owner. They must have a VaultTag account.</p>
+      <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9rem">Enter the email of the new owner. They
+        must have a VaultTag account.</p>
       <div class="form-group">
         <input type="email" class="form-input" id="transferEmail" placeholder="buyer@email.com">
       </div>
       <div style="display:flex;gap:12px">
         <button class="btn btn-secondary" style="flex:1" onclick="closeModal('transferModal')">Cancel</button>
-        <button class="btn btn-primary" style="flex:1" id="confirmTransferBtn" onclick="confirmTransfer()">Transfer</button>
+        <button class="btn btn-primary" style="flex:1" id="confirmTransferBtn"
+          onclick="confirmTransfer()">Transfer</button>
       </div>
     </div>
   </div>
@@ -145,18 +298,18 @@
       // ── Build a fallback NFT from URL params (passed by collection/index pages) ──
       const fallback = {
         tokenId,
-        productName : urlParams.get('name')     || null,
-        price       : parseFloat(urlParams.get('price')) || null,
-        category    : urlParams.get('cat')       || 'Footwear',
-        status      : urlParams.get('status')    || 'active',
-        imageUrl    : urlParams.get('img')       || null,
-        description : null,
+        productName: urlParams.get('name') || null,
+        price: parseFloat(urlParams.get('price')) || null,
+        category: urlParams.get('cat') || 'Footwear',
+        status: urlParams.get('status') || 'active',
+        imageUrl: urlParams.get('img') || null,
+        description: null,
         serialNumber: null,
-        owner       : null,
-        nfcUid      : null,
-        mintedBy    : null,
+        owner: null,
+        nfcUid: null,
+        mintedBy: null,
         contractAddress: null,
-        txHash      : null,
+        txHash: null,
         transferHistory: []
       };
 
@@ -169,7 +322,7 @@
           try {
             const res = await API.getNftDetail(tokenId);
             nft = res.data.nft; chainData = res.data.chainData;
-          } catch(e) {
+          } catch (e) {
             // API failed — keep fallback
             nft = null;
           }
@@ -184,24 +337,24 @@
               nft.productName = nft.product || nft.productName;
               nft.tokenId = tokenId;
             }
-          } catch(e) { /* ignore */ }
+          } catch (e) { /* ignore */ }
         }
 
         // Merge API data over fallback (keep fallback fields if API missing them)
         if (nft) {
           const merged = Object.assign({}, fallback, {
-            productName : nft.productName || fallback.productName,
-            price       : (nft.price != null && !isNaN(nft.price)) ? nft.price : fallback.price,
-            category    : nft.category    || fallback.category,
-            status      : nft.status      || fallback.status,
-            imageUrl    : nft.imageUrl    || fallback.imageUrl,
-            description : nft.description || fallback.description,
-            serialNumber: nft.serialNumber|| fallback.serialNumber,
-            owner       : nft.owner       || fallback.owner,
-            nfcUid      : nft.nfcUid      || fallback.nfcUid,
-            mintedBy    : nft.mintedBy    || fallback.mintedBy,
+            productName: nft.productName || fallback.productName,
+            price: (nft.price != null && !isNaN(nft.price)) ? nft.price : fallback.price,
+            category: nft.category || fallback.category,
+            status: nft.status || fallback.status,
+            imageUrl: nft.imageUrl || fallback.imageUrl,
+            description: nft.description || fallback.description,
+            serialNumber: nft.serialNumber || fallback.serialNumber,
+            owner: nft.owner || fallback.owner,
+            nfcUid: nft.nfcUid || fallback.nfcUid,
+            mintedBy: nft.mintedBy || fallback.mintedBy,
             contractAddress: nft.contractAddress || fallback.contractAddress,
-            txHash      : nft.txHash      || fallback.txHash,
+            txHash: nft.txHash || fallback.txHash,
             transferHistory: nft.transferHistory || fallback.transferHistory
           });
           renderProduct(merged, chainData, container);
@@ -232,8 +385,8 @@
           <div class="product-viewer">
             <div class="product-image-wrap">
               ${nft.imageUrl
-                ? `<img src="${nft.imageUrl}" alt="${nft.productName || 'Product'}">`
-                : `<div class="product-no-img">
+          ? `<img src="${nft.imageUrl}" alt="${nft.productName || 'Product'}">`
+          : `<div class="product-no-img">
                     <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                       <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
                       <path d="M21 15l-5-5L5 21"/>
@@ -241,7 +394,7 @@
                     <span>No image available</span>
                   </div>`}
             </div>
-            ${nft.ipfsUri ? `<div style="margin-top:12px;text-align:center"><a href="https://${nft.ipfsCid || nft.ipfsUri.replace('ipfs://','')}/" target="_blank" style="font-size:0.75rem;color:var(--text-muted)">View IPFS Metadata ↗</a></div>` : ''}
+            ${nft.ipfsUri ? `<div style="margin-top:12px;text-align:center"><a href="https://${nft.ipfsCid || nft.ipfsUri.replace('ipfs://', '')}/" target="_blank" style="font-size:0.75rem;color:var(--text-muted)">View IPFS Metadata ↗</a></div>` : ''}
           </div>
 
           <div class="product-info">
@@ -340,4 +493,5 @@
     }
   </script>
 </body>
+
 </html>
