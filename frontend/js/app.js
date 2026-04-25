@@ -36,10 +36,9 @@ const Auth = {
     return u && u.role === 'seller';
   },
   logout() {
-    const wasAdmin = this.isAdmin();
     localStorage.removeItem('vt_token');
     localStorage.removeItem('vt_user');
-    window.location.href = wasAdmin ? '/login.html?role=admin' : '/login.html';
+    window.location.href = '/login.html';
   },
   requireAuth() {
     if (!this.isLoggedIn()) {
@@ -119,6 +118,11 @@ const API = {
   getUsers: () => API.request('GET', '/admin/users'),
   deleteNft: (tokenId) => API.request('DELETE', `/admin/nft/${tokenId}`),
   dbExplorer: (collection, page, limit) => API.request('GET', `/admin/db-explorer?collection=${collection}&page=${page||1}&limit=${limit||10}`),
+  // SuperAdmin
+  createAdmin: (data) => API.request('POST', '/admin/create-admin', data),
+  deleteUser: (userId) => API.request('DELETE', `/admin/user/${userId}`),
+  toggleBlockUser: (userId) => API.request('PATCH', `/admin/user/${userId}/block`),
+  getRevenueReport: () => API.request('GET', '/admin/revenue-report'),
 
   // Orders
   createOrder: (data) => API.request('POST', '/orders', data),
@@ -192,14 +196,9 @@ function initNavbar() {
       let links = '';
 
       if (role === 'superadmin') {
-        links = `
-          <a href="/superadmin-dashboard.html" class="btn btn-sm btn-secondary">🏛️ Platform</a>
-          <a href="/admin-dashboard.html" class="btn btn-sm btn-secondary">📊 Admin</a>
-        `;
+        links = ``;
       } else if (role === 'admin') {
-        links = `
-          <a href="/admin-dashboard.html" class="btn btn-sm btn-secondary">📊 Dashboard</a>
-        `;
+        links = ``;
       } else if (role === 'seller') {
         links = `
           <a href="/admin-nfts.html" class="btn btn-sm btn-secondary">Manage NFTs</a>
@@ -208,12 +207,15 @@ function initNavbar() {
         `;
       } else {
         links = `
+          <a href="/buyer-dashboard.html" class="btn btn-sm btn-secondary">Dashboard</a>
           <a href="/my-nfts.html" class="btn btn-sm btn-secondary">My NFTs</a>
           <a href="/my-orders.html" class="btn btn-sm btn-secondary">My Orders</a>
         `;
       }
 
-      actions.innerHTML = `
+      actions.innerHTML = (role === 'superadmin' || role === 'admin')
+        ? links
+        : `
         ${links}
         <a href="/profile.html" class="btn btn-sm btn-secondary">Profile</a>
         <button onclick="Auth.logout()" class="btn btn-sm btn-secondary">Logout</button>

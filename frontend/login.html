@@ -4,385 +4,548 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login — VaultTag</title>
+  <meta name="description" content="Sign in to VaultTag — where style meets trust. Secure authentication for buyers, sellers, admins and superadmins.">
   <link rel="stylesheet" href="/css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { overflow-x: hidden; font-family: 'Inter', sans-serif; background: #0a0a0f; color: #e8e8f0; }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; }
 
-    /* Three.js canvas */
-    #threeBg { position: fixed; inset: 0; z-index: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f8;
+      color: #1a1a2e;
+      overflow: hidden;
+    }
 
-    /* Overlay gradient */
-    .overlay { position: fixed; inset: 0; z-index: 1; background: radial-gradient(ellipse at 30% 20%, rgba(0,212,170,.06) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(91,141,239,.06) 0%, transparent 50%); pointer-events: none; }
+    /* ─── LAYOUT ─────────────────────────────────────────── */
+    .page {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
 
-    /* Main layout */
-    .auth-page { position: relative; z-index: 2; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+    /* ─── LEFT PANEL ─────────────────────────────────────── */
+    .left-panel {
+      flex: 1.1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 60px 64px;
+      overflow: hidden;
+      background: linear-gradient(145deg, #0f0c29 0%, #302b63 45%, #24243e 100%);
+    }
+
+    /* Animated background orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.35;
+      animation: drift 8s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 420px; height: 420px; background: radial-gradient(circle, #7B2FBE, transparent); top: -80px; left: -100px; animation-delay: 0s; }
+    .orb-2 { width: 320px; height: 320px; background: radial-gradient(circle, #00D4AA, transparent); bottom: 60px; right: -60px; animation-delay: 2s; }
+    .orb-3 { width: 240px; height: 240px; background: radial-gradient(circle, #FF6B6B, transparent); bottom: -60px; left: 60px; animation-delay: 4s; }
+    @keyframes drift { from { transform: translate(0,0) scale(1); } to { transform: translate(20px, -30px) scale(1.08); } }
+
+    /* Grid pattern overlay */
+    .grid-overlay {
+      position: absolute; inset: 0; z-index: 1; pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+    }
+
+    .left-content { position: relative; z-index: 2; }
+
+    /* Badge */
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+      backdrop-filter: blur(12px); border-radius: 100px;
+      padding: 6px 16px; font-size: .75rem; font-weight: 600;
+      color: rgba(255,255,255,.8); letter-spacing: .5px;
+      text-transform: uppercase; margin-bottom: 36px;
+    }
+    .badge-dot { width: 7px; height: 7px; border-radius: 50%; background: #00D4AA; box-shadow: 0 0 8px #00D4AA; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
+
+    /* Main heading */
+    .hero-heading {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.4rem, 3.5vw, 3.4rem);
+      font-weight: 900;
+      line-height: 1.15;
+      color: #fff;
+      margin-bottom: 28px;
+    }
+    .hero-heading .accent {
+      background: linear-gradient(135deg, #00D4AA 0%, #7B2FBE 60%, #FF6B6B 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    /* Quote rotator */
+    .quote-section { margin-bottom: 40px; }
+    .quote-mark { font-size: 3rem; color: rgba(0,212,170,.35); line-height: 1; font-family: Georgia, serif; }
+    .quote-text {
+      font-size: 1rem; font-weight: 400; color: rgba(255,255,255,.75);
+      line-height: 1.75; font-style: italic; padding: 8px 0 12px 0;
+      min-height: 80px;
+      transition: opacity .5s ease;
+    }
+    .quote-author {
+      font-size: .78rem; font-weight: 700; color: #00D4AA;
+      letter-spacing: .5px; text-transform: uppercase;
+    }
+    .quote-dots {
+      display: flex; gap: 7px; margin-top: 16px;
+    }
+    .quote-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: rgba(255,255,255,.2); cursor: pointer; transition: all .3s;
+    }
+    .quote-dot.active { background: #00D4AA; transform: scale(1.3); }
+
+    /* Feature pills */
+    .feature-pills {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 40px;
+    }
+    .pill {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 100px; padding: 8px 16px;
+      font-size: .78rem; font-weight: 600; color: rgba(255,255,255,.75);
+      transition: all .3s;
+    }
+    .pill:hover { background: rgba(255,255,255,.13); transform: translateY(-2px); }
+    .pill-icon { font-size: .85rem; }
+
+    /* Stats row */
+    .stats-row {
+      display: flex; gap: 32px; margin-top: 40px;
+      padding-top: 32px; border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .stat-item {}
+    .stat-num {
+      font-size: 1.5rem; font-weight: 800; color: #fff;
+      font-family: 'Playfair Display', serif;
+    }
+    .stat-num span { color: #00D4AA; }
+    .stat-label { font-size: .72rem; color: rgba(255,255,255,.45); font-weight: 500; margin-top: 2px; }
+
+    /* ─── RIGHT PANEL ─────────────────────────────────────── */
+    .right-panel {
+      flex: 0 0 520px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 48px;
+      background: #f7f8fc;
+      position: relative;
+      overflow-y: auto;
+    }
+
+    /* Subtle background shapes */
+    .right-panel::before {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,212,170,.08), transparent);
+      pointer-events: none;
+    }
+    .right-panel::after {
+      content: '';
+      position: absolute; bottom: -40px; left: -40px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(123,47,190,.06), transparent);
+      pointer-events: none;
+    }
+
+    /* Login Card */
+    .login-card {
+      width: 100%; max-width: 360px;
+      position: relative; z-index: 1;
+      animation: slideIn .5s cubic-bezier(.4,0,.2,1);
+    }
+    @keyframes slideIn { from{opacity:0;transform:translateX(32px)} to{opacity:1;transform:translateX(0)} }
 
     /* Logo */
-    .auth-logo { text-align: center; margin-bottom: 20px; }
-    .auth-logo .logo-mark { width: 64px; height: 64px; border-radius: 18px; background: linear-gradient(135deg, #00D4AA, #009E7E); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 14px; box-shadow: 0 12px 40px rgba(0,212,170,.3); animation: float 3s ease-in-out infinite; }
-    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-    .auth-logo h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
-    .auth-logo h1 .grad { background: linear-gradient(135deg, #00D4AA, #5B8DEF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .auth-logo p { color: #7a7a8e; font-size: .88rem; margin-top: 4px; }
+    .logo-wrap { text-align: center; margin-bottom: 28px; }
+    .logo-icon {
+      width: 58px; height: 58px; border-radius: 16px;
+      background: linear-gradient(135deg, #00D4AA, #009E7E);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; margin: 0 auto 14px;
+      box-shadow: 0 12px 36px rgba(0,212,170,.28);
+      animation: float 3.5s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+    .logo-title {
+      font-size: 1.4rem; font-weight: 800; letter-spacing: -.5px;
+      color: #1a1a2e; margin-bottom: 4px;
+    }
+    .logo-title .grad {
+      background: linear-gradient(135deg, #00D4AA, #302b63);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .logo-tagline { font-size: .75rem; color: #00a688; font-weight: 600; letter-spacing: .3px; }
 
-    /* Role selector */
-    #roleScreen { width: 100%; max-width: 560px; }
-    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 28px; }
+    /* Tabs */
+    .tabs {
+      display: flex; border-bottom: 2px solid #eaebf2; margin-bottom: 22px;
+    }
+    .tab {
+      flex: 1; text-align: center; padding: 10px; cursor: pointer;
+      color: #9a9ab0; font-weight: 600; font-size: .83rem;
+      border-bottom: 2.5px solid transparent; margin-bottom: -2px;
+      transition: all .2s;
+    }
+    .tab.active { color: #1a1a2e; border-bottom-color: var(--role-color, #00D4AA); }
 
-    .role-card { background: rgba(20,20,30,.7); backdrop-filter: blur(16px); border: 1.5px solid rgba(255,255,255,.06); border-radius: 20px; padding: 28px 18px; text-align: center; cursor: pointer; transition: all .3s cubic-bezier(.4,0,.2,1); position: relative; overflow: hidden; }
-    .role-card::before { content: ''; position: absolute; inset: 0; opacity: 0; transition: opacity .3s; }
-    .role-card:hover { transform: translateY(-6px); }
-    .role-card:hover::before { opacity: 1; }
+    /* Form */
+    .form-section { display: none; }
+    .form-section.active { display: block; }
 
-    .role-card.superadmin::before { background: radial-gradient(circle at 50% 0%, rgba(255,185,50,.15), transparent 70%); }
-    .role-card.admin::before { background: radial-gradient(circle at 50% 0%, rgba(168,85,247,.15), transparent 70%); }
-    .role-card.seller::before { background: radial-gradient(circle at 50% 0%, rgba(91,141,239,.15), transparent 70%); }
-    .role-card.buyer::before { background: radial-gradient(circle at 50% 0%, rgba(0,212,170,.15), transparent 70%); }
+    .form-group { margin-bottom: 15px; }
+    .form-label {
+      display: block; font-size: .68rem; font-weight: 700;
+      color: #7a7a8e; margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: .7px;
+    }
 
-    .role-card.superadmin:hover { border-color: #FFB932; box-shadow: 0 16px 48px rgba(255,185,50,.2); }
-    .role-card.admin:hover { border-color: #A855F7; box-shadow: 0 16px 48px rgba(168,85,247,.2); }
-    .role-card.seller:hover { border-color: #5B8DEF; box-shadow: 0 16px 48px rgba(91,141,239,.2); }
-    .role-card.buyer:hover { border-color: #00D4AA; box-shadow: 0 16px 48px rgba(0,212,170,.2); }
+    .form-input, .form-select {
+      width: 100%; padding: 12px 15px;
+      background: #fff;
+      border: 1.5px solid #e4e5f0;
+      border-radius: 12px; color: #1a1a2e;
+      font-size: .9rem; font-family: inherit;
+      transition: all .2s; outline: none;
+      appearance: none; -webkit-appearance: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .form-input:focus, .form-select:focus {
+      border-color: var(--role-color, #00D4AA);
+      box-shadow: 0 0 0 3px rgba(0,212,170,.12);
+    }
+    .form-input::placeholder { color: #c0c0d0; }
 
-    .role-icon { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 14px; }
-    .superadmin .role-icon { background: rgba(255,185,50,.12); border: 2px solid rgba(255,185,50,.25); }
-    .admin .role-icon { background: rgba(168,85,247,.12); border: 2px solid rgba(168,85,247,.25); }
-    .seller .role-icon { background: rgba(91,141,239,.12); border: 2px solid rgba(91,141,239,.25); }
-    .buyer .role-icon { background: rgba(0,212,170,.12); border: 2px solid rgba(0,212,170,.25); }
+    /* Dropdown */
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: '▾'; position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+      color: #9a9ab0; pointer-events: none; font-size: .88rem;
+    }
+    .form-select option { background: #fff; color: #1a1a2e; }
 
-    .role-title { font-size: 1rem; font-weight: 700; margin-bottom: 5px; }
-    .superadmin .role-title { color: #FFB932; }
-    .admin .role-title { color: #A855F7; }
-    .seller .role-title { color: #5B8DEF; }
-    .buyer .role-title { color: #00D4AA; }
+    /* Role strip */
+    .role-strip {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 13px; border-radius: 11px; margin-bottom: 16px;
+      background: rgba(0,212,170,.05); border: 1px solid rgba(0,212,170,.15);
+      font-size: .76rem; font-weight: 600; transition: all .3s; color: #444460;
+    }
+    .role-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-    .role-desc { font-size: .72rem; color: #7a7a8e; line-height: 1.5; }
-    .role-arrow { margin-top: 12px; font-size: 1.1rem; opacity: 0; transform: translateY(4px); transition: all .25s; }
-    .role-card:hover .role-arrow { opacity: 1; transform: translateY(0); }
+    /* Submit btn */
+    .btn-submit {
+      width: 100%; padding: 13px; border: none; border-radius: 13px;
+      font-size: .92rem; font-weight: 800; font-family: inherit;
+      cursor: pointer; transition: all .3s; margin-top: 4px;
+      background: linear-gradient(135deg, #00D4AA, #009E7E); color: #fff;
+      box-shadow: 0 6px 20px rgba(0,212,170,.3);
+    }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+    .btn-submit:disabled { opacity: .55; transform: none; cursor: wait; }
 
-    /* Auth form screens */
-    .auth-screen { display: none; width: 100%; max-width: 420px; animation: fadeUp .4s cubic-bezier(.4,0,.2,1); }
-    .auth-screen.visible { display: block; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    /* Demo hint */
+    .demo-hint {
+      text-align: center; margin-top: 13px; font-size: .7rem; color: #9a9ab0;
+      background: #f3f4fb; border-radius: 10px; padding: 9px 12px;
+    }
+    .demo-hint strong { color: #5b5b7a; }
 
-    .auth-card { background: rgba(20,20,30,.75); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,.06); border-radius: 24px; padding: 32px; }
+    .lock-note {
+      text-align: center; margin-top: 12px; font-size: .7rem; color: #b0b0c8;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+    }
 
-    .role-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 50px; font-size: .76rem; font-weight: 600; margin-bottom: 18px; }
-    .role-badge.superadmin { background: rgba(255,185,50,.12); color: #FFB932; border: 1px solid rgba(255,185,50,.2); }
-    .role-badge.admin { background: rgba(168,85,247,.12); color: #A855F7; border: 1px solid rgba(168,85,247,.2); }
-    .role-badge.seller { background: rgba(91,141,239,.12); color: #5B8DEF; border: 1px solid rgba(91,141,239,.2); }
-    .role-badge.buyer { background: rgba(0,212,170,.12); color: #00D4AA; border: 1px solid rgba(0,212,170,.2); }
+    /* Divider */
+    .divider {
+      display: flex; align-items: center; gap: 12px; margin: 18px 0;
+    }
+    .divider hr { flex: 1; border: none; border-top: 1px solid #eaebf2; }
+    .divider span { font-size: .72rem; color: #b0b0c8; font-weight: 600; white-space: nowrap; }
 
-    .auth-card h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; }
-    .auth-card .sub { color: #7a7a8e; font-size: .84rem; margin-bottom: 22px; }
-
-    .auth-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,.08); margin-bottom: 22px; }
-    .auth-tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; color: #7a7a8e; font-weight: 500; font-size: .86rem; border-bottom: 2px solid transparent; transition: all .2s; }
-    .auth-tab.active { color: #e8e8f0; border-bottom-color: #00D4AA; }
-
-    .auth-form { display: none; }
-    .auth-form.active { display: block; }
-
-    .form-group { margin-bottom: 16px; }
-    .form-label { display: block; font-size: .78rem; font-weight: 600; color: #9a9ab0; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
-    .form-input { width: 100%; padding: 12px 16px; background: rgba(255,255,255,.04); border: 1.5px solid rgba(255,255,255,.08); border-radius: 12px; color: #e8e8f0; font-size: .92rem; font-family: inherit; transition: all .2s; outline: none; }
-    .form-input:focus { border-color: #00D4AA; box-shadow: 0 0 0 3px rgba(0,212,170,.1); }
-    .form-input::placeholder { color: #4a4a5e; }
-
-    .btn-submit { width: 100%; padding: 14px; border: none; border-radius: 14px; font-size: .92rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all .3s; color: #fff; }
-    .btn-submit.superadmin { background: linear-gradient(135deg, #FFB932, #E6A020); }
-    .btn-submit.admin { background: linear-gradient(135deg, #A855F7, #8B3FD4); }
-    .btn-submit.seller { background: linear-gradient(135deg, #5B8DEF, #3B6FD4); }
-    .btn-submit.buyer { background: linear-gradient(135deg, #00D4AA, #009E7E); }
-    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.3); }
-    .btn-submit:disabled { opacity: .6; transform: none; cursor: wait; }
-
-    .back-btn { display: inline-flex; align-items: center; gap: 6px; background: none; border: none; color: #7a7a8e; font-size: .82rem; cursor: pointer; padding: 0; margin-bottom: 18px; font-family: inherit; transition: color .2s; }
-    .back-btn:hover { color: #e8e8f0; }
-
-    .auth-hint { text-align: center; margin-top: 14px; font-size: .75rem; color: #5a5a6e; background: rgba(255,255,255,.03); border-radius: 12px; padding: 10px 14px; }
-    .auth-hint strong { color: #9a9ab0; }
-
-    .lock-note { text-align: center; padding: 14px 0 4px; font-size: .76rem; color: #5a5a6e; }
-    .lock-note svg { display: block; margin: 0 auto 6px; opacity: .35; }
+    /* Responsive */
+    @media (max-width: 860px) {
+      body { overflow-y: auto; }
+      .page { flex-direction: column; height: auto; }
+      .left-panel { padding: 48px 32px; flex: none; }
+      .right-panel { flex: none; width: 100%; padding: 40px 24px; }
+      .stats-row { gap: 20px; }
+    }
   </style>
 </head>
 <body>
-  <canvas id="threeBg"></canvas>
-  <div class="overlay"></div>
+  <div class="page">
 
-  <section class="auth-page">
-    <!-- Step 1: Choose role -->
-    <div id="roleScreen">
-      <div class="auth-logo">
-        <div class="logo-mark">⬡</div>
-        <h1>Welcome to <span class="grad">VaultTag</span></h1>
-        <p>Select your role to continue</p>
-      </div>
+    <!-- ═══ LEFT PANEL ═══════════════════════════════════════ -->
+    <div class="left-panel">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+      <div class="grid-overlay"></div>
 
-      <div class="role-grid">
-        <div class="role-card superadmin" onclick="showScreen('superadminScreen')">
-          <div class="role-icon">👑</div>
-          <div class="role-title">SuperAdmin</div>
-          <div class="role-desc">Platform control, manage admins & global settings</div>
-          <div class="role-arrow">→</div>
+      <div class="left-content">
+        <!-- Badge -->
+        <div class="badge">
+          <span class="badge-dot"></span>
+          #1 Luxury Authentication Platform
         </div>
-        <div class="role-card admin" onclick="showScreen('adminScreen')">
-          <div class="role-icon">🛡️</div>
-          <div class="role-title">Admin</div>
-          <div class="role-desc">Oversee sellers, approve products & manage disputes</div>
-          <div class="role-arrow">→</div>
+
+        <!-- Heading -->
+        <h1 class="hero-heading">
+          Investigate,<br>
+          <span class="accent">Buy &amp; Trust</span><br>
+          with VaultTag
+        </h1>
+
+        <!-- Quote Rotator -->
+        <div class="quote-section">
+          <div class="quote-mark">"</div>
+          <p class="quote-text" id="quoteText">
+            Authenticity is the daily practice of letting go of who we think we should be and embracing who we are.
+          </p>
+          <div class="quote-author" id="quoteAuthor">— Brené Brown</div>
+          <div class="quote-dots" id="quoteDots">
+            <div class="quote-dot active" onclick="setQuote(0)"></div>
+            <div class="quote-dot" onclick="setQuote(1)"></div>
+            <div class="quote-dot" onclick="setQuote(2)"></div>
+            <div class="quote-dot" onclick="setQuote(3)"></div>
+          </div>
         </div>
-        <div class="role-card seller" onclick="showScreen('sellerScreen')">
-          <div class="role-icon">🏪</div>
-          <div class="role-title">Seller</div>
-          <div class="role-desc">Mint NFTs, manage inventory & fulfill orders</div>
-          <div class="role-arrow">→</div>
+
+        <!-- Feature Pills -->
+        <div class="feature-pills">
+          <div class="pill"><span class="pill-icon">🔐</span> NFT-backed Certificates</div>
+          <div class="pill"><span class="pill-icon">🛡️</span> Anti-Counterfeit Shield</div>
+          <div class="pill"><span class="pill-icon">⚡</span> Instant Verification</div>
+          <div class="pill"><span class="pill-icon">🌐</span> Global Marketplace</div>
         </div>
-        <div class="role-card buyer" onclick="showScreen('buyerScreen')">
-          <div class="role-icon">🛍️</div>
-          <div class="role-title">Buyer</div>
-          <div class="role-desc">Browse, purchase & verify authentic products</div>
-          <div class="role-arrow">→</div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="stat-num">2.5<span>K+</span></div>
+            <div class="stat-label">Daily Active Users</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">98<span>%</span></div>
+            <div class="stat-label">Authenticity Rate</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num">50<span>K+</span></div>
+            <div class="stat-label">Items Verified</div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- SuperAdmin Login -->
-    <div class="auth-screen" id="superadminScreen">
-      <button class="back-btn" onclick="showScreen('roleScreen')">← Back</button>
-      <div class="auth-card">
-        <span class="role-badge superadmin">👑 SuperAdmin Portal</span>
-        <h2>SuperAdmin <span class="grad">Sign In</span></h2>
-        <p class="sub">Supreme access — platform owner credentials only</p>
-        <form onsubmit="handleLogin(event,'superadmin')">
-          <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="superadminEmail" placeholder="superadmin@vaulttag.com" required></div>
-          <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="superadminPassword" placeholder="••••••••" required></div>
-          <button type="submit" class="btn-submit superadmin" id="superadminBtn">Sign In as SuperAdmin</button>
-        </form>
-        <div class="lock-note"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Registration not available</div>
-        <div class="auth-hint">Demo: <strong>superadmin@vaulttag.com</strong> / <strong>Super@123</strong></div>
-      </div>
-    </div>
+    <!-- ═══ RIGHT PANEL ════════════════════════════════════════ -->
+    <div class="right-panel">
+      <div class="login-card">
 
-    <!-- Admin Login -->
-    <div class="auth-screen" id="adminScreen">
-      <button class="back-btn" onclick="showScreen('roleScreen')">← Back</button>
-      <div class="auth-card">
-        <span class="role-badge admin">🛡️ Admin Portal</span>
-        <h2>Admin <span class="grad">Sign In</span></h2>
-        <p class="sub">Restricted access — admin credentials only</p>
-        <form onsubmit="handleLogin(event,'admin')">
-          <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="adminEmail" placeholder="admin@vaulttag.com" required></div>
-          <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="adminPassword" placeholder="••••••••" required></div>
-          <button type="submit" class="btn-submit admin" id="adminBtn">Sign In as Admin</button>
-        </form>
-        <div class="lock-note"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Registration not available</div>
-        <div class="auth-hint">Demo: <strong>admin@vaulttag.com</strong> / <strong>Admin@123</strong></div>
-      </div>
-    </div>
-
-    <!-- Seller Login -->
-    <div class="auth-screen" id="sellerScreen">
-      <button class="back-btn" onclick="showScreen('roleScreen')">← Back</button>
-      <div class="auth-card">
-        <span class="role-badge seller">🏪 Seller Portal</span>
-        <h2>Seller <span class="grad">Sign In</span></h2>
-        <p class="sub">Manage your products & orders</p>
-        <form onsubmit="handleLogin(event,'seller')">
-          <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="sellerEmail" placeholder="seller@vaulttag.com" required></div>
-          <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="sellerPassword" placeholder="••••••••" required></div>
-          <button type="submit" class="btn-submit seller" id="sellerBtn">Sign In as Seller</button>
-        </form>
-        <div class="lock-note"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Registration not available</div>
-        <div class="auth-hint">Demo: <strong>seller@vaulttag.com</strong> / <strong>Seller@123</strong></div>
-      </div>
-    </div>
-
-    <!-- Buyer Login/Register -->
-    <div class="auth-screen" id="buyerScreen">
-      <button class="back-btn" onclick="showScreen('roleScreen')">← Back</button>
-      <div class="auth-card">
-        <span class="role-badge buyer">🛍️ Buyer Portal</span>
-        <h2>Buyer <span class="grad">Access</span></h2>
-        <p class="sub">Sign in or create a new account</p>
-        <div class="auth-tabs">
-          <div class="auth-tab active" id="tabLogin" onclick="switchBuyerTab('login')">Sign In</div>
-          <div class="auth-tab" id="tabRegister" onclick="switchBuyerTab('register')">Register</div>
+        <!-- Logo -->
+        <div class="logo-wrap">
+          <div class="logo-icon">⬡</div>
+          <div class="logo-title">Welcome to <span class="grad">VaultTag</span></div>
+          <div class="logo-tagline">✦ Where Style Meets Trust ✦</div>
         </div>
-        <form class="auth-form active" id="buyerLoginForm" onsubmit="handleLogin(event,'buyer')">
-          <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="buyerEmail" placeholder="you@email.com" required></div>
-          <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="buyerPassword" placeholder="••••••••" required></div>
-          <button type="submit" class="btn-submit buyer" id="buyerBtn">Sign In</button>
-        </form>
-        <form class="auth-form" id="buyerRegisterForm" onsubmit="handleRegister(event)">
-          <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="regName" placeholder="John Doe" required></div>
-          <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="regEmail" placeholder="you@email.com" required></div>
-          <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="regPassword" placeholder="Min 6 characters" required minlength="6"></div>
-          <button type="submit" class="btn-submit buyer" id="regBtn">Create Account</button>
-        </form>
-        <div class="auth-hint">Demo: <strong>buyer@vaulttag.com</strong> / <strong>Buyer@123</strong></div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <div class="tab active" id="tabSignin" onclick="switchTab('signin')">Sign In</div>
+          <div class="tab" id="tabRegister" onclick="switchTab('register')" style="display:none">Register</div>
+        </div>
+
+        <!-- Sign In Form -->
+        <div class="form-section active" id="sectionSignin">
+          <form onsubmit="handleLogin(event)">
+            <!-- Role dropdown -->
+            <div class="form-group">
+              <label class="form-label">Enter as</label>
+              <div class="select-wrap">
+                <select class="form-select" id="roleSelect" onchange="onRoleChange()">
+                  <option value="superadmin">👑 SuperAdmin</option>
+                  <option value="admin">🛡️ Admin</option>
+                  <option value="seller">🏪 Seller</option>
+                  <option value="buyer" selected>🛍️ Buyer</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Role indicator strip -->
+            <div class="role-strip" id="roleStrip">
+              <div class="role-dot" id="roleDot" style="background:#00D4AA"></div>
+              <span id="roleLabel">Buyer — Browse, purchase &amp; verify authentic products</span>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="loginEmail" placeholder="you@email.com" required autocomplete="username">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input type="password" class="form-input" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn-submit" id="loginBtn">Sign In as Buyer</button>
+          </form>
+          <div class="demo-hint" id="demoHint">Demo: <strong>buyer@vaulttag.com</strong> / <strong>Buyer@123</strong></div>
+          <div class="lock-note">🔒 Secured with end-to-end encryption</div>
+        </div>
+
+        <!-- Register Form (buyer only) -->
+        <div class="form-section" id="sectionRegister">
+          <form onsubmit="handleRegister(event)">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input type="text" class="form-input" id="regName" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" id="regEmail" placeholder="you@email.com" required autocomplete="username">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input type="password" class="form-input" id="regPassword" placeholder="Min 6 characters" required minlength="6" autocomplete="new-password">
+            </div>
+            <button type="submit" class="btn-submit" id="regBtn" style="background:linear-gradient(135deg,#00D4AA,#009E7E);color:#fff">Create Account</button>
+          </form>
+          <div class="demo-hint">Register a new buyer account</div>
+          <div class="lock-note">🔒 Secured with end-to-end encryption</div>
+        </div>
+
       </div>
     </div>
-  </section>
 
-  <!-- Three.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script>
-    // ── Three.js Animated Background ──
-    (function() {
-      const canvas = document.getElementById('threeBg');
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-      camera.position.z = 30;
-
-      // Particle system
-      const particleCount = 800;
-      const positions = new Float32Array(particleCount * 3);
-      const colors = new Float32Array(particleCount * 3);
-      const sizes = new Float32Array(particleCount);
-
-      const palette = [
-        new THREE.Color('#00D4AA'),
-        new THREE.Color('#5B8DEF'),
-        new THREE.Color('#A855F7'),
-        new THREE.Color('#FFB932')
-      ];
-
-      for (let i = 0; i < particleCount; i++) {
-        positions[i * 3]     = (Math.random() - 0.5) * 60;
-        positions[i * 3 + 1] = (Math.random() - 0.5) * 60;
-        positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
-        const c = palette[Math.floor(Math.random() * palette.length)];
-        colors[i * 3]     = c.r;
-        colors[i * 3 + 1] = c.g;
-        colors[i * 3 + 2] = c.b;
-        sizes[i] = Math.random() * 3 + 1;
-      }
-
-      const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-      geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-      const mat = new THREE.PointsMaterial({ size: 0.15, vertexColors: true, transparent: true, opacity: 0.6, sizeAttenuation: true });
-      const particles = new THREE.Points(geo, mat);
-      scene.add(particles);
-
-      // Glowing ring
-      const ringGeo = new THREE.TorusGeometry(8, 0.08, 16, 100);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0x00D4AA, transparent: true, opacity: 0.25 });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      scene.add(ring);
-
-      const ring2Geo = new THREE.TorusGeometry(12, 0.05, 16, 100);
-      const ring2Mat = new THREE.MeshBasicMaterial({ color: 0x5B8DEF, transparent: true, opacity: 0.15 });
-      const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
-      scene.add(ring2);
-
-      // Mouse interaction
-      let mouseX = 0, mouseY = 0;
-      document.addEventListener('mousemove', (e) => {
-        mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-        mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-      });
-
-      function animate() {
-        requestAnimationFrame(animate);
-        const t = Date.now() * 0.0003;
-
-        particles.rotation.y = t * 0.3 + mouseX * 0.1;
-        particles.rotation.x = Math.sin(t * 0.5) * 0.1 + mouseY * 0.05;
-
-        ring.rotation.x = t * 0.8;
-        ring.rotation.y = t * 0.5 + mouseX * 0.15;
-
-        ring2.rotation.x = -t * 0.4;
-        ring2.rotation.z = t * 0.6 + mouseY * 0.1;
-
-        renderer.render(scene, camera);
-      }
-      animate();
-
-      window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-      });
-    })();
-  </script>
+  </div><!-- /.page -->
 
   <script src="/js/app.js"></script>
   <script>
-    const SCREENS = ['roleScreen','superadminScreen','adminScreen','sellerScreen','buyerScreen'];
+    /* ── Quotes ────────────────────────────────────────────── */
+    const QUOTES = [
+      { text: "Authenticity is the daily practice of letting go of who we think we should be and embracing who we are.", author: "— Brené Brown" },
+      { text: "The luxury of today is the necessity of tomorrow. But counterfeit luxury is fraud, forever.", author: "— VaultTag" },
+      { text: "Trust is built with consistency, verified with proof, and protected with technology.", author: "— VaultTag" },
+      { text: "Real value lies not in the price tag, but in the verified story behind every genuine piece.", author: "— VaultTag" }
+    ];
+    let currentQuote = 0, quoteTimer;
+
+    function setQuote(idx, animate = true) {
+      currentQuote = idx;
+      const el = document.getElementById('quoteText');
+      if (animate) { el.style.opacity = 0; setTimeout(() => { el.textContent = QUOTES[idx].text; el.style.opacity = 1; }, 300); }
+      else { el.textContent = QUOTES[idx].text; }
+      document.getElementById('quoteAuthor').textContent = QUOTES[idx].author;
+      document.querySelectorAll('.quote-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+      clearInterval(quoteTimer);
+      quoteTimer = setInterval(() => setQuote((currentQuote + 1) % QUOTES.length), 4500);
+    }
+    quoteTimer = setInterval(() => setQuote((currentQuote + 1) % QUOTES.length), 4500);
+
+    /* ── Role metadata ─────────────────────────────────────── */
     const REDIRECTS = {
       superadmin: '/superadmin-dashboard.html',
-      admin: '/admin-dashboard.html',
-      seller: '/dashboard.html',
-      buyer: '/index.html'
+      admin:      '/admin-dashboard.html',
+      seller:     '/dashboard.html',
+      buyer:      '/buyer-dashboard.html'
+    };
+
+    const ROLE_META = {
+      superadmin: { color:'#FFB932', label:'SuperAdmin — Platform control & global settings',       demo:'superadmin@vaulttag.com / Super@123',  btnText:'Sign In as SuperAdmin', grad:'linear-gradient(135deg,#FFB932,#E6A020)', textColor:'#07080f' },
+      admin:      { color:'#A855F7', label:'Admin — Oversee sellers & manage disputes',              demo:'admin@vaulttag.com / Admin@123',        btnText:'Sign In as Admin',      grad:'linear-gradient(135deg,#A855F7,#8B3FD4)', textColor:'#fff' },
+      seller:     { color:'#5B8DEF', label:'Seller — Mint NFTs, manage inventory & orders',         demo:'seller@vaulttag.com / Seller@123',      btnText:'Sign In as Seller',     grad:'linear-gradient(135deg,#5B8DEF,#3B6FD4)', textColor:'#fff' },
+      buyer:      { color:'#00D4AA', label:'Buyer — Browse, purchase & verify authentic products',  demo:'buyer@vaulttag.com / Buyer@123',        btnText:'Sign In as Buyer',      grad:'linear-gradient(135deg,#00D4AA,#009E7E)', textColor:'#fff' }
     };
 
     document.addEventListener('DOMContentLoaded', () => {
-      if (Auth.isLoggedIn()) {
-        const u = Auth.getUser();
-        window.location.href = REDIRECTS[u.role] || '/index.html';
-        return;
+      const p = new URLSearchParams(location.search);
+      const role = p.get('role');
+      if (role && document.getElementById('roleSelect').querySelector(`option[value="${role}"]`)) {
+        document.getElementById('roleSelect').value = role;
       }
-      const p = new URLSearchParams(window.location.search);
-      if (p.get('role')) showScreen(p.get('role') + 'Screen');
-      if (window.location.hash === '#register') { showScreen('buyerScreen'); switchBuyerTab('register'); }
+      onRoleChange();
+      if (location.hash === '#register') switchTab('register');
     });
 
-    function showScreen(id) {
-      SCREENS.forEach(s => {
-        const el = document.getElementById(s);
-        if (s === 'roleScreen') { el.style.display = (id === s) ? '' : 'none'; }
-        else { el.classList.toggle('visible', id === s); }
-      });
+    function onRoleChange() {
+      const role = document.getElementById('roleSelect').value;
+      const meta = ROLE_META[role];
+
+      document.documentElement.style.setProperty('--role-color', meta.color);
+
+      document.getElementById('roleDot').style.background = meta.color;
+      document.getElementById('roleDot').style.boxShadow = `0 0 8px ${meta.color}80`;
+      document.getElementById('roleLabel').textContent = meta.label;
+
+      // Update role strip color
+      const strip = document.getElementById('roleStrip');
+      strip.style.background = `${meta.color}0d`;
+      strip.style.borderColor = `${meta.color}30`;
+
+      const btn = document.getElementById('loginBtn');
+      btn.textContent = meta.btnText;
+      btn.style.background = meta.grad;
+      btn.style.color = meta.textColor;
+      btn.style.boxShadow = `0 6px 20px ${meta.color}40`;
+
+      document.getElementById('demoHint').innerHTML = `Demo: <strong>${meta.demo.split(' / ')[0]}</strong> / <strong>${meta.demo.split(' / ')[1]}</strong>`;
+
+      const regTab = document.getElementById('tabRegister');
+      regTab.style.display = role === 'buyer' ? '' : 'none';
+      if (role !== 'buyer') switchTab('signin');
     }
 
-    function switchBuyerTab(tab) {
-      document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+    function switchTab(tab) {
+      document.getElementById('tabSignin').classList.toggle('active', tab === 'signin');
       document.getElementById('tabRegister').classList.toggle('active', tab === 'register');
-      document.getElementById('buyerLoginForm').classList.toggle('active', tab === 'login');
-      document.getElementById('buyerRegisterForm').classList.toggle('active', tab === 'register');
+      document.getElementById('sectionSignin').classList.toggle('active', tab === 'signin');
+      document.getElementById('sectionRegister').classList.toggle('active', tab === 'register');
     }
 
-    async function handleLogin(e, expectedRole) {
+    async function handleLogin(e) {
       e.preventDefault();
-      const btn = document.getElementById(expectedRole + 'Btn');
-      const origText = btn.textContent;
-      btn.disabled = true; btn.textContent = 'Signing in...';
+      const role = document.getElementById('roleSelect').value;
+      const btn  = document.getElementById('loginBtn');
+      const orig = btn.textContent;
+      btn.disabled = true; btn.textContent = 'Signing in…';
       try {
-        const email = document.getElementById(expectedRole + 'Email').value;
-        const password = document.getElementById(expectedRole + 'Password').value;
-        const res = await API.login(email, password);
-
-        if (res.data.user.role !== expectedRole) {
-          Toast.error(`This account is not a ${expectedRole}. Please use the correct portal.`);
-          btn.disabled = false; btn.textContent = origText;
-          return;
+        const res = await API.login(
+          document.getElementById('loginEmail').value,
+          document.getElementById('loginPassword').value
+        );
+        if (res.data.user.role !== role) {
+          Toast.error(`This account is a "${res.data.user.role}", not a "${role}". Please select the correct role.`);
+          btn.disabled = false; btn.textContent = orig; return;
         }
         Auth.setToken(res.data.token);
         Auth.setUser(res.data.user);
-        Toast.success(`Welcome, ${res.data.user.name}!`);
-        setTimeout(() => { window.location.href = REDIRECTS[expectedRole]; }, 500);
+        Toast.success('Welcome, ' + res.data.user.name + '!');
+        setTimeout(() => { location.href = REDIRECTS[role]; }, 500);
       } catch (err) {
         Toast.error(err.message);
-        btn.disabled = false; btn.textContent = origText;
+        btn.disabled = false; btn.textContent = orig;
       }
     }
 
     async function handleRegister(e) {
       e.preventDefault();
       const btn = document.getElementById('regBtn');
-      btn.disabled = true; btn.textContent = 'Creating account...';
+      btn.disabled = true; btn.textContent = 'Creating account…';
       try {
         const res = await API.register(
           document.getElementById('regName').value,
@@ -392,7 +555,7 @@
         Auth.setToken(res.data.token);
         Auth.setUser(res.data.user);
         Toast.success('Account created! Welcome to VaultTag.');
-        setTimeout(() => { window.location.href = '/index.html'; }, 500);
+        setTimeout(() => { location.href = REDIRECTS['buyer']; }, 500);
       } catch (err) {
         Toast.error(err.message);
         btn.disabled = false; btn.textContent = 'Create Account';

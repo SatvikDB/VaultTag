@@ -266,7 +266,7 @@
             ${nft.txHash ? `<a href="https://amoy.polygonscan.com/tx/${nft.txHash}" target="_blank" class="btn btn-secondary btn-sm" style="margin-bottom:16px">View on Polygonscan ↗</a>` : ''}
 
             <div class="action-buttons">
-              ${!isAdmin && nft.status !== 'redeemed' ? `
+              ${!isAdmin && !isOwner && nft.status !== 'redeemed' ? `
                 <button class="btn btn-primary btn-lg" id="addToCartBtn" onclick="addCurrentToCart()" style="flex:1;background:linear-gradient(135deg,#ff4d4d,#ff6b35);box-shadow:0 8px 24px rgba(255,77,77,0.35);">
                   🛒 Add to Cart
                 </button>

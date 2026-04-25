@@ -1,6 +1,6 @@
 /* ============================================
    VaultTag — Global Design System
-   Premium dark theme for luxury shoe marketplace
+   Premium deep navy theme for luxury NFT marketplace
    ============================================ */
 
 /* Google Fonts */
@@ -8,49 +8,49 @@
 
 /* ── CSS Variables ── */
 :root {
-  /* Colors */
-  --bg-primary: #050810;
-  --bg-secondary: #0A0E27;
-  --bg-surface: #111633;
-  --bg-surface-hover: #171d42;
-  --bg-glass: rgba(17, 22, 51, 0.7);
+  /* Colors — deep navy/indigo base */
+  --bg-primary:       #0D0F1C;
+  --bg-secondary:     #131629;
+  --bg-surface:       #1A1D35;
+  --bg-surface-hover: #21254A;
+  --bg-glass:         rgba(26, 29, 53, 0.75);
 
-  --border-primary: #1E2440;
-  --border-subtle: rgba(30, 36, 64, 0.5);
-  --border-glow: rgba(0, 212, 170, 0.3);
+  --border-primary: #252A4A;
+  --border-subtle:  rgba(37, 42, 74, 0.6);
+  --border-glow:    rgba(0, 212, 170, 0.35);
 
-  --accent: #00D4AA;
-  --accent-dim: rgba(0, 212, 170, 0.15);
+  --accent:      #00D4AA;
+  --accent-dim:  rgba(0, 212, 170, 0.15);
   --accent-glow: rgba(0, 212, 170, 0.4);
-  --gold: #C9A962;
-  --gold-dim: rgba(201, 169, 98, 0.15);
+  --gold:        #E8B84B;
+  --gold-dim:    rgba(232, 184, 75, 0.15);
 
   --success: #00D4AA;
-  --danger: #E24B4A;
-  --warning: #EF9F27;
-  --info: #5B8DEF;
+  --danger:  #F05252;
+  --warning: #F59E0B;
+  --info:    #6C8EF5;
 
-  --text-primary: #E8E8ED;
-  --text-secondary: #8A8AA3;
-  --text-muted: #5A5A72;
+  --text-primary:   #EEF0FF;
+  --text-secondary: #8B8FB5;
+  --text-muted:     #565A80;
 
   /* Typography */
   --font-display: 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --font-body:    'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
 
   /* Spacing */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
   --radius-full: 9999px;
 
   /* Transitions */
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-fast: 0.15s var(--ease-out);
-  --transition-normal: 0.3s var(--ease-out);
-  --transition-slow: 0.5s var(--ease-out);
+  --ease-out:         cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast:  0.15s var(--ease-out);
+  --transition-normal:0.3s var(--ease-out);
+  --transition-slow:  0.5s var(--ease-out);
 }
 
 /* ── Reset ── */
@@ -68,7 +68,8 @@ html {
 
 body {
   font-family: var(--font-body);
-  background: var(--bg-primary);
+  background: linear-gradient(135deg, #0D0F1C 0%, #111429 40%, #160E2E 70%, #0D1220 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;

@@ -2,6 +2,7 @@ const NFT = require('../models/NFT');
 const User = require('../models/User');
 const Order = require('../models/Order');
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { success, error } = require('../utils/apiResponse');
 
 /**
@@ -118,5 +119,106 @@ exports.dbExplorer = async (req, res, next) => {
     };
 
     return success(res, { docs, total, schema, stats, dbInfo, page: Number(page), limit: Number(limit) });
+  } catch (err) { next(err); }
+};
+
+/**
+ * POST /api/admin/create-admin — SuperAdmin only
+ */
+exports.createAdmin = async (req, res, next) => {
+  try {
+    const { name, email, password, role } = req.body;
+    if (!name || !email || !password) return error(res, 'Name, email and password are required', 400);
+    const allowedRoles = ['admin', 'seller'];
+    const assignedRole = allowedRoles.includes(role) ? role : 'admin';
+
+    const existing = await User.findOne({ email: email.toLowerCase() });
+    if (existing) return error(res, 'Email already registered', 409);
+
+    const user = await User.create({ name, email: email.toLowerCase(), passwordHash: password, role: assignedRole });
+    return success(res, { user }, 'User created successfully', 201);
+  } catch (err) { next(err); }
+};
+
+/**
+ * DELETE /api/admin/user/:userId — SuperAdmin only
+ */
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return error(res, 'User not found', 404);
+    if (user.role === 'superadmin') return error(res, 'Cannot delete superadmin', 403);
+    await User.findByIdAndDelete(req.params.userId);
+    return success(res, {}, 'User deleted successfully');
+  } catch (err) { next(err); }
+};
+
+/**
+ * PATCH /api/admin/user/:userId/block — SuperAdmin only
+ * Toggles a "blocked" flag on the user
+ */
+exports.toggleBlockUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) return error(res, 'User not found', 404);
+    if (user.role === 'superadmin') return error(res, 'Cannot block superadmin', 403);
+    user.blocked = !user.blocked;
+    await user.save();
+    return success(res, { blocked: user.blocked }, `User ${user.blocked ? 'blocked' : 'unblocked'} successfully`);
+  } catch (err) { next(err); }
+};
+
+/**
+ * GET /api/admin/revenue-report — SuperAdmin only
+ */
+exports.getRevenueReport = async (req, res, next) => {
+  try {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [
+      revenueByDay,
+      ordersByStatus,
+      topProducts,
+      userGrowth,
+      totalRevenue
+    ] = await Promise.all([
+      // Revenue per day (last 30 days)
+      Order.aggregate([
+        { $match: { createdAt: { $gte: thirtyDaysAgo }, status: { $in: ['accepted','completed','transferred'] } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, revenue: { $sum: '$total' }, orders: { $sum: 1 } } },
+        { $sort: { _id: 1 } }
+      ]),
+      // Orders by status
+      Order.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      // Top selling products
+      Order.aggregate([
+        { $unwind: '$items' },
+        { $group: { _id: '$items.productName', sales: { $sum: 1 }, revenue: { $sum: '$items.price' } } },
+        { $sort: { sales: -1 } },
+        { $limit: 5 }
+      ]),
+      // User growth (last 30 days)
+      User.aggregate([
+        { $match: { createdAt: { $gte: thirtyDaysAgo } } },
+        { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, newUsers: { $sum: 1 } } },
+        { $sort: { _id: 1 } }
+      ]),
+      // Total revenue all time
+      Order.aggregate([
+        { $match: { status: { $in: ['accepted','completed','transferred'] } } },
+        { $group: { _id: null, total: { $sum: '$total' } } }
+      ])
+    ]);
+
+    return success(res, {
+      revenueByDay,
+      ordersByStatus,
+      topProducts,
+      userGrowth,
+      totalRevenue: totalRevenue[0]?.total || 0
+    });
   } catch (err) { next(err); }
 };

@@ -143,7 +143,7 @@
             <td><span class="badge badge-${n.status}">${n.status.toUpperCase()}</span></td>
             <td>${n.nfcUid ? '<span title="'+n.nfcUid+'">✅</span>' : '—'}</td>
             <td class="actions-cell">
-              <a href="/product.html?id=${n.tokenId}" class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:0.7rem">View</a>
+              ${n.status !== 'unminted' ? `<a href="/product.html?id=${n.tokenId}" class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:0.7rem">View</a>` : ''}
               ${n.status !== 'unminted' ? `<button class="btn btn-sm btn-danger" style="padding:4px 8px;font-size:0.7rem" onclick="softDelete(${n.tokenId})">Del</button>` : ''}
             </td>
           </tr>

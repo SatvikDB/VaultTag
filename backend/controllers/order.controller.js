@@ -7,11 +7,17 @@ const { success, error } = require('../utils/apiResponse');
 const { v4: uuidv4 } = require('uuid');
 const Razorpay = require('razorpay');
 
-// Initialize Razorpay
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+// Initialize Razorpay lazily so missing keys don't crash startup
+let razorpay;
+function getRazorpay() {
+  if (!razorpay) {
+    razorpay = new Razorpay({
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET
+    });
+  }
+  return razorpay;
+}
 
 /* ── Buyer: Create Order ── */
 exports.createOrder = async (req, res, next) => {
@@ -189,7 +195,7 @@ exports.createRazorpayOrder = async (req, res, next) => {
       receipt: `rcpt_${uuidv4().slice(0, 8)}`,
     };
 
-    const order = await razorpay.orders.create(options);
+    const order = await getRazorpay().orders.create(options);
     
     return success(res, { 
       orderId: order.id, 
