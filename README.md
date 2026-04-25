@@ -119,4 +119,4 @@ PINATA_JWT=your_pinata_jwt
 PINATA_GATEWAY=your_pinata_gateway
 
 RAZORPAY_KEY_ID=your_razorpay_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret
+RAZORPAY_KEY_SECRET=your_razorpay_secret.
