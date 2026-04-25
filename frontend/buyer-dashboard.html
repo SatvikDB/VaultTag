@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Dashboard — VaultTag</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { background: #07080f; font-family: 'Inter', sans-serif; }
+    .dash { max-width: 1280px; margin: 0 auto; padding: 90px 24px 60px; }
+
+    .dash-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:36px; flex-wrap:wrap; gap:16px; }
+    .dash-title { font-size:1.9rem; font-weight:800; letter-spacing:-0.5px; }
+    .dash-title .grad { background:linear-gradient(135deg,#00D4AA,#5B8DEF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .dash-subtitle { color:#6b6b80; font-size:.85rem; margin-top:4px; }
+    .role-chip { display:inline-flex; align-items:center; gap:8px; padding:8px 18px; border-radius:50px; font-size:.78rem; font-weight:700; background:rgba(0,212,170,.1); color:#00D4AA; border:1px solid rgba(0,212,170,.25); }
+
+    /* User Hero */
+    .user-hero { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.06); border-radius:24px; padding:28px 32px; margin-bottom:28px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+    .user-avatar { width:72px; height:72px; border-radius:50%; background:linear-gradient(135deg,#00D4AA,#009E7E); display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:800; color:#07080f; flex-shrink:0; }
+    .user-name { font-size:1.3rem; font-weight:800; }
+    .user-email { color:#6b6b80; font-size:.84rem; margin-top:2px; }
+    .user-since { font-size:.72rem; color:#5a5a6e; margin-top:6px; }
+
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:32px; }
+    @media(max-width:768px){ .stats-row { grid-template-columns:repeat(2,1fr); } }
+    .stat-box { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:18px; padding:22px 16px; text-align:center; transition:all .3s; position:relative; overflow:hidden; }
+    .stat-box::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+    .stat-box.teal::before { background:linear-gradient(90deg,#00D4AA,#009E7E); }
+    .stat-box.blue::before { background:linear-gradient(90deg,#5B8DEF,#3B6FD4); }
+    .stat-box.gold::before { background:linear-gradient(90deg,#FFB932,#FF6B00); }
+    .stat-box.purple::before { background:linear-gradient(90deg,#A855F7,#7C3AED); }
+    .stat-box:hover { transform:translateY(-4px); background:rgba(255,255,255,.05); }
+    .stat-num { font-size:2rem; font-weight:800; margin-bottom:4px; }
+    .stat-lbl { font-size:.7rem; color:#6b6b80; text-transform:uppercase; letter-spacing:.6px; }
+
+    .sec-title { font-size:.78rem; font-weight:700; color:#c0c0d0; margin-bottom:16px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.5px; }
+    .sec-title::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.06); }
+    .panel { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.06); border-radius:20px; padding:24px; margin-bottom:24px; }
+
+    /* Quick Actions */
+    .action-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; margin-bottom:32px; }
+    .action-card { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:18px; padding:20px 16px; cursor:pointer; transition:all .3s; text-decoration:none; color:inherit; display:block; text-align:center; }
+    .action-card:hover { transform:translateY(-5px); }
+    .action-card.teal:hover { border-color:rgba(0,212,170,.4); box-shadow:0 16px 40px rgba(0,212,170,.12); }
+    .action-card.blue:hover { border-color:rgba(91,141,239,.4); box-shadow:0 16px 40px rgba(91,141,239,.12); }
+    .action-card.gold:hover { border-color:rgba(255,185,50,.4); box-shadow:0 16px 40px rgba(255,185,50,.12); }
+    .action-card.purple:hover { border-color:rgba(168,85,247,.4); box-shadow:0 16px 40px rgba(168,85,247,.12); }
+    .ac-icon { font-size:1.8rem; margin-bottom:10px; }
+    .ac-title { font-weight:700; font-size:.88rem; margin-bottom:3px; }
+    .ac-desc { font-size:.7rem; color:#6b6b80; line-height:1.4; }
+
+    /* Product Cards */
+    .product-mini-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
+    .product-mini { background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.05); border-radius:16px; overflow:hidden; transition:all .3s; cursor:pointer; text-decoration:none; color:inherit; display:block; }
+    .product-mini:hover { transform:translateY(-4px); border-color:rgba(0,212,170,.2); }
+    .product-mini-img { height:140px; background:rgba(255,255,255,.04); display:flex; align-items:center; justify-content:center; font-size:2.5rem; overflow:hidden; }
+    .product-mini-img img { width:100%; height:100%; object-fit:cover; }
+    .product-mini-body { padding:14px; }
+    .product-mini-name { font-size:.84rem; font-weight:600; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .product-mini-meta { display:flex; align-items:center; justify-content:space-between; }
+    .product-mini-price { font-size:.82rem; font-weight:700; color:#FFB932; }
+    .status-pill { padding:3px 8px; border-radius:50px; font-size:.65rem; font-weight:700; }
+    .status-pill.active { background:rgba(0,212,170,.12); color:#00D4AA; }
+    .status-pill.redeemed { background:rgba(239,68,68,.12); color:#EF4444; }
+
+    /* History Timeline */
+    .timeline { display:flex; flex-direction:column; gap:0; }
+    .tl-item { display:flex; gap:16px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,.04); }
+    .tl-item:last-child { border-bottom:none; }
+    .tl-dot-wrap { display:flex; flex-direction:column; align-items:center; gap:0; }
+    .tl-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+    .tl-dot.teal { background:#00D4AA; box-shadow:0 0 8px rgba(0,212,170,.4); }
+    .tl-dot.blue { background:#5B8DEF; }
+    .tl-dot.gold { background:#FFB932; }
+    .tl-line { width:1px; flex:1; background:rgba(255,255,255,.06); margin-top:4px; }
+    .tl-content { flex:1; }
+    .tl-title { font-size:.84rem; font-weight:600; }
+    .tl-sub { font-size:.72rem; color:#6b6b80; margin-top:2px; }
+    .tl-time { font-size:.68rem; color:#5a5a6e; margin-top:4px; }
+
+    /* Fraud Warning */
+    .fraud-warn { display:flex; align-items:center; gap:14px; padding:16px 18px; background:rgba(239,68,68,.06); border:1px solid rgba(239,68,68,.15); border-radius:14px; margin-bottom:12px; }
+    .fraud-warn-icon { font-size:1.4rem; flex-shrink:0; }
+    .fraud-warn-title { font-size:.85rem; font-weight:700; color:#EF4444; }
+    .fraud-warn-sub { font-size:.72rem; color:#6b6b80; margin-top:2px; }
+
+    .empty-msg { text-align:center; padding:32px; color:#5a5a6e; font-size:.85rem; }
+    .pulse { animation:pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  </style>
+</head>
+<body>
+  <div class="particles-bg" id="particles"></div>
+  <nav class="navbar scrolled"><div class="container">
+    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
+    <ul class="nav-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/collection.html">Collection</a></li>
+      <li><a href="/verify.html">Verify</a></li>
+    </ul>
+    <div class="nav-actions" id="navActions"></div>
+  </div></nav>
+
+  <div class="dash">
+    <div class="dash-topbar">
+      <div>
+        <div class="dash-title">🛍️ Buyer <span class="grad">Dashboard</span></div>
+        <div class="dash-subtitle">Full transparency and trust — before and after purchase.</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+      </div>
+    </div>
+
+    <!-- User Hero -->
+    <div class="user-hero">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div style="flex:1">
+        <div class="user-name" id="userName">Loading…</div>
+        <div class="user-email" id="userEmail"></div>
+        <div class="user-since" id="userSince"></div>
+      </div>
+      <a href="/collection.html" class="btn btn-primary">🛒 Shop Now</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box teal"><div class="stat-num" id="sOwned">—</div><div class="stat-lbl">Products Owned</div></div>
+      <div class="stat-box blue"><div class="stat-num" id="sOrders">—</div><div class="stat-lbl">Total Orders</div></div>
+      <div class="stat-box gold"><div class="stat-num" id="sVerified">—</div><div class="stat-lbl">Verified</div></div>
+      <div class="stat-box purple"><div class="stat-num" id="sRedeemed">—</div><div class="stat-lbl">Redeemed</div></div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="sec-title">⚡ Quick Actions</div>
+    <div class="action-grid">
+      <a href="/collection.html" class="action-card teal">
+        <div class="ac-icon">🛒</div><div class="ac-title">Browse Products</div>
+        <div class="ac-desc">Explore blockchain-verified authentic items</div>
+      </a>
+      <a href="/verify.html" class="action-card blue">
+        <div class="ac-icon">🔍</div><div class="ac-title">Verify Product</div>
+        <div class="ac-desc">Instant authenticity check via token ID</div>
+      </a>
+      <a href="/my-orders.html" class="action-card gold">
+        <div class="ac-icon">📜</div><div class="ac-title">My Orders</div>
+        <div class="ac-desc">Track all your purchases & delivery status</div>
+      </a>
+      <a href="/my-nfts.html" class="action-card purple">
+        <div class="ac-icon">🏆</div><div class="ac-title">My Collection</div>
+        <div class="ac-desc">View all NFTs you own on the blockchain</div>
+      </a>
+    </div>
+
+    <!-- Two-col -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+
+      <!-- Fraud Warnings -->
+      <div>
+        <div class="sec-title">⚠️ Fraud Warning Alerts</div>
+        <div class="panel" id="fraudPanel">
+          <div class="empty-msg pulse">Checking your products…</div>
+        </div>
+      </div>
+
+      <!-- Ownership History -->
+      <div>
+        <div class="sec-title">📊 Ownership History</div>
+        <div class="panel">
+          <div class="timeline" id="historyTimeline">
+            <div class="empty-msg pulse">Loading history…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Products -->
+    <div class="sec-title">🏆 My Products</div>
+    <div class="panel">
+      <div class="product-mini-grid" id="myProducts">
+        <div class="empty-msg pulse" style="grid-column:1/-1">Loading your collection…</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!Auth.requireAuth()) return;
+      const user = Auth.getUser();
+      if (user?.role !== 'buyer') { window.location.href = '/login.html'; return; }
+      initParticles(document.getElementById('particles'));
+
+      // Populate user hero
+      document.getElementById('userAvatar').textContent = (user.name || 'U')[0].toUpperCase();
+      document.getElementById('userName').textContent   = user.name || 'Buyer';
+      document.getElementById('userEmail').textContent  = user.email || '';
+      document.getElementById('userSince').textContent  = 'Member since ' + new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', { month:'long', year:'numeric' });
+
+      loadMyNfts(); loadOrders();
+    });
+
+    async function loadMyNfts() {
+      const grid = document.getElementById('myProducts');
+      const fraudPanel = document.getElementById('fraudPanel');
+      const timeline = document.getElementById('historyTimeline');
+      try {
+        const r = await API.getMyNfts();
+        const nfts = r.data?.nfts || [];
+
+        document.getElementById('sOwned').textContent    = nfts.length;
+        document.getElementById('sVerified').textContent = nfts.filter(n => n.status === 'active').length;
+        document.getElementById('sRedeemed').textContent = nfts.filter(n => n.status === 'redeemed').length;
+
+        if (!nfts.length) {
+          grid.innerHTML = `<div class="empty-msg" style="grid-column:1/-1">No products yet. <a href="/collection.html" style="color:#00D4AA">Browse collection →</a></div>`;
+          fraudPanel.innerHTML = '<div class="empty-msg" style="color:#00D4AA">✅ No fraud alerts</div>';
+          timeline.innerHTML = '<div class="empty-msg">No ownership history yet</div>';
+          return;
+        }
+
+        grid.innerHTML = nfts.map(n => `
+          <a href="/product.html?id=${n.tokenId}" class="product-mini">
+            <div class="product-mini-img">
+              ${n.imageUrl ? `<img src="${n.imageUrl}" alt="${n.productName}">` : '👟'}
+            </div>
+            <div class="product-mini-body">
+              <div class="product-mini-name">${n.productName}</div>
+              <div class="product-mini-meta">
+                <span class="product-mini-price">${formatPrice(n.price)}</span>
+                <span class="status-pill ${n.status}">${n.status.toUpperCase()}</span>
+              </div>
+            </div>
+          </a>`).join('');
+
+        // Fraud warnings — redeemed items
+        const redeemed = nfts.filter(n => n.status === 'redeemed');
+        if (redeemed.length) {
+          fraudPanel.innerHTML = redeemed.map(n => `
+            <div class="fraud-warn">
+              <div class="fraud-warn-icon">⚠️</div>
+              <div>
+                <div class="fraud-warn-title">${n.productName} — Already Redeemed</div>
+                <div class="fraud-warn-sub">Token #${n.tokenId} has been physically redeemed. Resale may be fraudulent.</div>
+              </div>
+            </div>`).join('');
+        } else {
+          fraudPanel.innerHTML = '<div class="empty-msg" style="color:#00D4AA">✅ All your products are authentic</div>';
+        }
+
+        // Timeline
+        timeline.innerHTML = nfts.slice(0,5).map((n, i) => `
+          <div class="tl-item">
+            <div class="tl-dot-wrap">
+              <div class="tl-dot ${i === 0 ? 'teal' : 'blue'}"></div>
+              ${i < nfts.length - 1 ? '<div class="tl-line"></div>' : ''}
+            </div>
+            <div class="tl-content">
+              <div class="tl-title">Acquired: ${n.productName}</div>
+              <div class="tl-sub">Token #${n.tokenId} • ${n.category}</div>
+              <div class="tl-time">${new Date(n.createdAt || Date.now()).toLocaleDateString()}</div>
+            </div>
+          </div>`).join('');
+
+      } catch(e) {
+        grid.innerHTML = '<div class="empty-msg" style="grid-column:1/-1">Error loading products</div>';
+      }
+    }
+
+    async function loadOrders() {
+      try {
+        const r = await API.getMyOrders();
+        const orders = r.data?.orders || [];
+        document.getElementById('sOrders').textContent = orders.length;
+      } catch(e) {}
+    }
+  </script>
+</body>
+</html>

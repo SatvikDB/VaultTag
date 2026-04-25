@@ -1,183 +1,374 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SuperAdmin — VaultTag Platform Control</title>
+  <title>SuperAdmin â€” VaultTag Control Center</title>
   <link rel="stylesheet" href="/css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background: #0a0a0f; color: #e8e8f0; }
-    .dash { max-width: 1200px; margin: 0 auto; padding: 100px 24px 60px; }
-    .dash-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
-    .dash-header h1 { font-size: 1.8rem; font-weight: 800; }
-    .dash-header h1 .grad { background: linear-gradient(135deg, #FFB932, #FF8C00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .badge-role { padding: 6px 14px; border-radius: 50px; font-size: .76rem; font-weight: 600; background: rgba(255,185,50,.12); color: #FFB932; border: 1px solid rgba(255,185,50,.2); }
-
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 32px; }
-    .stat-card { background: rgba(20,20,30,.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.06); border-radius: 18px; padding: 22px; text-align: center; transition: all .3s; }
-    .stat-card:hover { transform: translateY(-4px); border-color: rgba(255,185,50,.2); box-shadow: 0 12px 32px rgba(255,185,50,.1); }
-    .stat-val { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
-    .stat-label { font-size: .72rem; color: #7a7a8e; text-transform: uppercase; letter-spacing: .5px; }
-
-    .section-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-    .panel { background: rgba(20,20,30,.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.06); border-radius: 18px; padding: 24px; margin-bottom: 24px; }
-
-    .control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 28px; }
-    .control-card { background: rgba(20,20,30,.7); border: 1px solid rgba(255,255,255,.06); border-radius: 18px; padding: 24px; transition: all .3s; cursor: pointer; text-decoration: none; color: inherit; }
-    .control-card:hover { transform: translateY(-4px); }
-    .control-card.gold:hover { border-color: rgba(255,185,50,.3); box-shadow: 0 12px 36px rgba(255,185,50,.12); }
-    .control-card.purple:hover { border-color: rgba(168,85,247,.3); box-shadow: 0 12px 36px rgba(168,85,247,.12); }
-    .control-card.blue:hover { border-color: rgba(91,141,239,.3); box-shadow: 0 12px 36px rgba(91,141,239,.12); }
-    .control-card.green:hover { border-color: rgba(0,212,170,.3); box-shadow: 0 12px 36px rgba(0,212,170,.12); }
-    .ctrl-icon { font-size: 2rem; margin-bottom: 12px; }
-    .ctrl-title { font-weight: 700; font-size: .95rem; margin-bottom: 4px; }
-    .ctrl-desc { font-size: .76rem; color: #7a7a8e; line-height: 1.5; }
-
-    .user-table { width: 100%; border-collapse: collapse; }
-    .user-table th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .5px; color: #7a7a8e; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.06); }
-    .user-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,.03); font-size: .86rem; }
-    .user-table tr:hover td { background: rgba(255,255,255,.02); }
-    .role-pill { padding: 3px 10px; border-radius: 50px; font-size: .7rem; font-weight: 600; }
-    .role-pill.superadmin { background: rgba(255,185,50,.12); color: #FFB932; }
-    .role-pill.admin { background: rgba(168,85,247,.12); color: #A855F7; }
-    .role-pill.seller { background: rgba(91,141,239,.12); color: #5B8DEF; }
-    .role-pill.buyer { background: rgba(0,212,170,.12); color: #00D4AA; }
-
-    .env-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
-    .env-row { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.02); padding: 10px 14px; border-radius: 10px; font-size: .82rem; }
-    .env-key { font-weight: 600; color: #FFB932; min-width: 160px; font-family: monospace; font-size: .78rem; }
-    .env-val { color: #7a7a8e; font-family: monospace; font-size: .78rem; word-break: break-all; }
-
-    .empty { text-align: center; padding: 40px; color: #5a5a6e; }
-    .loader { text-align: center; padding: 40px; color: #7a7a8e; }
+    body{background:#07080f;font-family:'Inter',sans-serif;}
+    .dash{max-width:1280px;margin:0 auto;padding:90px 24px 60px;}
+    .dash-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;flex-wrap:wrap;gap:16px;}
+    .dash-title{font-size:1.9rem;font-weight:800;letter-spacing:-.5px;}
+    .dash-title .grad{background:linear-gradient(135deg,#FFB932,#FF6B00);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .dash-subtitle{color:#6b6b80;font-size:.85rem;margin-top:4px;}
+    .role-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:50px;font-size:.78rem;font-weight:700;background:rgba(255,185,50,.1);color:#FFB932;border:1px solid rgba(255,185,50,.25);}
+    .stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:32px;}
+    @media(max-width:1024px){.stats-row{grid-template-columns:repeat(3,1fr);}}
+    @media(max-width:600px){.stats-row{grid-template-columns:repeat(2,1fr);}}
+    .stat-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:20px 16px;text-align:center;transition:all .3s;position:relative;overflow:hidden;}
+    .stat-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+    .stat-box.gold::before{background:linear-gradient(90deg,#FFB932,#FF6B00);}
+    .stat-box.purple::before{background:linear-gradient(90deg,#A855F7,#7C3AED);}
+    .stat-box.blue::before{background:linear-gradient(90deg,#5B8DEF,#3B6FD4);}
+    .stat-box.teal::before{background:linear-gradient(90deg,#00D4AA,#009E7E);}
+    .stat-box.red::before{background:linear-gradient(90deg,#EF4444,#DC2626);}
+    .stat-box.pink::before{background:linear-gradient(90deg,#EC4899,#BE185D);}
+    .stat-box:hover{transform:translateY(-4px);background:rgba(255,255,255,.05);}
+    .stat-num{font-size:1.9rem;font-weight:800;margin-bottom:4px;}
+    .stat-lbl{font-size:.7rem;color:#6b6b80;text-transform:uppercase;letter-spacing:.6px;}
+    .sec-title{font-size:.78rem;font-weight:700;color:#c0c0d0;margin-bottom:16px;display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:.5px;}
+    .sec-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.06);}
+    .panel{background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:24px;margin-bottom:24px;}
+    .chart-wrap{display:flex;align-items:flex-end;gap:6px;height:120px;padding:8px 0;}
+    .chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;}
+    .chart-bar{width:100%;border-radius:6px 6px 0 0;transition:all .4s;min-height:4px;}
+    .chart-label{font-size:.58rem;color:#6b6b80;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center;}
+    .metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+    @media(max-width:768px){.metric-grid{grid-template-columns:1fr 1fr;}}
+    .metric-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;text-align:center;}
+    .metric-val{font-size:1.5rem;font-weight:800;margin-bottom:4px;}
+    .metric-lbl{font-size:.7rem;color:#6b6b80;text-transform:uppercase;letter-spacing:.5px;}
+    .metric-sub{font-size:.72rem;color:#5a5a6e;margin-top:4px;}
+    .vtable{width:100%;border-collapse:collapse;}
+    .vtable th{text-align:left;font-size:.68rem;text-transform:uppercase;letter-spacing:.6px;color:#6b6b80;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);}
+    .vtable td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.03);font-size:.83rem;vertical-align:middle;}
+    .vtable tr:hover td{background:rgba(255,255,255,.02);}
+    .rpill{padding:3px 10px;border-radius:50px;font-size:.68rem;font-weight:700;}
+    .rpill.admin{background:rgba(168,85,247,.12);color:#A855F7;}
+    .rpill.seller{background:rgba(91,141,239,.12);color:#5B8DEF;}
+    .rpill.buyer{background:rgba(0,212,170,.12);color:#00D4AA;}
+    .rpill.blocked{background:rgba(239,68,68,.12);color:#EF4444;}
+    .rpill.active{background:rgba(0,212,170,.08);color:#00D4AA;}
+    .btn-xs{padding:5px 12px;border-radius:8px;border:none;font-size:.7rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;}
+    .btn-block{background:rgba(239,68,68,.15);color:#EF4444;}
+    .btn-block:hover{background:rgba(239,68,68,.25);}
+    .btn-unblock{background:rgba(0,212,170,.15);color:#00D4AA;}
+    .btn-unblock:hover{background:rgba(0,212,170,.25);}
+    .btn-del{background:rgba(239,68,68,.1);color:#EF4444;margin-left:6px;}
+    .btn-del:hover{background:rgba(239,68,68,.2);}
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:1000;display:none;align-items:center;justify-content:center;}
+    .modal-bg.open{display:flex;}
+    .modal-box{background:#0e0f1a;border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:32px;width:100%;max-width:420px;animation:fadeUp .3s ease;}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .modal-title{font-size:1.1rem;font-weight:800;margin-bottom:20px;}
+    .form-group{margin-bottom:14px;}
+    .form-label{display:block;font-size:.7rem;font-weight:700;color:#9a9ab0;margin-bottom:6px;text-transform:uppercase;letter-spacing:.6px;}
+    .form-input,.form-select{width:100%;padding:11px 14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);border-radius:11px;color:#e8e8f0;font-size:.88rem;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;}
+    .form-input:focus,.form-select:focus{border-color:#A855F7;}
+    .form-select option{background:#0e0f1a;}
+    .modal-actions{display:flex;gap:10px;margin-top:20px;}
+    .btn-primary-purple{flex:1;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#A855F7,#8B3FD4);color:#fff;font-weight:800;font-size:.88rem;cursor:pointer;font-family:inherit;transition:all .2s;}
+    .btn-primary-purple:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(168,85,247,.3);}
+    .btn-cancel{flex:1;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:none;color:#6b6b80;font-weight:600;font-size:.88rem;cursor:pointer;font-family:inherit;}
+    .top-prod-list{display:flex;flex-direction:column;gap:10px;}
+    .top-prod-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:rgba(255,255,255,.02);border-radius:12px;}
+    .top-prod-rank{width:24px;height:24px;border-radius:50%;background:rgba(255,185,50,.12);color:#FFB932;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .top-prod-name{flex:1;font-size:.82rem;font-weight:600;}
+    .top-prod-sales{font-size:.72rem;color:#6b6b80;}
+    .spill{padding:3px 8px;border-radius:50px;font-size:.65rem;font-weight:700;}
+    .spill.pending{background:rgba(255,185,50,.12);color:#FFB932;}
+    .spill.accepted{background:rgba(91,141,239,.12);color:#5B8DEF;}
+    .spill.transferred{background:rgba(0,212,170,.12);color:#00D4AA;}
+    .spill.rejected{background:rgba(239,68,68,.12);color:#EF4444;}
+    .empty-msg{text-align:center;padding:32px;color:#5a5a6e;font-size:.85rem;}
+    .pulse{animation:pulse 2s ease-in-out infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
   </style>
 </head>
 <body>
   <div class="particles-bg" id="particles"></div>
   <nav class="navbar scrolled"><div class="container">
-    <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
-    <div class="nav-actions"></div>
+    <a href="/" class="nav-logo"><div class="logo-icon">&#x2B21;</div>VaultTag</a>
+    <div class="nav-actions" id="navActions"></div>
   </div></nav>
 
-  <div class="dash">
-    <div class="dash-header">
-      <div>
-        <h1>👑 SuperAdmin <span class="grad">Control Center</span></h1>
-        <p style="color:#7a7a8e;font-size:.88rem;margin-top:4px">Full platform control — manage admins, sellers & system settings</p>
-      </div>
-      <span class="badge-role">👑 SuperAdmin</span>
-    </div>
-
-    <!-- Stats -->
-    <div class="stats-grid" id="statsGrid">
-      <div class="stat-card"><div class="stat-val" id="totalUsers">—</div><div class="stat-label">Total Users</div></div>
-      <div class="stat-card"><div class="stat-val" id="totalAdmins">—</div><div class="stat-label">Admins</div></div>
-      <div class="stat-card"><div class="stat-val" id="totalSellers">—</div><div class="stat-label">Sellers</div></div>
-      <div class="stat-card"><div class="stat-val" id="totalBuyers">—</div><div class="stat-label">Buyers</div></div>
-      <div class="stat-card"><div class="stat-val" id="totalProducts">—</div><div class="stat-label">Products</div></div>
-      <div class="stat-card"><div class="stat-val" id="totalOrders">—</div><div class="stat-label">Orders</div></div>
-    </div>
-
-    <!-- Platform Controls -->
-    <h3 class="section-title">🎮 Platform Controls</h3>
-    <div class="control-grid">
-      <a href="/admin-dashboard.html" class="control-card purple"><div class="ctrl-icon">📊</div><div class="ctrl-title">Admin Dashboard</div><div class="ctrl-desc">Access admin-level operations & monitoring</div></a>
-      <a href="/admin-orders.html" class="control-card blue"><div class="ctrl-icon">📦</div><div class="ctrl-title">All Orders</div><div class="ctrl-desc">Review, approve & manage all platform orders</div></a>
-      <a href="/admin-nfts.html" class="control-card green"><div class="ctrl-icon">🎨</div><div class="ctrl-title">All Products</div><div class="ctrl-desc">View & manage every NFT on the platform</div></a>
-      <a href="/admin-settings.html" class="control-card gold"><div class="ctrl-icon">⚙️</div><div class="ctrl-title">Platform Settings</div><div class="ctrl-desc">Payment gateways, fees & blockchain config</div></a>
-      <a href="/mint.html" class="control-card green"><div class="ctrl-icon">🔨</div><div class="ctrl-title">Mint NFT</div><div class="ctrl-desc">Create new NFT products directly</div></a>
-      <a href="/db-explorer.html" class="control-card blue"><div class="ctrl-icon">🗄️</div><div class="ctrl-title">Database Explorer</div><div class="ctrl-desc">Browse & inspect database collections</div></a>
-    </div>
-
-    <!-- Environment Status -->
-    <h3 class="section-title">🔧 System Configuration</h3>
-    <div class="panel">
-      <div class="env-grid">
-        <div class="env-row"><span class="env-key">DATABASE</span><span class="env-val" id="dbStatus">Checking...</span></div>
-        <div class="env-row"><span class="env-key">BLOCKCHAIN</span><span class="env-val" id="bcStatus">Checking...</span></div>
-        <div class="env-row"><span class="env-key">IPFS (Pinata)</span><span class="env-val" id="ipfsStatus">Checking...</span></div>
-        <div class="env-row"><span class="env-key">RAZORPAY</span><span class="env-val" id="rzpStatus">Checking...</span></div>
-        <div class="env-row"><span class="env-key">NODE_ENV</span><span class="env-val" id="envMode">—</span></div>
-      </div>
-    </div>
-
-    <!-- User Management -->
-    <h3 class="section-title">👥 User Management</h3>
-    <div class="panel">
-      <div id="usersLoader" class="loader">Loading users...</div>
-      <table class="user-table" id="usersTable" style="display:none">
-        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
-        <tbody id="usersBody"></tbody>
-      </table>
+  <!-- Create Admin Modal -->
+  <div class="modal-bg" id="createModal">
+    <div class="modal-box">
+      <div class="modal-title">&#x2795; Create New Admin / Seller</div>
+      <form onsubmit="submitCreateAdmin(event)">
+        <div class="form-group"><label class="form-label">Full Name</label><input type="text" class="form-input" id="newName" placeholder="John Doe" required></div>
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="newEmail" placeholder="admin@example.com" required></div>
+        <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-input" id="newPassword" placeholder="Min 6 characters" required minlength="6"></div>
+        <div class="form-group"><label class="form-label">Role</label>
+          <select class="form-select" id="newRole">
+            <option value="admin">Admin</option>
+            <option value="seller">Seller</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn-primary-purple" id="createBtn">Create User</button>
+        </div>
+      </form>
     </div>
   </div>
 
+  <div class="dash">
+    <div class="dash-topbar">
+      <div>
+        <div class="dash-title">&#x1F451; <span class="grad">Control Center</span></div>
+        <div class="dash-subtitle">One platform. Multiple roles. Unified trust system.</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="role-chip">&#x1F451; SuperAdmin</span>
+        <button onclick="Auth.logout()" class="btn btn-sm btn-secondary">Logout</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box gold"><div class="stat-num" id="sTotalUsers">-</div><div class="stat-lbl">Total Users</div></div>
+      <div class="stat-box purple"><div class="stat-num" id="sTotalAdmins">-</div><div class="stat-lbl">Admins</div></div>
+      <div class="stat-box blue"><div class="stat-num" id="sTotalSellers">-</div><div class="stat-lbl">Sellers</div></div>
+      <div class="stat-box teal"><div class="stat-num" id="sTotalBuyers">-</div><div class="stat-lbl">Buyers</div></div>
+      <div class="stat-box pink"><div class="stat-num" id="sTotalNfts">-</div><div class="stat-lbl">NFTs Minted</div></div>
+      <div class="stat-box red"><div class="stat-num" id="sTotalOrders">-</div><div class="stat-lbl">Orders</div></div>
+    </div>
+
+    <!-- Fraud Detection -->
+    <div class="sec-title">🚨 Fraud Detection Panel</div>
+    <div class="panel">
+      <div class="fraud-list" id="fraudList"><div class="empty-msg pulse">Scanning blockchain activity...</div></div>
+    </div>
+
+    <!-- Revenue Metrics -->
+    <div class="sec-title">📊 Revenue &amp; Analytics</div>
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-val" style="color:#FFB932" id="mTotalRevenue">-</div><div class="metric-lbl">Total Revenue</div><div class="metric-sub">All time</div></div>
+      <div class="metric-card"><div class="metric-val" style="color:#00D4AA" id="mMonthRevenue">-</div><div class="metric-lbl">This Month</div><div class="metric-sub">Last 30 days</div></div>
+      <div class="metric-card"><div class="metric-val" style="color:#A855F7" id="mAvgOrder">-</div><div class="metric-lbl">Avg Order Value</div><div class="metric-sub">Per transaction</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+      <div>
+        <div class="sec-title">📈 Revenue — Last 30 Days</div>
+        <div class="panel"><div class="chart-wrap" id="revenueChart"><div class="empty-msg pulse" style="width:100%">Loading...</div></div></div>
+      </div>
+      <div>
+        <div class="sec-title">👥 User Growth — Last 30 Days</div>
+        <div class="panel"><div class="chart-wrap" id="growthChart"><div class="empty-msg pulse" style="width:100%">Loading...</div></div></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+      <div>
+        <div class="sec-title">🏆 Top Selling Products</div>
+        <div class="panel"><div class="top-prod-list" id="topProducts"><div class="empty-msg pulse">Loading...</div></div></div>
+      </div>
+      <div>
+        <div class="sec-title">📦 Orders by Status</div>
+        <div class="panel"><div id="orderStatus"><div class="empty-msg pulse">Loading...</div></div></div>
+      </div>
+    </div>
+
+    <!-- Admin & Seller Management -->
+    <div class="sec-title">
+      🛡️ Admin &amp; Seller Management
+      <button onclick="openModal()" style="margin-left:12px;padding:6px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,#A855F7,#8B3FD4);color:#fff;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;">+ Create</button>
+    </div>
+    <div class="panel" style="padding:0;overflow:hidden;">
+      <table class="vtable">
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody id="adminBody"><tr><td colspan="6"><div class="empty-msg pulse">Loading...</div></td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- Buyer Management -->
+    <div class="sec-title">🛍️ Buyer Management</div>
+    <div class="panel" style="padding:0;overflow:hidden;">
+      <table class="vtable">
+        <thead><tr><th>Name</th><th>Email</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+        <tbody id="buyerBody"><tr><td colspan="5"><div class="empty-msg pulse">Loading...</div></td></tr></tbody>
+      </table>
+    </div>
+
+  </div>
   <script src="/js/app.js"></script>
   <script>
+    let allUsers = [];
+
     document.addEventListener('DOMContentLoaded', async () => {
       const user = Auth.getUser();
-      if (!user || user.role !== 'superadmin') {
-        window.location.href = '/login.html?role=superadmin';
-        return;
-      }
+      if (!user || user.role !== 'superadmin') { window.location.href = '/login.html'; return; }
       initParticles(document.getElementById('particles'));
-      await loadStats();
-      await loadUsers();
-      await loadSystemStatus();
+      loadStats(); loadUsers(); loadRevenue(); loadFraudAlerts();
     });
 
     async function loadStats() {
       try {
-        const res = await API.getStats();
-        if (res.success) {
-          document.getElementById('totalUsers').textContent = res.data.totalUsers || 0;
-          document.getElementById('totalAdmins').textContent = res.data.totalAdmins || 0;
-          document.getElementById('totalSellers').textContent = res.data.totalSellers || 0;
-          document.getElementById('totalBuyers').textContent = res.data.totalBuyers || 0;
-          document.getElementById('totalProducts').textContent = res.data.totalNfts || 0;
-          document.getElementById('totalOrders').textContent = res.data.totalOrders || 0;
+        const r = await API.getStats();
+        if (r.success) {
+          const d = r.data;
+          document.getElementById('sTotalUsers').textContent   = d.totalUsers   || 0;
+          document.getElementById('sTotalAdmins').textContent  = d.totalAdmins  || 0;
+          document.getElementById('sTotalSellers').textContent = d.totalSellers || 0;
+          document.getElementById('sTotalBuyers').textContent  = d.totalBuyers  || 0;
+          document.getElementById('sTotalNfts').textContent    = d.totalNfts    || 0;
+          document.getElementById('sTotalOrders').textContent  = d.totalOrders  || 0;
         }
-      } catch (e) { console.warn('Stats error:', e); }
+      } catch(e) {}
     }
 
     async function loadUsers() {
       try {
-        const res = await API.getUsers();
-        document.getElementById('usersLoader').style.display = 'none';
-        if (res.success && res.data.users && res.data.users.length) {
-          document.getElementById('usersTable').style.display = '';
-          document.getElementById('usersBody').innerHTML = res.data.users.map(u => `
-            <tr>
-              <td style="font-weight:600">${u.name}</td>
-              <td style="color:#7a7a8e">${u.email}</td>
-              <td><span class="role-pill ${u.role}">${u.role}</span></td>
-              <td style="color:#7a7a8e;font-size:.8rem">${new Date(u.createdAt).toLocaleDateString()}</td>
-            </tr>
-          `).join('');
-        }
-      } catch (e) {
-        document.getElementById('usersLoader').textContent = 'Failed to load users';
+        const r = await API.getUsers();
+        allUsers = r.data?.users || [];
+        renderAdmins(); renderBuyers();
+      } catch(e) {
+        document.getElementById('adminBody').innerHTML = '<tr><td colspan="6"><div class="empty-msg">Failed to load</div></td></tr>';
       }
     }
 
-    async function loadSystemStatus() {
+    function renderAdmins() {
+      const list = allUsers.filter(u => u.role === 'admin' || u.role === 'seller');
+      const tbody = document.getElementById('adminBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-msg">No admins or sellers yet. Click + Create to add one.</div></td></tr>'; return; }
+      tbody.innerHTML = list.map(u => `
+        <tr>
+          <td style="font-weight:600">${u.name}</td>
+          <td style="color:#6b6b80">${u.email}</td>
+          <td><span class="rpill ${u.role}">${u.role}</span></td>
+          <td><span class="rpill ${u.blocked ? 'blocked' : 'active'}">${u.blocked ? 'Blocked' : 'Active'}</span></td>
+          <td style="color:#6b6b80;font-size:.75rem">${new Date(u.createdAt).toLocaleDateString()}</td>
+          <td>
+            <button class="btn-xs ${u.blocked ? 'btn-unblock' : 'btn-block'}" onclick="toggleBlock('${u._id}',${!!u.blocked})">${u.blocked ? 'Unblock' : 'Block'}</button>
+            <button class="btn-xs btn-del" onclick="deleteUser('${u._id}','${u.name}')">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    function renderBuyers() {
+      const list = allUsers.filter(u => u.role === 'buyer');
+      const tbody = document.getElementById('buyerBody');
+      if (!list.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-msg">No buyers yet</div></td></tr>'; return; }
+      tbody.innerHTML = list.map(u => `
+        <tr>
+          <td style="font-weight:600">${u.name}</td>
+          <td style="color:#6b6b80">${u.email}</td>
+          <td><span class="rpill ${u.blocked ? 'blocked' : 'active'}">${u.blocked ? 'Blocked' : 'Active'}</span></td>
+          <td style="color:#6b6b80;font-size:.75rem">${new Date(u.createdAt).toLocaleDateString()}</td>
+          <td>
+            <button class="btn-xs ${u.blocked ? 'btn-unblock' : 'btn-block'}" onclick="toggleBlock('${u._id}',${!!u.blocked})">${u.blocked ? 'Unblock' : 'Block'}</button>
+            <button class="btn-xs btn-del" onclick="deleteUser('${u._id}','${u.name}')">Delete</button>
+          </td>
+        </tr>`).join('');
+    }
+
+    async function toggleBlock(userId, isBlocked) {
       try {
-        const res = await API.request('GET', '/admin/system-status');
-        if (res.success) {
-          const d = res.data;
-          document.getElementById('dbStatus').textContent = d.database || '✅ Connected';
-          document.getElementById('bcStatus').textContent = d.blockchain || '✅ Connected';
-          document.getElementById('ipfsStatus').textContent = d.ipfs || '✅ Connected';
-          document.getElementById('rzpStatus').textContent = d.razorpay || 'Configured';
-          document.getElementById('envMode').textContent = d.nodeEnv || 'development';
+        const r = await API.toggleBlockUser(userId);
+        Toast.success(r.message || (isBlocked ? 'User unblocked' : 'User blocked'));
+        await loadUsers();
+      } catch(e) { Toast.error(e.message); }
+    }
+
+    async function deleteUser(userId, name) {
+      if (!confirm('Delete "' + name + '"? This cannot be undone.')) return;
+      try {
+        await API.deleteUser(userId);
+        Toast.success('User deleted');
+        await loadUsers(); await loadStats();
+      } catch(e) { Toast.error(e.message); }
+    }
+
+    function openModal()  { document.getElementById('createModal').classList.add('open'); }
+    function closeModal() {
+      document.getElementById('createModal').classList.remove('open');
+      document.getElementById('createBtn').textContent = 'Create User';
+      document.getElementById('createBtn').disabled = false;
+    }
+
+    async function submitCreateAdmin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('createBtn');
+      btn.disabled = true; btn.textContent = 'Creating...';
+      try {
+        await API.createAdmin({
+          name:     document.getElementById('newName').value,
+          email:    document.getElementById('newEmail').value,
+          password: document.getElementById('newPassword').value,
+          role:     document.getElementById('newRole').value
+        });
+        Toast.success('User created!');
+        closeModal(); e.target.reset();
+        await loadUsers(); await loadStats();
+      } catch(err) {
+        Toast.error(err.message);
+        btn.disabled = false; btn.textContent = 'Create User';
+      }
+    }
+
+    async function loadRevenue() {
+      try {
+        const r = await API.getRevenueReport();
+        if (!r.success) return;
+        const d = r.data;
+        const monthRev    = d.revenueByDay.reduce((s, x) => s + x.revenue, 0);
+        const monthOrders = d.revenueByDay.reduce((s, x) => s + x.orders, 0);
+        document.getElementById('mTotalRevenue').textContent = formatPrice(d.totalRevenue);
+        document.getElementById('mMonthRevenue').textContent = formatPrice(monthRev);
+        document.getElementById('mAvgOrder').textContent     = monthOrders ? formatPrice(monthRev / monthOrders) : 'N/A';
+        renderBarChart('revenueChart', d.revenueByDay, x => x.revenue,  x => x._id.slice(5), '#FFB932');
+        renderBarChart('growthChart',  d.userGrowth,   x => x.newUsers, x => x._id.slice(5), '#00D4AA');
+        const tp = document.getElementById('topProducts');
+        tp.innerHTML = d.topProducts.length
+          ? d.topProducts.map((p,i) => `<div class="top-prod-item"><div class="top-prod-rank">${i+1}</div><div class="top-prod-name">${p._id||'Unknown'}</div><div class="top-prod-sales">${p.sales} sales &bull; ${formatPrice(p.revenue)}</div></div>`).join('')
+          : '<div class="empty-msg">No sales data yet</div>';
+        const colors = {pending:'#FFB932',accepted:'#5B8DEF',transferred:'#00D4AA',rejected:'#EF4444',completed:'#00D4AA'};
+        const os = document.getElementById('orderStatus');
+        os.innerHTML = d.ordersByStatus.length
+          ? d.ordersByStatus.map(s => `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span class="spill ${s._id}">${s._id}</span><span style="font-weight:700;color:${colors[s._id]||'#e8e8f0'}">${s.count}</span></div>`).join('')
+          : '<div class="empty-msg">No orders yet</div>';
+      } catch(e) {
+        ['mTotalRevenue','mMonthRevenue','mAvgOrder'].forEach(id => document.getElementById(id).textContent = 'N/A');
+        ['revenueChart','growthChart'].forEach(id => document.getElementById(id).innerHTML = '<div class="empty-msg">No data yet</div>');
+        document.getElementById('topProducts').innerHTML = '<div class="empty-msg">No sales data yet</div>';
+        document.getElementById('orderStatus').innerHTML  = '<div class="empty-msg">No orders yet</div>';
+      }
+    }
+
+    function renderBarChart(id, data, valFn, labelFn, color) {
+      const el = document.getElementById(id);
+      if (!data?.length) { el.innerHTML = '<div class="empty-msg">No data yet</div>'; return; }
+      const max = Math.max(...data.map(valFn)) || 1;
+      el.innerHTML = data.map(d => {
+        const pct = Math.max(4, Math.round((valFn(d)/max)*100));
+        return `<div class="chart-bar-wrap"><div class="chart-bar" style="height:${pct}%;background:${color};opacity:.8;" title="${valFn(d)}"></div><div class="chart-label">${labelFn(d)}</div></div>`;
+      }).join('');
+    }
+
+    async function loadFraudAlerts() {
+      const list = document.getElementById('fraudList');
+      try {
+        const r = await API.getAllNfts('limit=100');
+        const redeemed = (r.data?.nfts || []).filter(n => n.status === 'redeemed');
+        if (!redeemed.length) {
+          list.innerHTML = '<div class="empty-msg" style="color:#00D4AA">&#x2705; No fraud alerts detected</div>';
+          return;
         }
-      } catch (e) {
-        document.getElementById('dbStatus').textContent = '✅ Connected (Cloud)';
-        document.getElementById('bcStatus').textContent = '✅ Polygon Amoy';
-        document.getElementById('ipfsStatus').textContent = '✅ Pinata';
-        document.getElementById('rzpStatus').textContent = '✅ Test Mode';
-        document.getElementById('envMode').textContent = 'development';
+        list.innerHTML = redeemed.map(n => `
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.12);border-radius:14px;margin-bottom:8px;">
+            <span style="padding:4px 10px;border-radius:50px;font-size:.68rem;font-weight:700;background:rgba(239,68,68,.15);color:#EF4444;white-space:nowrap;">REDEEMED</span>
+            <div style="flex:1">
+              <div style="font-size:.85rem;font-weight:600">${n.productName}</div>
+              <div style="font-size:.72rem;color:#6b6b80;margin-top:2px">Token #${n.tokenId} &bull; ${n.category}</div>
+            </div>
+            <div style="font-size:.7rem;color:#5a5a6e">${new Date(n.updatedAt||n.createdAt).toLocaleDateString()}</div>
+          </div>`).join('');
+      } catch(e) {
+        list.innerHTML = '<div class="empty-msg">Could not load fraud data</div>';
       }
     }
   </script>

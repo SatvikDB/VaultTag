@@ -107,13 +107,21 @@
           pagination = res.data.pagination;
         } else {
           // Buyer — use browse endpoint (active products only, no sensitive fields)
-          // Status filter only makes sense for admin; buyers always see active
           const buyerParams = new URLSearchParams({ page, limit: 12 });
           if (search) buyerParams.set('search', search);
           if (category) buyerParams.set('category', category);
           const res = await API.browseNfts(buyerParams.toString());
           nfts = res.data.nfts;
           pagination = res.data.pagination;
+
+          // Filter out products the buyer already owns
+          if (Auth.isLoggedIn()) {
+            try {
+              const myRes = await API.getMyNfts();
+              const ownedIds = new Set((myRes.data?.nfts || []).map(n => String(n.tokenId)));
+              nfts = nfts.filter(n => !ownedIds.has(String(n.tokenId)));
+            } catch(e) { /* silently skip if fails */ }
+          }
         }
 
         if (nfts.length === 0) {

@@ -6,129 +6,211 @@
   <title>Seller Dashboard — VaultTag</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    .dash-page { padding-top:90px; }
-    .dash-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; flex-wrap:wrap; gap:16px; }
-    .dash-header h1 { font-size:1.8rem; }
-    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
-    .quick-actions { display:flex; gap:12px; margin-bottom:32px; flex-wrap:wrap; }
-    .nft-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
-    .nft-table th { text-align:left; padding:12px 16px; color:var(--text-secondary); font-weight:500; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid var(--border-primary); }
-    .nft-table td { padding:12px 16px; border-bottom:1px solid var(--border-subtle); vertical-align:middle; }
-    .nft-table tr:hover td { background:var(--bg-surface-hover); }
-    .nft-table .img-cell { width:52px; height:52px; border-radius:var(--radius-md); object-fit:cover; display:block; }
-    .img-cell-wrap {
-      width:52px; height:52px; border-radius:var(--radius-md);
-      background:var(--bg-secondary); overflow:hidden;
-      display:flex; align-items:center; justify-content:center;
-      color:var(--text-muted); font-size:1.1rem;
-    }
-    .table-wrap { background:var(--bg-surface); border:1px solid var(--border-primary); border-radius:var(--radius-lg); overflow:hidden; }
-    .table-header { padding:16px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-primary); }
-    .table-header h3 { font-size:1rem; }
-    @media(max-width:768px) { .stats-row { grid-template-columns:1fr 1fr; } }
+    body { background: #07080f; font-family: 'Inter', sans-serif; }
+    .dash { max-width: 1280px; margin: 0 auto; padding: 90px 24px 60px; }
+
+    .dash-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:36px; flex-wrap:wrap; gap:16px; }
+    .dash-title { font-size:1.9rem; font-weight:800; letter-spacing:-0.5px; }
+    .dash-title .grad { background:linear-gradient(135deg,#5B8DEF,#00D4AA); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .dash-subtitle { color:#6b6b80; font-size:.85rem; margin-top:4px; }
+    .role-chip { display:inline-flex; align-items:center; gap:8px; padding:8px 18px; border-radius:50px; font-size:.78rem; font-weight:700; background:rgba(91,141,239,.1); color:#5B8DEF; border:1px solid rgba(91,141,239,.25); }
+
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:32px; }
+    @media(max-width:768px){ .stats-row { grid-template-columns:repeat(2,1fr); } }
+    .stat-box { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:18px; padding:22px 16px; text-align:center; transition:all .3s; position:relative; overflow:hidden; }
+    .stat-box::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+    .stat-box.blue::before { background:linear-gradient(90deg,#5B8DEF,#3B6FD4); }
+    .stat-box.teal::before { background:linear-gradient(90deg,#00D4AA,#009E7E); }
+    .stat-box.red::before { background:linear-gradient(90deg,#EF4444,#DC2626); }
+    .stat-box.gold::before { background:linear-gradient(90deg,#FFB932,#FF6B00); }
+    .stat-box:hover { transform:translateY(-4px); background:rgba(255,255,255,.05); }
+    .stat-num { font-size:2rem; font-weight:800; margin-bottom:4px; }
+    .stat-lbl { font-size:.7rem; color:#6b6b80; text-transform:uppercase; letter-spacing:.6px; }
+
+    .sec-title { font-size:.78rem; font-weight:700; color:#c0c0d0; margin-bottom:16px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.5px; }
+    .sec-title::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.06); }
+    .panel { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.06); border-radius:20px; padding:24px; margin-bottom:24px; }
+
+    /* Feature Cards */
+    .feature-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:32px; }
+    .feature-card { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:18px; padding:22px 18px; cursor:pointer; transition:all .3s; text-decoration:none; color:inherit; display:block; }
+    .feature-card:hover { transform:translateY(-5px); }
+    .feature-card.blue:hover { border-color:rgba(91,141,239,.4); box-shadow:0 16px 40px rgba(91,141,239,.12); }
+    .feature-card.teal:hover { border-color:rgba(0,212,170,.4); box-shadow:0 16px 40px rgba(0,212,170,.12); }
+    .feature-card.purple:hover { border-color:rgba(168,85,247,.4); box-shadow:0 16px 40px rgba(168,85,247,.12); }
+    .feature-card.gold:hover { border-color:rgba(255,185,50,.4); box-shadow:0 16px 40px rgba(255,185,50,.12); }
+    .fc-icon { font-size:1.8rem; margin-bottom:12px; }
+    .fc-title { font-weight:700; font-size:.92rem; margin-bottom:4px; }
+    .fc-desc { font-size:.72rem; color:#6b6b80; line-height:1.5; }
+
+    /* NFC Status */
+    .nfc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; }
+    .nfc-item { padding:16px; background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.05); border-radius:14px; }
+    .nfc-name { font-size:.82rem; font-weight:600; margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .nfc-status { display:inline-flex; align-items:center; gap:6px; font-size:.7rem; font-weight:600; }
+    .nfc-dot { width:8px; height:8px; border-radius:50%; }
+    .nfc-dot.linked { background:#00D4AA; box-shadow:0 0 6px rgba(0,212,170,.5); }
+    .nfc-dot.unlinked { background:#6b6b80; }
+
+    /* Products Table */
+    .vtable { width:100%; border-collapse:collapse; }
+    .vtable th { text-align:left; font-size:.68rem; text-transform:uppercase; letter-spacing:.6px; color:#6b6b80; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.06); }
+    .vtable td { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.03); font-size:.84rem; vertical-align:middle; }
+    .vtable tr:hover td { background:rgba(255,255,255,.02); }
+    .img-thumb { width:44px; height:44px; border-radius:10px; object-fit:cover; background:rgba(255,255,255,.05); display:flex; align-items:center; justify-content:center; font-size:1.1rem; overflow:hidden; }
+    .img-thumb img { width:100%; height:100%; object-fit:cover; }
+    .status-pill { padding:3px 10px; border-radius:50px; font-size:.68rem; font-weight:700; }
+    .status-pill.active { background:rgba(0,212,170,.12); color:#00D4AA; }
+    .status-pill.redeemed { background:rgba(239,68,68,.12); color:#EF4444; }
+    .status-pill.unminted { background:rgba(107,107,128,.12); color:#6b6b80; }
+
+    .empty-msg { text-align:center; padding:40px; color:#5a5a6e; font-size:.85rem; }
+    .pulse { animation:pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
   </style>
 </head>
 <body>
+  <div class="particles-bg" id="particles"></div>
   <nav class="navbar scrolled"><div class="container">
     <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
     <ul class="nav-links">
       <li><a href="/dashboard.html" class="active">Dashboard</a></li>
       <li><a href="/mint.html">Mint</a></li>
-      <li><a href="/collection.html">All NFTs</a></li>
+      <li><a href="/admin-nfts.html">My Products</a></li>
+      <li><a href="/admin-orders.html">Orders</a></li>
     </ul>
     <div class="nav-actions" id="navActions"></div>
   </div></nav>
 
-  <section class="dash-page">
-    <div class="container">
-      <div class="dash-header">
-        <div>
-          <h1>Seller <span class="text-gradient">Dashboard</span></h1>
-          <p style="color:var(--text-secondary);font-size:0.9rem">Manage your NFT products & orders</p>
-        </div>
-        <a href="/mint.html" class="btn btn-primary">+ Mint New NFT</a>
+  <div class="dash">
+    <div class="dash-topbar">
+      <div>
+        <div class="dash-title">🏪 Seller <span class="grad">Dashboard</span></div>
+        <div class="dash-subtitle">Seller doesn't just list products — they create verifiable identities.</div>
       </div>
-
-      <!-- Stats -->
-      <div class="stats-row" id="statsRow">
-        <div class="stats-card"><div class="stats-label">Total NFTs</div><div class="stats-value" id="sTotalNfts">—</div></div>
-        <div class="stats-card"><div class="stats-label">Active</div><div class="stats-value" id="sActive" style="color:var(--success)">—</div></div>
-        <div class="stats-card"><div class="stats-label">Redeemed</div><div class="stats-value" id="sRedeemed" style="color:var(--danger)">—</div></div>
-        <div class="stats-card"><div class="stats-label">Total Users</div><div class="stats-value" id="sUsers" style="color:var(--info)">—</div></div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="quick-actions">
-        <a href="/mint.html" class="btn btn-secondary btn-sm">🪙 Mint NFT</a>
-        <a href="/admin-nfts.html" class="btn btn-secondary btn-sm">📦 View All NFTs</a>
-      </div>
-
-      <!-- Recent NFTs Table -->
-      <div class="table-wrap">
-        <div class="table-header">
-          <h3>Recent NFTs</h3>
-          <a href="/admin-nfts.html" style="font-size:0.85rem">View All →</a>
-        </div>
-        <table class="nft-table">
-          <thead><tr>
-            <th></th><th>Product</th><th>Token</th><th>Category</th><th>Owner</th><th>Status</th><th>NFC</th><th>Actions</th>
-          </tr></thead>
-          <tbody id="recentTable">
-            <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary)"><div class="spinner" style="margin:0 auto 12px"></div>Loading...</td></tr>
-          </tbody>
-        </table>
+      <div style="display:flex;align-items:center;gap:12px">
       </div>
     </div>
-  </section>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-box blue"><div class="stat-num" id="sTotalNfts">—</div><div class="stat-lbl">Total Products</div></div>
+      <div class="stat-box teal"><div class="stat-num" id="sActive">—</div><div class="stat-lbl">Active NFTs</div></div>
+      <div class="stat-box red"><div class="stat-num" id="sRedeemed">—</div><div class="stat-lbl">Redeemed</div></div>
+      <div class="stat-box gold"><div class="stat-num" id="sOrders">—</div><div class="stat-lbl">Orders</div></div>
+    </div>
+
+    <!-- Power Features -->
+    <!-- Two-col -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+
+      <!-- NFC Binding Status -->
+      <div>
+        <div class="sec-title">📲 NFC Binding Status</div>
+        <div class="panel">
+          <div class="nfc-grid" id="nfcGrid">
+            <div class="empty-msg pulse" style="grid-column:1/-1">Loading products…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div>
+        <div class="sec-title">📦 Recent Orders</div>
+        <div class="panel" id="ordersPanel">
+          <div class="empty-msg pulse">Loading orders…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Table -->
+    <div class="sec-title">🎨 All Products</div>
+    <div class="panel" style="padding:0;overflow:hidden">
+      <table class="vtable">
+        <thead><tr><th></th><th>Product</th><th>Token</th><th>Category</th><th>Status</th><th>NFC</th><th>Action</th></tr></thead>
+        <tbody id="productsBody">
+          <tr><td colspan="7"><div class="empty-msg pulse">Loading products…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   <script src="/js/app.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       if (!Auth.requireAuth() || !Auth.requireSeller()) return;
-      loadDashboard();
+      initParticles(document.getElementById('particles'));
+      loadStats(); loadProducts(); loadOrders();
     });
 
-    async function loadDashboard() {
+    async function loadStats() {
       try {
-        // Load stats
-        const statsRes = await API.getStats();
-        const s = statsRes.data;
-        document.getElementById('sTotalNfts').textContent = s.totalNfts;
-        document.getElementById('sActive').textContent = s.activeNFTs;
-        document.getElementById('sRedeemed').textContent = s.redeemedNFTs;
-        document.getElementById('sUsers').textContent = s.totalUsers;
+        const r = await API.getStats();
+        if (r.success) {
+          document.getElementById('sTotalNfts').textContent = r.data.totalNfts    || 0;
+          document.getElementById('sActive').textContent    = r.data.activeNFTs   || 0;
+          document.getElementById('sRedeemed').textContent  = r.data.redeemedNFTs || 0;
+          document.getElementById('sOrders').textContent    = r.data.totalOrders  || 0;
+        }
+      } catch(e) {}
+    }
 
-        // Load recent NFTs
-        const nftsRes = await API.getAllNfts('limit=8');
-        const nfts = nftsRes.data.nfts;
-        const tbody = document.getElementById('recentTable');
+    async function loadProducts() {
+      try {
+        const r = await API.getAllNfts('limit=20');
+        const nfts = r.data?.nfts || [];
+        const tbody = document.getElementById('productsBody');
+        const nfcGrid = document.getElementById('nfcGrid');
 
-        if (nfts.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary)">No NFTs minted yet. <a href="/mint.html">Mint your first NFT</a></td></tr>';
+        if (!nfts.length) {
+          tbody.innerHTML = `<tr><td colspan="7"><div class="empty-msg">No products yet. <a href="/mint.html" style="color:#5B8DEF">Mint your first NFT →</a></div></td></tr>`;
+          nfcGrid.innerHTML = '<div class="empty-msg" style="grid-column:1/-1">No products found</div>';
           return;
         }
 
         tbody.innerHTML = nfts.map(n => `
           <tr>
             <td>
-              <div class="img-cell-wrap">
-                ${n.imageUrl
-                  ? `<img class="img-cell" src="${n.imageUrl}" alt="${n.productName}">`
-                  : '👟'}
+              <div class="img-thumb">
+                ${n.imageUrl ? `<img src="${n.imageUrl}" alt="">` : '👟'}
               </div>
             </td>
-            <td><strong>${n.productName}</strong></td>
-            <td><span class="text-mono">#${n.tokenId || '—'}</span></td>
-            <td>${n.category}</td>
-            <td>${n.owner ? maskEmail(n.owner) : '—'}</td>
-            <td><span class="badge badge-${n.status}">${n.status.toUpperCase()}</span></td>
-            <td>${n.nfcUid ? '✅' : '—'}</td>
-            <td><a href="/product.html?id=${n.tokenId}" class="btn btn-sm btn-secondary" style="padding:4px 10px;font-size:0.75rem">View</a></td>
-          </tr>
-        `).join('');
-      } catch (e) {
-        Toast.error(e.message);
+            <td style="font-weight:600">${n.productName}</td>
+            <td style="color:#6b6b80;font-family:monospace;font-size:.78rem">#${n.tokenId || '—'}</td>
+            <td style="color:#6b6b80">${n.category}</td>
+            <td><span class="status-pill ${n.status}">${n.status.toUpperCase()}</span></td>
+            <td>${n.nfcUid ? '<span style="color:#00D4AA;font-size:.8rem">✅ Linked</span>' : '<span style="color:#6b6b80;font-size:.8rem">— Unlinked</span>'}</td>
+            <td><a href="/product.html?id=${n.tokenId}" class="btn btn-sm btn-secondary" style="padding:4px 12px;font-size:.72rem">View</a></td>
+          </tr>`).join('');
+
+        nfcGrid.innerHTML = nfts.slice(0,6).map(n => `
+          <div class="nfc-item">
+            <div class="nfc-name">${n.productName}</div>
+            <div class="nfc-status">
+              <div class="nfc-dot ${n.nfcUid ? 'linked' : 'unlinked'}"></div>
+              <span style="color:${n.nfcUid ? '#00D4AA' : '#6b6b80'}">${n.nfcUid ? 'Linked' : 'Unlinked'}</span>
+            </div>
+          </div>`).join('');
+      } catch(e) {
+        document.getElementById('productsBody').innerHTML = `<tr><td colspan="7"><div class="empty-msg">Error loading products</div></td></tr>`;
       }
+    }
+
+    async function loadOrders() {
+      const panel = document.getElementById('ordersPanel');
+      try {
+        const r = await API.getAllOrders();
+        const orders = r.data?.orders || [];
+        if (!orders.length) { panel.innerHTML = '<div class="empty-msg">No orders yet</div>'; return; }
+        panel.innerHTML = orders.slice(0,4).map(o => `
+          <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+            <div style="flex:1">
+              <div style="font-size:.84rem;font-weight:600">${o.items?.[0]?.productName || 'Order'}</div>
+              <div style="font-size:.72rem;color:#6b6b80;margin-top:2px">${o.buyerEmail || ''} • ${new Date(o.createdAt).toLocaleDateString()}</div>
+            </div>
+            <span class="status-pill ${o.status === 'pending' ? 'unminted' : o.status === 'completed' ? 'active' : 'redeemed'}">${o.status.toUpperCase()}</span>
+          </div>`).join('');
+      } catch(e) { panel.innerHTML = '<div class="empty-msg">Could not load orders</div>'; }
     }
   </script>
 </body>

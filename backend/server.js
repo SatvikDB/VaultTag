@@ -68,10 +68,18 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve frontend for any non-API routes
+// Serve frontend for any non-API routes — default to login/landing page
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(__dirname, '../frontend/index.html'));
+    // Serve the specific HTML file if it exists, otherwise fall back to login
+    const filePath = path.join(__dirname, '../frontend', req.path);
+    const fs = require('fs');
+    if (req.path !== '/' && fs.existsSync(filePath) && !fs.statSync(filePath).isDirectory()) {
+      res.sendFile(filePath);
+    } else {
+      // Root path and unknown routes → login/landing page
+      res.sendFile(path.join(__dirname, '../frontend/login.html'));
+    }
   }
 });
 

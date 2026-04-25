@@ -5,87 +5,158 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard — VaultTag</title>
   <link rel="stylesheet" href="/css/style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background: #0a0a0f; color: #e8e8f0; }
-    .dash { max-width: 1200px; margin: 0 auto; padding: 100px 24px 60px; }
-    .dash-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
-    .dash-header h1 { font-size: 1.8rem; font-weight: 800; }
-    .dash-header h1 .grad { background: linear-gradient(135deg, #A855F7, #5B8DEF); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .badge-role { padding: 6px 14px; border-radius: 50px; font-size: .76rem; font-weight: 600; background: rgba(168,85,247,.12); color: #A855F7; border: 1px solid rgba(168,85,247,.2); }
+    body { background: #07080f; font-family: 'Inter', sans-serif; }
+    .dash { max-width: 1280px; margin: 0 auto; padding: 90px 24px 60px; }
 
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 36px; }
-    .stat-card { background: rgba(20,20,30,.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.06); border-radius: 18px; padding: 24px; text-align: center; transition: all .3s; }
-    .stat-card:hover { transform: translateY(-4px); border-color: rgba(168,85,247,.2); box-shadow: 0 12px 32px rgba(168,85,247,.1); }
-    .stat-val { font-size: 2rem; font-weight: 800; margin-bottom: 4px; }
-    .stat-label { font-size: .78rem; color: #7a7a8e; text-transform: uppercase; letter-spacing: .5px; }
+    .dash-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:36px; flex-wrap:wrap; gap:16px; }
+    .dash-title { font-size:1.9rem; font-weight:800; letter-spacing:-0.5px; }
+    .dash-title .grad { background:linear-gradient(135deg,#A855F7,#5B8DEF); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .dash-subtitle { color:#6b6b80; font-size:.85rem; margin-top:4px; }
+    .role-chip { display:inline-flex; align-items:center; gap:8px; padding:8px 18px; border-radius:50px; font-size:.78rem; font-weight:700; background:rgba(168,85,247,.1); color:#A855F7; border:1px solid rgba(168,85,247,.25); }
 
-    .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    .panel { background: rgba(20,20,30,.7); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,.06); border-radius: 18px; padding: 24px; margin-bottom: 24px; }
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:32px; }
+    @media(max-width:768px){ .stats-row { grid-template-columns:repeat(2,1fr); } }
+    .stat-box { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:18px; padding:22px 16px; text-align:center; transition:all .3s; position:relative; overflow:hidden; }
+    .stat-box::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+    .stat-box.purple::before { background:linear-gradient(90deg,#A855F7,#7C3AED); }
+    .stat-box.blue::before { background:linear-gradient(90deg,#5B8DEF,#3B6FD4); }
+    .stat-box.teal::before { background:linear-gradient(90deg,#00D4AA,#009E7E); }
+    .stat-box.gold::before { background:linear-gradient(90deg,#FFB932,#FF6B00); }
+    .stat-box:hover { transform:translateY(-4px); background:rgba(255,255,255,.05); }
+    .stat-num { font-size:2rem; font-weight:800; margin-bottom:4px; }
+    .stat-lbl { font-size:.7rem; color:#6b6b80; text-transform:uppercase; letter-spacing:.6px; }
 
-    .user-table { width: 100%; border-collapse: collapse; }
-    .user-table th { text-align: left; font-size: .72rem; text-transform: uppercase; letter-spacing: .5px; color: #7a7a8e; padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.06); }
-    .user-table td { padding: 12px; border-bottom: 1px solid rgba(255,255,255,.03); font-size: .88rem; }
-    .user-table tr:hover td { background: rgba(255,255,255,.02); }
-    .role-pill { padding: 3px 10px; border-radius: 50px; font-size: .7rem; font-weight: 600; }
-    .role-pill.superadmin { background: rgba(255,185,50,.12); color: #FFB932; }
-    .role-pill.admin { background: rgba(168,85,247,.12); color: #A855F7; }
-    .role-pill.seller { background: rgba(91,141,239,.12); color: #5B8DEF; }
-    .role-pill.buyer { background: rgba(0,212,170,.12); color: #00D4AA; }
+    .sec-title { font-size:.78rem; font-weight:700; color:#c0c0d0; margin-bottom:16px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.5px; }
+    .sec-title::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.06); }
+    .panel { background:rgba(255,255,255,.025); border:1px solid rgba(255,255,255,.06); border-radius:20px; padding:24px; margin-bottom:24px; }
 
-    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
-    .action-card { background: rgba(20,20,30,.7); border: 1px solid rgba(255,255,255,.06); border-radius: 16px; padding: 20px; cursor: pointer; transition: all .3s; text-decoration: none; color: inherit; }
-    .action-card:hover { transform: translateY(-3px); border-color: rgba(168,85,247,.3); }
-    .action-icon { font-size: 1.6rem; margin-bottom: 10px; }
-    .action-title { font-weight: 700; font-size: .92rem; margin-bottom: 4px; }
-    .action-desc { font-size: .75rem; color: #7a7a8e; }
+    /* Action Cards */
+    .action-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:32px; }
+    .action-card { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:18px; padding:22px 18px; cursor:pointer; transition:all .3s; text-decoration:none; color:inherit; display:block; }
+    .action-card:hover { transform:translateY(-5px); }
+    .action-card.purple:hover { border-color:rgba(168,85,247,.4); box-shadow:0 16px 40px rgba(168,85,247,.12); }
+    .action-card.blue:hover { border-color:rgba(91,141,239,.4); box-shadow:0 16px 40px rgba(91,141,239,.12); }
+    .action-card.teal:hover { border-color:rgba(0,212,170,.4); box-shadow:0 16px 40px rgba(0,212,170,.12); }
+    .action-card.red:hover { border-color:rgba(239,68,68,.4); box-shadow:0 16px 40px rgba(239,68,68,.12); }
+    .ac-icon { font-size:1.8rem; margin-bottom:12px; }
+    .ac-title { font-weight:700; font-size:.92rem; margin-bottom:4px; }
+    .ac-desc { font-size:.72rem; color:#6b6b80; line-height:1.5; }
 
-    .empty { text-align: center; padding: 40px; color: #5a5a6e; }
-    .loader { text-align: center; padding: 40px; color: #7a7a8e; }
+    /* Fraud Review */
+    .flag-list { display:flex; flex-direction:column; gap:10px; }
+    .flag-item { display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(255,185,50,.04); border:1px solid rgba(255,185,50,.1); border-radius:14px; }
+    .flag-badge { padding:4px 10px; border-radius:50px; font-size:.68rem; font-weight:700; background:rgba(255,185,50,.15); color:#FFB932; white-space:nowrap; }
+    .flag-info { flex:1; }
+    .flag-title { font-size:.85rem; font-weight:600; }
+    .flag-sub { font-size:.72rem; color:#6b6b80; margin-top:2px; }
+
+    /* Pending Sellers */
+    .seller-list { display:flex; flex-direction:column; gap:10px; }
+    .seller-item { display:flex; align-items:center; gap:14px; padding:14px 16px; background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.05); border-radius:14px; }
+    .seller-avatar { width:38px; height:38px; border-radius:50%; background:rgba(91,141,239,.15); display:flex; align-items:center; justify-content:center; font-weight:700; color:#5B8DEF; font-size:.9rem; flex-shrink:0; }
+    .seller-info { flex:1; }
+    .seller-name { font-size:.85rem; font-weight:600; }
+    .seller-email { font-size:.72rem; color:#6b6b80; }
+    .btn-approve { padding:6px 14px; border-radius:8px; border:none; background:rgba(0,212,170,.15); color:#00D4AA; font-size:.72rem; font-weight:700; cursor:pointer; transition:all .2s; }
+    .btn-approve:hover { background:rgba(0,212,170,.25); }
+
+    /* Table */
+    .vtable { width:100%; border-collapse:collapse; }
+    .vtable th { text-align:left; font-size:.68rem; text-transform:uppercase; letter-spacing:.6px; color:#6b6b80; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.06); }
+    .vtable td { padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.03); font-size:.84rem; }
+    .vtable tr:hover td { background:rgba(255,255,255,.02); }
+    .rpill { padding:3px 10px; border-radius:50px; font-size:.68rem; font-weight:700; }
+    .rpill.superadmin { background:rgba(255,185,50,.12); color:#FFB932; }
+    .rpill.admin { background:rgba(168,85,247,.12); color:#A855F7; }
+    .rpill.seller { background:rgba(91,141,239,.12); color:#5B8DEF; }
+    .rpill.buyer { background:rgba(0,212,170,.12); color:#00D4AA; }
+
+    .empty-msg { text-align:center; padding:32px; color:#5a5a6e; font-size:.85rem; }
+    .pulse { animation:pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
   </style>
 </head>
 <body>
   <div class="particles-bg" id="particles"></div>
   <nav class="navbar scrolled"><div class="container">
     <a href="/" class="nav-logo"><div class="logo-icon">⬡</div>VaultTag</a>
-    <div class="nav-actions"></div>
+    <div class="nav-actions" id="navActions"></div>
   </div></nav>
 
   <div class="dash">
-    <div class="dash-header">
+    <div class="dash-topbar">
       <div>
-        <h1>🛡️ Admin <span class="grad">Dashboard</span></h1>
-        <p style="color:#7a7a8e;font-size:.88rem;margin-top:4px">Oversee platform operations & manage sellers</p>
+        <div class="dash-title">🛡️ Admin <span class="grad">Dashboard</span></div>
+        <div class="dash-subtitle">Admin ensures only genuine products enter the system.</div>
       </div>
-      <span class="badge-role">🛡️ Admin</span>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="role-chip">🛡️ Admin</span>
+        <button onclick="Auth.logout()" class="btn btn-sm btn-secondary">Logout</button>
+      </div>
     </div>
 
     <!-- Stats -->
-    <div class="stats-grid" id="statsGrid">
-      <div class="stat-card"><div class="stat-val" id="totalUsers">—</div><div class="stat-label">Total Users</div></div>
-      <div class="stat-card"><div class="stat-val" id="totalSellers">—</div><div class="stat-label">Sellers</div></div>
-      <div class="stat-card"><div class="stat-val" id="totalProducts">—</div><div class="stat-label">Products</div></div>
-      <div class="stat-card"><div class="stat-val" id="totalOrders">—</div><div class="stat-label">Orders</div></div>
+    <div class="stats-row">
+      <div class="stat-box purple"><div class="stat-num" id="sTotalUsers">—</div><div class="stat-lbl">Total Users</div></div>
+      <div class="stat-box blue"><div class="stat-num" id="sTotalSellers">—</div><div class="stat-lbl">Sellers</div></div>
+      <div class="stat-box teal"><div class="stat-num" id="sTotalProducts">—</div><div class="stat-lbl">Products</div></div>
+      <div class="stat-box gold"><div class="stat-num" id="sTotalOrders">—</div><div class="stat-lbl">Orders</div></div>
     </div>
 
     <!-- Quick Actions -->
-    <h3 class="section-title">⚡ Quick Actions</h3>
-    <div class="quick-actions" style="margin-bottom:28px">
-      <a href="/admin-orders.html" class="action-card"><div class="action-icon">📦</div><div class="action-title">Manage Orders</div><div class="action-desc">Review pending orders & fulfill</div></a>
-      <a href="/admin-nfts.html" class="action-card"><div class="action-icon">🎨</div><div class="action-title">All Products</div><div class="action-desc">View all minted NFT products</div></a>
-      <a href="/admin-settings.html" class="action-card"><div class="action-icon">⚙️</div><div class="action-title">Settings</div><div class="action-desc">Payment config & platform fees</div></a>
-      <a href="/db-explorer.html" class="action-card"><div class="action-icon">🗄️</div><div class="action-title">DB Explorer</div><div class="action-desc">Browse database collections</div></a>
+    <!-- Revenue & Analytics -->
+    <div class="sec-title">📊 Revenue &amp; Analytics</div>
+    <div class="metric-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;">
+      <div class="metric-card" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;text-align:center;">
+        <div style="font-size:1.5rem;font-weight:800;color:#FFB932;margin-bottom:4px;" id="aRevTotal">—</div>
+        <div style="font-size:.7rem;color:#6b6b80;text-transform:uppercase;letter-spacing:.5px;">Total Revenue</div>
+        <div style="font-size:.72rem;color:#5a5a6e;margin-top:4px;">All time</div>
+      </div>
+      <div class="metric-card" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;text-align:center;">
+        <div style="font-size:1.5rem;font-weight:800;color:#00D4AA;margin-bottom:4px;" id="aRevDaily">—</div>
+        <div style="font-size:.7rem;color:#6b6b80;text-transform:uppercase;letter-spacing:.5px;">Today's Revenue</div>
+        <div style="font-size:.72rem;color:#5a5a6e;margin-top:4px;">Last 24 hours</div>
+      </div>
+      <div class="metric-card" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:20px;text-align:center;">
+        <div style="font-size:1.5rem;font-weight:800;color:#A855F7;margin-bottom:4px;" id="aAvgOrder">—</div>
+        <div style="font-size:.7rem;color:#6b6b80;text-transform:uppercase;letter-spacing:.5px;">Avg Order Value</div>
+        <div style="font-size:.72rem;color:#5a5a6e;margin-top:4px;">Per transaction</div>
+      </div>
     </div>
 
-    <!-- Users Table -->
-    <h3 class="section-title">👥 All Users</h3>
+    <!-- Two-col -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+
+      <!-- Fraud Review -->
+      <div>
+        <div class="sec-title">⚠️ Fraud Review Panel</div>
+        <div class="panel">
+          <div class="flag-list" id="flagList">
+            <div class="empty-msg pulse">Scanning for suspicious activity…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sellers -->
+      <div>
+        <div class="sec-title">🏪 Registered Sellers</div>
+        <div class="panel">
+          <div class="seller-list" id="sellerList">
+            <div class="empty-msg pulse">Loading sellers…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Users -->
+    <div class="sec-title">👥 All Users</div>
     <div class="panel">
-      <div id="usersLoader" class="loader">Loading users...</div>
-      <table class="user-table" id="usersTable" style="display:none">
+      <div id="usersLoader" class="empty-msg pulse">Loading users…</div>
+      <table class="vtable" id="usersTable" style="display:none">
         <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
         <tbody id="usersBody"></tbody>
       </table>
-      <div id="usersEmpty" class="empty" style="display:none">No users found</div>
     </div>
   </div>
 
@@ -93,46 +164,129 @@
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
       const user = Auth.getUser();
-      if (!user || (user.role !== 'admin' && user.role !== 'superadmin')) {
-        window.location.href = '/login.html?role=admin';
-        return;
-      }
+      if (!user || !['admin','superadmin'].includes(user.role)) { window.location.href = '/login.html'; return; }
       initParticles(document.getElementById('particles'));
-      await loadStats();
-      await loadUsers();
+      loadStats(); loadUsers(); loadFraudReview(); loadRevenue();
     });
 
     async function loadStats() {
       try {
-        const res = await API.getStats();
-        if (res.success) {
-          document.getElementById('totalUsers').textContent = res.data.totalUsers || 0;
-          document.getElementById('totalSellers').textContent = res.data.totalSellers || 0;
-          document.getElementById('totalProducts').textContent = res.data.totalNfts || 0;
-          document.getElementById('totalOrders').textContent = res.data.totalOrders || 0;
+        const r = await API.getStats();
+        if (r.success) {
+          document.getElementById('sTotalUsers').textContent    = r.data.totalUsers   || 0;
+          document.getElementById('sTotalSellers').textContent  = r.data.totalSellers || 0;
+          document.getElementById('sTotalProducts').textContent = r.data.totalNfts    || 0;
+          document.getElementById('sTotalOrders').textContent   = r.data.totalOrders  || 0;
         }
-      } catch (e) { console.warn('Stats error:', e); }
+      } catch(e) {}
     }
 
     async function loadUsers() {
       try {
-        const res = await API.getUsers();
+        const r = await API.getUsers();
         document.getElementById('usersLoader').style.display = 'none';
-        if (res.success && res.data.users && res.data.users.length) {
+        const users = r.data?.users || [];
+        if (users.length) {
           document.getElementById('usersTable').style.display = '';
-          document.getElementById('usersBody').innerHTML = res.data.users.map(u => `
+          document.getElementById('usersBody').innerHTML = users.map(u => `
             <tr>
               <td style="font-weight:600">${u.name}</td>
-              <td style="color:#7a7a8e">${u.email}</td>
-              <td><span class="role-pill ${u.role}">${u.role}</span></td>
-              <td style="color:#7a7a8e;font-size:.8rem">${new Date(u.createdAt).toLocaleDateString()}</td>
-            </tr>
-          `).join('');
+              <td style="color:#6b6b80">${u.email}</td>
+              <td><span class="rpill ${u.role}">${u.role}</span></td>
+              <td style="color:#6b6b80;font-size:.78rem">${new Date(u.createdAt).toLocaleDateString()}</td>
+            </tr>`).join('');
+
+          // Populate sellers panel
+          const sellers = users.filter(u => u.role === 'seller');
+          const sl = document.getElementById('sellerList');
+          if (sellers.length) {
+            sl.innerHTML = sellers.slice(0,5).map(s => `
+              <div class="seller-item">
+                <div class="seller-avatar">${s.name[0].toUpperCase()}</div>
+                <div class="seller-info">
+                  <div class="seller-name">${s.name}</div>
+                  <div class="seller-email">${s.email}</div>
+                </div>
+                <span class="rpill seller">Seller</span>
+              </div>`).join('');
+          } else {
+            sl.innerHTML = '<div class="empty-msg">No sellers registered yet</div>';
+          }
         } else {
-          document.getElementById('usersEmpty').style.display = '';
+          document.getElementById('usersLoader').textContent = 'No users found';
+          document.getElementById('usersLoader').style.display = '';
         }
-      } catch (e) {
-        document.getElementById('usersLoader').textContent = 'Failed to load users';
+      } catch(e) { document.getElementById('usersLoader').textContent = 'Failed to load'; }
+    }
+
+    async function loadFraudReview() {
+      const fl = document.getElementById('flagList');
+      try {
+        const r = await API.getAllNfts('limit=50');
+        const flagged = (r.data?.nfts || []).filter(n => n.status === 'redeemed');
+        if (!flagged.length) {
+          fl.innerHTML = '<div class="empty-msg" style="color:#00D4AA">✅ No suspicious products flagged</div>';
+          return;
+        }
+        fl.innerHTML = flagged.slice(0,4).map(n => `
+          <div class="flag-item">
+            <span class="flag-badge">REDEEMED</span>
+            <div class="flag-info">
+              <div class="flag-title">${n.productName}</div>
+              <div class="flag-sub">Token #${n.tokenId} • ${n.category}</div>
+            </div>
+          </div>`).join('');
+      } catch(e) { fl.innerHTML = '<div class="empty-msg">Could not load data</div>'; }
+    }
+
+    async function loadRevenue() {
+      try {
+        const r = await API.getRevenueReport();
+        if (!r.success) return;
+        const d = r.data;
+
+        // Total revenue
+        document.getElementById('aRevTotal').textContent = formatPrice(d.totalRevenue || 0);
+
+        // Today's revenue
+        const today = new Date().toISOString().slice(0, 10);
+        const todayData = d.revenueByDay.find(x => x._id === today);
+        document.getElementById('aRevDaily').textContent = formatPrice(todayData?.revenue || 0);
+
+        // Avg order value
+        const totalOrders = d.revenueByDay.reduce((s, x) => s + x.orders, 0);
+        const totalRev    = d.revenueByDay.reduce((s, x) => s + x.revenue, 0);
+        document.getElementById('aAvgOrder').textContent = totalOrders ? formatPrice(totalRev / totalOrders) : '₹0';
+
+        // Revenue bar chart
+        const chart = document.getElementById('aRevenueChart');
+        if (d.revenueByDay.length) {
+          const max = Math.max(...d.revenueByDay.map(x => x.revenue)) || 1;
+          chart.innerHTML = d.revenueByDay.map(x => {
+            const pct = Math.max(4, Math.round((x.revenue / max) * 100));
+            return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+              <div style="width:100%;height:${pct}%;background:#A855F7;opacity:.8;border-radius:6px 6px 0 0;min-height:4px;" title="${formatPrice(x.revenue)}"></div>
+              <div style="font-size:.55rem;color:#6b6b80;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center;">${x._id.slice(5)}</div>
+            </div>`;
+          }).join('');
+        } else {
+          chart.innerHTML = '<div style="width:100%;text-align:center;padding:32px;color:#5a5a6e;font-size:.85rem;">No revenue data yet</div>';
+        }
+
+        // Orders by status
+        const os = document.getElementById('aOrderStatus');
+        const colors = {pending:'#FFB932',accepted:'#5B8DEF',transferred:'#00D4AA',rejected:'#EF4444',completed:'#00D4AA'};
+        os.innerHTML = d.ordersByStatus.length
+          ? d.ordersByStatus.map(s => `
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);">
+                <span style="padding:3px 10px;border-radius:50px;font-size:.68rem;font-weight:700;background:rgba(255,255,255,.06);color:${colors[s._id]||'#e8e8f0'}">${s._id}</span>
+                <span style="font-weight:700;color:${colors[s._id]||'#e8e8f0'}">${s.count}</span>
+              </div>`).join('')
+          : '<div style="text-align:center;padding:32px;color:#5a5a6e;font-size:.85rem;">No orders yet</div>';
+      } catch(e) {
+        ['aRevTotal','aRevDaily','aAvgOrder'].forEach(id => document.getElementById(id).textContent = 'N/A');
+        document.getElementById('aRevenueChart').innerHTML = '<div style="width:100%;text-align:center;padding:32px;color:#5a5a6e;">No data yet</div>';
+        document.getElementById('aOrderStatus').innerHTML  = '<div style="text-align:center;padding:32px;color:#5a5a6e;">No data yet</div>';
       }
     }
   </script>
